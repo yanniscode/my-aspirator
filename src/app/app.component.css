@@ -1,0 +1,20 @@
+.content {
+    background-color: #c7c1c1;
+    /* display: flex;
+    align-items: flex-start;
+    justify-content: space-around; */
+    color: #752713;
+    width: 100%;
+    /* max-width: 700px; modif */
+    /* margin-bottom: 3rem; */
+}
+
+.maison {
+    background-color: #c7c1c1;
+    display: flex;
+    justify-content: space-evenly;
+    color: #752713;
+    width: 100%;
+    /* max-width: 700px; modif */
+    /* margin-bottom: 3rem; */
+}
