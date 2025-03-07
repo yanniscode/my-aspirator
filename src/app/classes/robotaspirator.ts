@@ -198,6 +198,14 @@ export class RobotAspirator {
             parent: null
         });
 
+        // ajout de la position de fin du chemin actuelle:
+        openSet.push({
+            position: fin,
+            gScore: 0,
+            fScore: this.distance(debut, fin),
+            parent: null
+        });
+
         while (openSet.length > 0) {
             // Trouver le nœud avec le plus petit fScore
             openSet.sort((a, b) => a.fScore - b.fScore);
@@ -268,9 +276,11 @@ export class RobotAspirator {
             if (chemin.length > 100) break;
         }
 
-        // Enlever la première position (position actuelle)
-        chemin.shift();
-
+        // sauf s'il n'y a qu'une position trouvée pour le chemin:
+        if(chemin.length > 1) {
+            // Enlever la première position (position actuelle)
+            chemin.shift();
+        }
 
         return chemin;
     }
