@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { trigger, transition, style } from '@angular/animations';
+import { interval, Subscription } from "rxjs";
+import { map } from 'rxjs/operators';
 
 import { Position } from './classes/position';
 import { RobotAspirator } from './classes/robotaspirator';
@@ -26,7 +28,15 @@ import { NgFor } from '@angular/common';
 export class AppComponent implements OnInit {
   title = 'my-aspirator-robot';
 
+  // nécessaire pour l'animation (écoute d'observable avec rxjs)
+  private updateSubscription!: Subscription;
+
   maison: Cell[][] = [[]];
+  maisonCopy: Cell[][] = [[]]; // pour gérer l'animation
+
+  basePosition: Position = { x: 0, y: 0 };
+  robot: RobotAspirator = new RobotAspirator(this.maison, this.basePosition);
+
 
   ngOnInit(): void {
     // Création de la maison
@@ -40,15 +50,29 @@ export class AppComponent implements OnInit {
 
     this.maison = this.creerMaison(largeurMaison, hauteurMaison, obstacles);
 
-    // // Position de la base de charge
-    const basePosition: Position = { x: 0, y: 0 };
-    this.maison[basePosition.y][basePosition.x].type = 'B';
+    // Position de la base de charge
+    this.basePosition = { x: 0, y: 0 };
+    this.maison[this.basePosition.y][this.basePosition.x].type = 'B';
 
-    // // Créer et démarrer le robot
-    const robot = new RobotAspirator(this.maison, basePosition);
-    robot.nettoyer();
+    // Créer et démarrer le robot
+    this.robot = new RobotAspirator(this.maison, this.basePosition);
 
-    // // Afficher l'état final de la maison
+      // copie par valeur du labyrinthe initial:
+      this.maisonCopy = this.maison.slice();
+
+      setTimeout(() => {
+        // remplace un élément du tableau par le robot et l'affiche
+        this.maison = this.updateMaisonWithRobot().slice();
+      }, 1000);
+
+    this.updateSubscription = interval(250).pipe(
+      map(() => {
+        // démarrage de l'algo principal:
+        this.nettoyer();
+      })
+    ).subscribe();
+
+    // Afficher l'état final de la maison
     this.afficherMaison();
   }
 
@@ -96,4 +120,59 @@ export class AppComponent implements OnInit {
       console.log(ligne);
     }
   }
+
+  // Fonction principale pour nettoyer la maison
+  public nettoyer(): void {
+    console.log("Début du nettoyage");
+    // à chaque tour, le labyrinthe est réinitialisé, seule la position du robot sera mise à jour
+    this.maison = this.maisonCopy.slice();    
+
+    if(this.robot.batterie === this.robot.energieNecessairePourRetour()) {
+    // while (this.batterie > this.energieNecessairePourRetour()) {
+        this.updateSubscription.unsubscribe();
+    }
+    // Si toutes les cellules accessibles sont visitées, retourner à la base
+    if (this.robot.toutEstNettoye()) {
+        console.log("Toutes les zones accessibles sont nettoyées");
+        this.updateSubscription.unsubscribe();
+    }
+
+    // // Chercher la prochaine cellule non visitée et s'y diriger
+    const prochaineCellule = this.robot.trouverProchaineDestination();
+
+    if (prochaineCellule) {
+        this.robot.seDeplacerVers(prochaineCellule);
+    } else {
+        // Si aucune cellule n'est trouvée, retourner à la base
+        console.log("Aucune cellule accessible non visitée trouvée");
+        this.updateSubscription.unsubscribe();
+    }
+
+    // Retourner à la base de charge
+    console.log(`Batterie: ${this.robot.batterie}%. Retour à la base.`);
+    this.robot.retournerALaBase();
+  }
+
+  private updateMaisonWithRobot(): Cell[][] {
+    // test autre option:
+    // mais pb, Robot comme cloné, pas déplacé : copie de la ref, pas de la valeur, et pb aussi malgré slice()
+    // this.maison[this.robot.position.x][this.robot.position.y].typeBloc = TypeBloc["ROBOT"];
+    // return this.labyrinthe.blocs.slice();
+
+    return this.maison.map((row) => {
+        return row.map((cell) => {
+            // Vérifie si la position du robot correspond à la position de la cellule
+            if (cell.position.x === this.robot.position.x && cell.position.y === this.robot.position.y) {
+                return {
+                    ...cell,
+                    position: cell.position,
+                    type: 'R', // Remplace l'affichage de type vide par le type du robot
+                    visited: cell.visited
+                };
+            }
+            return cell; // retourne la cellule inchangée
+        });
+    });
+  }
+
 }

@@ -1,5 +1,5 @@
-import { interval, Subscription } from "rxjs";
-import { map } from 'rxjs/operators';
+// import { interval, Subscription } from "rxjs";
+// import { map } from 'rxjs/operators';
 import { Cell } from "./cell";
 import { Position } from "./position";
 
@@ -10,20 +10,20 @@ export class RobotAspirator {
     // Carte de l'environnement
     private grille: Cell[][];
     // Position actuelle
-    private position: Position;
+    public position: Position;
     // Direction actuelle
     private direction: Direction;
     // Position de la base de charge
     private basePosition: Position;
     // Niveau de batterie (en pourcentage)
-    private batterie: number;
+    public batterie: number;
     // Combien d'énergie est consommée par mouvement
     private consommationParMouvement: number;
     // Combien d'énergie est nécessaire pour retourner à la base
     private energieRetourBase: number;
 
-    // nécessaire pour l'animation (écoute d'observable avec rxjs)
-    private updateSubscription!: Subscription;
+    // // nécessaire pour l'animation (écoute d'observable avec rxjs)
+    // private updateSubscription!: Subscription;
 
 
     constructor(grille: Cell[][], basePosition: Position) {
@@ -36,43 +36,43 @@ export class RobotAspirator {
         this.energieRetourBase = 0; // Sera calculée dynamiquement
     }
 
-    // Fonction principale pour nettoyer la maison
-    public nettoyer(): void {
-        console.log("Début du nettoyage");
+    // // Fonction principale pour nettoyer la maison
+    // public nettoyer(): void {
+    //     console.log("Début du nettoyage");
 
-        this.updateSubscription = interval(250).pipe(
-            map(() => {
+    //     this.updateSubscription = interval(250).pipe(
+    //         map(() => {
 
-                if(this.batterie === this.energieNecessairePourRetour()) {
-                // while (this.batterie > this.energieNecessairePourRetour()) {
-                    this.updateSubscription.unsubscribe();
-                }
-                // Si toutes les cellules accessibles sont visitées, retourner à la base
-                if (this.toutEstNettoye()) {
-                    console.log("Toutes les zones accessibles sont nettoyées");
-                    this.updateSubscription.unsubscribe();
-                }
+    //             if(this.batterie === this.energieNecessairePourRetour()) {
+    //             // while (this.batterie > this.energieNecessairePourRetour()) {
+    //                 this.updateSubscription.unsubscribe();
+    //             }
+    //             // Si toutes les cellules accessibles sont visitées, retourner à la base
+    //             if (this.toutEstNettoye()) {
+    //                 console.log("Toutes les zones accessibles sont nettoyées");
+    //                 this.updateSubscription.unsubscribe();
+    //             }
 
-                // // Chercher la prochaine cellule non visitée et s'y diriger
-                const prochaineCellule = this.trouverProchaineDestination();
+    //             // // Chercher la prochaine cellule non visitée et s'y diriger
+    //             const prochaineCellule = this.trouverProchaineDestination();
 
-                if (prochaineCellule) {
-                    this.seDeplacerVers(prochaineCellule);
-                } else {
-                    // Si aucune cellule n'est trouvée, retourner à la base
-                    console.log("Aucune cellule accessible non visitée trouvée");
-                    this.updateSubscription.unsubscribe();
-                }
-            })
-        ).subscribe();
+    //             if (prochaineCellule) {
+    //                 this.seDeplacerVers(prochaineCellule);
+    //             } else {
+    //                 // Si aucune cellule n'est trouvée, retourner à la base
+    //                 console.log("Aucune cellule accessible non visitée trouvée");
+    //                 this.updateSubscription.unsubscribe();
+    //             }
+    //         })
+    //     ).subscribe();
 
-        // Retourner à la base de charge
-        console.log(`Batterie: ${this.batterie}%. Retour à la base.`);
-        this.retournerALaBase();
-    }
+    //     // Retourner à la base de charge
+    //     console.log(`Batterie: ${this.batterie}%. Retour à la base.`);
+    //     this.retournerALaBase();
+    // }
 
     // Vérifier si toutes les cellules accessibles ont été visitées
-    private toutEstNettoye(): boolean {
+    public toutEstNettoye(): boolean {
         for (let i = 0; i < this.grille.length; i++) {
             for (let j = 0; j < this.grille[i].length; j++) {
                 const cell = this.grille[i][j];
@@ -85,7 +85,7 @@ export class RobotAspirator {
     }
 
     // Trouver la prochaine cellule accessible non visitée la plus proche
-    private trouverProchaineDestination(): Cell | null {
+    public trouverProchaineDestination(): Cell | null {
         // Utiliser un algorithme de recherche en largeur (BFS) pour trouver la cellule non visitée la plus proche
         const queue: { cell: Cell; distance: number }[] = [];
         const visited: Set<string> = new Set();
@@ -153,23 +153,24 @@ export class RobotAspirator {
     }
 
     // Se déplacer vers une cellule spécifique
-    private seDeplacerVers(destination: Cell): void {
+    public seDeplacerVers(destination: Cell): RobotAspirator {
         // Utiliser A* ou un autre algorithme de recherche de chemin pour trouver le chemin optimal
         const chemin = this.trouverChemin(this.position, destination.position);
 
         if (chemin.length === 0) {
             console.log("Impossible de trouver un chemin vers la destination");
-            return;
+            return this;
         }
 
         // Suivre le chemin
         for (const pos of chemin) {
+            // TODO: renvoyer la nouvelle position du robot + la cellule marquée comme visitée
             this.deplacer(pos);
 
             // Vérifier si la batterie est suffisante pour continuer
             if (this.batterie <= this.energieNecessairePourRetour()) {
                 console.log("Batterie faible, interruption du déplacement");
-                return;
+                return this;
             }
         }
     }
@@ -306,7 +307,7 @@ export class RobotAspirator {
     }
 
     // Estimer l'énergie nécessaire pour retourner à la base
-    private energieNecessairePourRetour(): number {
+    public energieNecessairePourRetour(): number {
         // Estimer la distance jusqu'à la base
         const distance = this.distance(this.position, this.basePosition);
 
@@ -315,7 +316,7 @@ export class RobotAspirator {
     }
 
     // Retourner à la base de charge
-    private retournerALaBase(): void {
+    public retournerALaBase(): void {
         console.log("Retour à la base de charge");
 
         // Trouver le chemin vers la base
