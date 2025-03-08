@@ -33,6 +33,7 @@ export class AppComponent implements OnInit {
 
   maison: Cell[][] = [[]];
   maisonCopy: Cell[][] = [[]]; // pour gérer l'animation
+  grille: Cell[][] = [];
 
   basePosition: Position = { x: 0, y: 0 };
   robot: RobotAspirator = new RobotAspirator(this.maison, this.basePosition);
@@ -57,34 +58,35 @@ export class AppComponent implements OnInit {
     // Créer et démarrer le robot
     this.robot = new RobotAspirator(this.maison, this.basePosition);
 
-      // copie par valeur du labyrinthe initial:
-      this.maisonCopy = this.maison.slice();
+      // copie de la maison initiale:
+      this.maisonCopy = this.maison;
 
       setTimeout(() => {
         // remplace un élément du tableau par le robot et l'affiche
-        this.maison = this.updateMaisonWithRobot().slice();
+        this.maison = this.updateMaisonWithRobot();
+        // this.afficherMaison();
       }, 1000);
 
+    // démarrage de l'algo principal de nettoyage de la maison:
     this.updateSubscription = interval(250).pipe(
       map(() => {
-        // démarrage de l'algo principal:
         this.nettoyer();
       })
     ).subscribe();
 
     // Afficher l'état final de la maison
-    this.afficherMaison();
+    // this.afficherMaison();
   }
 
   // Exemple d'utilisation
   private creerMaison(largeur: number, hauteur: number, obstacles: Position[]): Cell[][] {
-    const grille: Cell[][] = [];
+    this.grille = [];
 
     // Initialiser la grille
     for (let y = 0; y < hauteur; y++) {
-        grille[y] = [];
+        this.grille[y] = [];
         for (let x = 0; x < largeur; x++) {
-            grille[y][x] = {
+            this.grille[y][x] = {
                 position: { x, y },
                 type: '_',
                 visited: false
@@ -95,44 +97,27 @@ export class AppComponent implements OnInit {
     // Ajouter les obstacles
     obstacles.forEach(obs => {
         if (obs.x >= 0 && obs.x < largeur && obs.y >= 0 && obs.y < hauteur) {
-            grille[obs.y][obs.x].type = 'X';
+            this.grille[obs.y][obs.x].type = 'X';
         }
     });
 
-    return grille;
-  }
-
-  private afficherMaison(): void {
-    for (let y = 0; y < this.maison.length; y++) {
-      let ligne = '';
-      for (let x = 0; x < this.maison[y].length; x++) {
-          const cell = this.maison[y][x];
-          if (cell.type === 'B') {
-              ligne += 'B ';
-          } else if (cell.type === 'X') {
-              ligne += '# ';
-          } else if (cell.visited) {
-              ligne += 'V ';
-          } else {
-              ligne += '. ';
-          }
-      }
-      console.log(ligne);
-    }
+    return this.grille;
   }
 
   // Fonction principale pour nettoyer la maison
-  public nettoyer(): void {
+  private nettoyer(): void {
     console.log("Début du nettoyage");
-    // à chaque tour, le labyrinthe est réinitialisé, seule la position du robot sera mise à jour
-    this.maison = this.maisonCopy.slice();    
+    // à chaque tour, la maison est réinitialisé, seule la position du robot sera mise à jour
+    this.maison = this.maisonCopy;
 
+    // si la batterie est HS
     if(this.robot.batterie === this.robot.energieNecessairePourRetour()) {
     // while (this.batterie > this.energieNecessairePourRetour()) {
         this.updateSubscription.unsubscribe();
     }
-    // Si toutes les cellules accessibles sont visitées, retourner à la base
-    if (this.robot.toutEstNettoye()) {
+
+    // si toutes les cellules accessibles sont visitées, retourner à la base
+    if (this.toutEstNettoye()) {
         console.log("Toutes les zones accessibles sont nettoyées");
         this.updateSubscription.unsubscribe();
     }
@@ -141,23 +126,60 @@ export class AppComponent implements OnInit {
     const prochaineCellule = this.robot.trouverProchaineDestination();
 
     if (prochaineCellule) {
-        this.robot.seDeplacerVers(prochaineCellule);
+        this.robot = this.robot.seDeplacerVers(this.robot, prochaineCellule);
+        this.maison = this.updateMaisonWithRobot();
     } else {
         // Si aucune cellule n'est trouvée, retourner à la base
         console.log("Aucune cellule accessible non visitée trouvée");
+        // Retourner à la base de charge
+        console.log(`Batterie: ${this.robot.batterie}%. Retour à la base.`);
+        this.robot = this.robot.retournerALaBase(this.robot);
+        this.maison = this.updateMaisonWithRobot();
         this.updateSubscription.unsubscribe();
     }
+  }
+  
+  // Vérifier si toutes les cellules accessibles ont été visitées
+  private toutEstNettoye(): boolean {
+    for (let i = 0; i < this.grille.length; i++) {
+        for (let j = 0; j < this.grille[i].length; j++) {
+            const cell = this.grille[i][j];
+            if (cell.type !== 'X' && !cell.visited) {
+                return false;
+            }
+        }
+    }
+    return true;
+  }
 
-    // Retourner à la base de charge
-    console.log(`Batterie: ${this.robot.batterie}%. Retour à la base.`);
-    this.robot.retournerALaBase();
+  // TODO: ajouter le robot ??
+  private afficherMaison(): void {
+    for (let y = 0; y < this.maison.length; y++) {
+      let ligne = '';
+      for (let x = 0; x < this.maison[y].length; x++) {
+          const cell = this.maison[y][x];
+          if (cell.type === 'B') {
+              ligne += 'B ';
+          } else if (cell.type === 'X') {
+              ligne += 'X ';
+          } else if (cell.visited) {
+              ligne += 'V ';
+          } else if (cell.type === 'R') {
+            ligne += 'R ';
+        }
+          else {
+              ligne += '_ ';
+          }
+      }
+      console.log(ligne);
+    }
   }
 
   private updateMaisonWithRobot(): Cell[][] {
     // test autre option:
     // mais pb, Robot comme cloné, pas déplacé : copie de la ref, pas de la valeur, et pb aussi malgré slice()
     // this.maison[this.robot.position.x][this.robot.position.y].typeBloc = TypeBloc["ROBOT"];
-    // return this.labyrinthe.blocs.slice();
+    // return this.maison.slice();
 
     return this.maison.map((row) => {
         return row.map((cell) => {

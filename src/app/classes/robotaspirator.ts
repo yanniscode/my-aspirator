@@ -36,54 +36,6 @@ export class RobotAspirator {
         this.energieRetourBase = 0; // Sera calculée dynamiquement
     }
 
-    // // Fonction principale pour nettoyer la maison
-    // public nettoyer(): void {
-    //     console.log("Début du nettoyage");
-
-    //     this.updateSubscription = interval(250).pipe(
-    //         map(() => {
-
-    //             if(this.batterie === this.energieNecessairePourRetour()) {
-    //             // while (this.batterie > this.energieNecessairePourRetour()) {
-    //                 this.updateSubscription.unsubscribe();
-    //             }
-    //             // Si toutes les cellules accessibles sont visitées, retourner à la base
-    //             if (this.toutEstNettoye()) {
-    //                 console.log("Toutes les zones accessibles sont nettoyées");
-    //                 this.updateSubscription.unsubscribe();
-    //             }
-
-    //             // // Chercher la prochaine cellule non visitée et s'y diriger
-    //             const prochaineCellule = this.trouverProchaineDestination();
-
-    //             if (prochaineCellule) {
-    //                 this.seDeplacerVers(prochaineCellule);
-    //             } else {
-    //                 // Si aucune cellule n'est trouvée, retourner à la base
-    //                 console.log("Aucune cellule accessible non visitée trouvée");
-    //                 this.updateSubscription.unsubscribe();
-    //             }
-    //         })
-    //     ).subscribe();
-
-    //     // Retourner à la base de charge
-    //     console.log(`Batterie: ${this.batterie}%. Retour à la base.`);
-    //     this.retournerALaBase();
-    // }
-
-    // Vérifier si toutes les cellules accessibles ont été visitées
-    public toutEstNettoye(): boolean {
-        for (let i = 0; i < this.grille.length; i++) {
-            for (let j = 0; j < this.grille[i].length; j++) {
-                const cell = this.grille[i][j];
-                if (cell.type !== 'X' && !cell.visited) {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
     // Trouver la prochaine cellule accessible non visitée la plus proche
     public trouverProchaineDestination(): Cell | null {
         // Utiliser un algorithme de recherche en largeur (BFS) pour trouver la cellule non visitée la plus proche
@@ -153,26 +105,27 @@ export class RobotAspirator {
     }
 
     // Se déplacer vers une cellule spécifique
-    public seDeplacerVers(destination: Cell): RobotAspirator {
+    public seDeplacerVers(robot: RobotAspirator, destination: Cell): RobotAspirator {
         // Utiliser A* ou un autre algorithme de recherche de chemin pour trouver le chemin optimal
         const chemin = this.trouverChemin(this.position, destination.position);
 
         if (chemin.length === 0) {
             console.log("Impossible de trouver un chemin vers la destination");
-            return this;
+            return robot;
         }
 
         // Suivre le chemin
         for (const pos of chemin) {
             // TODO: renvoyer la nouvelle position du robot + la cellule marquée comme visitée
-            this.deplacer(pos);
+            robot = this.deplacer(robot, pos);
 
             // Vérifier si la batterie est suffisante pour continuer
             if (this.batterie <= this.energieNecessairePourRetour()) {
                 console.log("Batterie faible, interruption du déplacement");
-                return this;
+                return robot;
             }
         }
+        return robot;
     }
 
     // Algorithme A* pour trouver le chemin optimal
@@ -287,18 +240,19 @@ export class RobotAspirator {
     }
 
     // Déplacer le robot à une position spécifique
-    private deplacer(position: Position): void {
+    private deplacer(robot: RobotAspirator, position: Position): RobotAspirator {
         // Mettre à jour la position
-        this.position = { ...position };
+        robot.position = { ...position };
 
         // Marquer la cellule comme visitée
         const cell = this.grille[position.y][position.x];
         cell.visited = true;
 
         // Réduire la batterie
-        this.batterie -= this.consommationParMouvement;
+        robot.batterie -= this.consommationParMouvement;
 
-        console.log(`Déplacement vers (${position.x}, ${position.y}). Batterie: ${this.batterie.toFixed(1)}%`);
+        console.log(`Déplacement vers (${position.x}, ${position.y}). Batterie: ${robot.batterie.toFixed(1)}%`);
+        return robot;
     }
 
     // Calculer la distance entre deux positions (heuristique pour A*)
@@ -316,7 +270,7 @@ export class RobotAspirator {
     }
 
     // Retourner à la base de charge
-    public retournerALaBase(): void {
+    public retournerALaBase(robot: RobotAspirator): RobotAspirator {
         console.log("Retour à la base de charge");
 
         // Trouver le chemin vers la base
@@ -324,20 +278,21 @@ export class RobotAspirator {
 
         if (chemin.length === 0) {
             console.log("Impossible de trouver un chemin vers la base de charge!");
-            return;
+            return robot
         }
 
         // Suivre le chemin
         for (const pos of chemin) {
-            this.deplacer(pos);
+            robot = this.deplacer(robot, pos);
 
             // Vérifier si nous avons assez de batterie
             if (this.batterie <= 0) {
                 console.log("Batterie épuisée avant d'atteindre la base!");
-                return;
+                return robot;
             }
         }
 
         console.log("Arrivé à la base de charge avec une batterie de " + this.batterie.toFixed(1) + "%");
+        return robot;
     }
 }
