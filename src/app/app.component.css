@@ -12,9 +12,26 @@
 .maison {
     background-color: #c7c1c1;
     display: flex;
-    justify-content: space-evenly;
+    align-items: flex-start;
+    justify-content: space-evenly;    
     color: #752713;
     width: 100%;
     /* max-width: 700px; modif */
     /* margin-bottom: 3rem; */
+}
+
+.start-button {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    margin-top: 20px;
+    padding-bottom: 10px;
+}
+
+.pause-button {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    margin-top: 20px;
+    padding-bottom: 10px;
 }

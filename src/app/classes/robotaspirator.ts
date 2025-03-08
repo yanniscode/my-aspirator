@@ -1,5 +1,7 @@
 // import { interval, Subscription } from "rxjs";
 // import { map } from 'rxjs/operators';
+import { MessageService } from "../services/message.service";
+
 import { Cell } from "./cell";
 import { Position } from "./position";
 
@@ -25,8 +27,12 @@ export class RobotAspirator {
     // // nécessaire pour l'animation (écoute d'observable avec rxjs)
     // private updateSubscription!: Subscription;
 
+    constructor(messageService: MessageService, grille: Cell[][], basePosition: Position);
+    // constructor(grille: Cell[][], basePosition?: Position);
 
-    constructor(grille: Cell[][], basePosition: Position) {
+    constructor(private messageService: MessageService, grille: Cell[][], basePosition: Position) {
+        this.messageService = messageService;
+
         this.grille = grille;
         this.basePosition = basePosition;
         this.position = { ...basePosition };
@@ -110,7 +116,7 @@ export class RobotAspirator {
         const chemin = this.trouverChemin(this.position, destination.position);
 
         if (chemin.length === 0) {
-            console.log("Impossible de trouver un chemin vers la destination");
+            this.log("Impossible de trouver un chemin vers la destination");
             return robot;
         }
 
@@ -119,9 +125,12 @@ export class RobotAspirator {
             // TODO: renvoyer la nouvelle position du robot + la cellule marquée comme visitée
             robot = this.deplacer(robot, pos);
 
+            this.log("seDeplacerVers");
+            this.log("robot : X ="+robot.position.x+"/ Y = "+robot.position.y);
+
             // Vérifier si la batterie est suffisante pour continuer
             if (this.batterie <= this.energieNecessairePourRetour()) {
-                console.log("Batterie faible, interruption du déplacement");
+                this.log("Batterie faible, interruption du déplacement");
                 return robot;
             }
         }
@@ -239,22 +248,6 @@ export class RobotAspirator {
         return chemin;
     }
 
-    // Déplacer le robot à une position spécifique
-    private deplacer(robot: RobotAspirator, position: Position): RobotAspirator {
-        // Mettre à jour la position
-        robot.position = { ...position };
-
-        // Marquer la cellule comme visitée
-        const cell = this.grille[position.y][position.x];
-        cell.visited = true;
-
-        // Réduire la batterie
-        robot.batterie -= this.consommationParMouvement;
-
-        console.log(`Déplacement vers (${position.x}, ${position.y}). Batterie: ${robot.batterie.toFixed(1)}%`);
-        return robot;
-    }
-
     // Calculer la distance entre deux positions (heuristique pour A*)
     private distance(a: Position, b: Position): number {
         return Math.abs(a.x - b.x) + Math.abs(a.y - b.y); // Distance de Manhattan
@@ -271,13 +264,13 @@ export class RobotAspirator {
 
     // Retourner à la base de charge
     public retournerALaBase(robot: RobotAspirator): RobotAspirator {
-        console.log("Retour à la base de charge");
+        this.log("Retour à la base de charge");
 
         // Trouver le chemin vers la base
         const chemin = this.trouverChemin(this.position, this.basePosition);
 
         if (chemin.length === 0) {
-            console.log("Impossible de trouver un chemin vers la base de charge!");
+            this.log("Impossible de trouver un chemin vers la base de charge!");
             return robot
         }
 
@@ -285,14 +278,37 @@ export class RobotAspirator {
         for (const pos of chemin) {
             robot = this.deplacer(robot, pos);
 
+            this.log("retour à la base");
+            this.log("robot : X ="+robot.position.x+"/ Y = "+robot.position.y);
+
             // Vérifier si nous avons assez de batterie
             if (this.batterie <= 0) {
-                console.log("Batterie épuisée avant d'atteindre la base!");
+                this.log("Batterie épuisée avant d'atteindre la base!");
                 return robot;
             }
         }
 
-        console.log("Arrivé à la base de charge avec une batterie de " + this.batterie.toFixed(1) + "%");
+        this.log("Arrivé à la base de charge avec une batterie de " + this.batterie.toFixed(1) + "%");
         return robot;
+    }
+
+    // Déplacer le robot à une position spécifique
+    private deplacer(robot: RobotAspirator, position: Position): RobotAspirator {
+        // Mettre à jour la position
+        robot.position = { ...position };
+
+        // Marquer la cellule comme visitée
+        const cell = this.grille[position.y][position.x];
+        cell.visited = true;
+        cell.type = 'O';
+        // Réduire la batterie
+        robot.batterie -= this.consommationParMouvement;
+
+        this.log(`Déplacement vers (${position.x}, ${position.y}). Batterie: ${robot.batterie.toFixed(1)}%`);
+        return robot;
+    }
+
+    private log(message: string) {
+        this.messageService.add(`AppComponent: ${message}`);
     }
 }
