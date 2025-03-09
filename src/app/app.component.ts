@@ -114,10 +114,11 @@ export class AppComponent implements OnInit {
     // Créer et démarrer le robot
     // rafraîchissement de l'affichage du labyrinthe avec le robot à sa nouvelle position
     this.robot = new RobotAspirator(this.messageService, this.maison, this.basePosition);
+    this.robotLastPosition = this.robot;
 
     setTimeout(() => {
       // remplace un élément du tableau par le robot et l'affiche
-      this.maison = this.updateMaisonWithRobot();
+      this.maison = this.updateMaisonWithRobot(this.toutEstNettoye());
       // this.afficherMaison();
     }, 1000);
   }
@@ -152,7 +153,7 @@ export class AppComponent implements OnInit {
     this.robotLastPosition.position.y = this.robot.position.y;
 
     // si la batterie est HS
-    if(this.robot.batterie === this.robot.energieNecessairePourRetour()) {
+    if(this.robot.batterie <= this.robot.energieNecessairePourRetour()) {
     // while (this.batterie > this.energieNecessairePourRetour()) {
         this.updateSubscription.unsubscribe();
     }
@@ -160,8 +161,6 @@ export class AppComponent implements OnInit {
     // si toutes les cellules accessibles sont visitées, retourner à la base
     if (this.toutEstNettoye()) {
         this.log("Toutes les zones accessibles sont nettoyées");
-        this.updateSubscription.unsubscribe();
-        this.startIntro();
     }
 
     // // Chercher la prochaine cellule non visitée et s'y diriger
@@ -169,15 +168,16 @@ export class AppComponent implements OnInit {
 
     if (prochaineCellule) {
         this.robot = this.robot.seDeplacerVers(this.robot, prochaineCellule);
-        this.maison = this.updateMaisonWithRobot();
+        this.maison = this.updateMaisonWithRobot(this.toutEstNettoye());
     } else {
         // Si aucune cellule n'est trouvée, retourner à la base
         this.log("Aucune cellule accessible non visitée trouvée");
         // Retourner à la base de charge
         this.log(`Batterie: ${this.robot.batterie}%. Retour à la base.`);
         this.robot = this.robot.retournerALaBase(this.robot);
-        this.maison = this.updateMaisonWithRobot();
+        this.maison = this.updateMaisonWithRobot(this.toutEstNettoye());
         this.updateSubscription.unsubscribe();
+        this.startIntro();
     }
   }
   
@@ -194,9 +194,9 @@ export class AppComponent implements OnInit {
     return true;
   }
 
-  private updateMaisonWithRobot(): Cell[][] {
-    // l'ancienne position du robot devient un bloc VISITE
-    if(this.maison[this.robotLastPosition.position.y][this.robotLastPosition.position.x].type !== "B") {
+  private updateMaisonWithRobot(toutEstNettoye: boolean): Cell[][] {
+    // l'ancienne position du robot devient un bloc VISITE, sauf au dernier tour (toutEstNettoye === true)
+    if(!toutEstNettoye && this.maison[this.robotLastPosition.position.y][this.robotLastPosition.position.x].type !== "B") {
       this.maison[this.robotLastPosition.position.y][this.robotLastPosition.position.x].type = "O";
       // this.maison[this.robot.position.y][this.robot.position.x].visited = true;
     }

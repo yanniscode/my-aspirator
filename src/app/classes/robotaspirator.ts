@@ -1,5 +1,3 @@
-// import { interval, Subscription } from "rxjs";
-// import { map } from 'rxjs/operators';
 import { MessageService } from "../services/message.service";
 
 import { Cell } from "./cell";
@@ -22,10 +20,8 @@ export class RobotAspirator {
     // Combien d'énergie est consommée par mouvement
     private consommationParMouvement: number;
     // Combien d'énergie est nécessaire pour retourner à la base
+    // TODO: utiliser ??
     private energieRetourBase: number;
-
-    // // nécessaire pour l'animation (écoute d'observable avec rxjs)
-    // private updateSubscription!: Subscription;
 
     constructor(messageService: MessageService, grille: Cell[][], basePosition: Position);
     // constructor(grille: Cell[][], basePosition?: Position);
@@ -37,7 +33,7 @@ export class RobotAspirator {
         this.basePosition = basePosition;
         this.position = { ...basePosition };
         this.direction = 'nord';
-        this.batterie = 100;
+        this.batterie = 10;
         this.consommationParMouvement = 0.5; // Valeur arbitraire
         this.energieRetourBase = 0; // Sera calculée dynamiquement
     }
@@ -122,7 +118,7 @@ export class RobotAspirator {
 
         // Suivre le chemin
         for (const pos of chemin) {
-            // TODO: renvoyer la nouvelle position du robot + la cellule marquée comme visitée
+            // renvoyer la nouvelle position du robot + la cellule marquée comme visitée
             robot = this.deplacer(robot, pos);
 
             this.log("seDeplacerVers");
