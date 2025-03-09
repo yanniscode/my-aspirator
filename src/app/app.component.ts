@@ -35,6 +35,9 @@ export class AppComponent implements OnInit {
   // nécessaire pour l'animation (écoute d'observable avec rxjs)
   private updateSubscription!: Subscription;
 
+  largeurMaison: number = 10;
+  hauteurMaison: number  = 8;
+  obstacles: Position[] = [];
   maison: Cell[][] = [[]];
   maisonCopy: Cell[][] = [[]]; // pour gérer l'animation
   grille: Cell[][] = [];
@@ -46,14 +49,37 @@ export class AppComponent implements OnInit {
   constructor(private messageService: MessageService) {
     this.messageService = messageService;
 
+    this.maison = this.initMaisonConfig();
+    // copie de la maison initiale (clone profond par valeur)
+    this.maisonCopy = structuredClone(this.maison);
+
     this.robot = new RobotAspirator(this.messageService, this.maison, this.basePosition);
     this.robotLastPosition = this.robot;
+  }
+
+  private initMaisonConfig(): Cell[][] {
+    // Création de la maison
+    this.largeurMaison = 10;
+    this.hauteurMaison = 8;
+    this. obstacles = [
+        { x: 2, y: 3 }, { x: 2, y: 4 }, { x: 3, y: 4 },
+        { x: 7, y: 1 }, { x: 7, y: 2 }, { x: 7, y: 3 },
+        { x: 4, y: 6 }, { x: 5, y: 6 }, { x: 6, y: 6 }
+    ];
+
+    this.maison = this.creerMaison(this.largeurMaison, this.hauteurMaison, this.obstacles);
+
+    // Position de la base de charge
+    this.basePosition = { x: 0, y: 0 };
+    this.maison[this.basePosition.y][this.basePosition.x].type = 'B';
+    this.maison[this.basePosition.y][this.basePosition.x].visited = true;
+
+    return this.maison;
   }
   
   // Exemple d'utilisation
   private creerMaison(largeur: number, hauteur: number, obstacles: Position[]): Cell[][] {
     this.grille = [];
-
     // Initialiser la grille
     for (let y = 0; y < hauteur; y++) {
         this.grille[y] = [];
@@ -65,14 +91,12 @@ export class AppComponent implements OnInit {
             };
         }
     }
-
     // Ajouter les obstacles
     obstacles.forEach(obs => {
         if (obs.x >= 0 && obs.x < largeur && obs.y >= 0 && obs.y < hauteur) {
             this.grille[obs.y][obs.x].type = 'X';
         }
     });
-
     return this.grille;
   }
 
@@ -81,30 +105,15 @@ export class AppComponent implements OnInit {
   }
 
   startIntro(): void {
+
     // Création de la maison
-    const largeurMaison = 10;
-    const hauteurMaison = 8;
-    const obstacles: Position[] = [
-        { x: 2, y: 3 }, { x: 2, y: 4 }, { x: 3, y: 4 },
-        { x: 7, y: 1 }, { x: 7, y: 2 }, { x: 7, y: 3 },
-        { x: 4, y: 6 }, { x: 5, y: 6 }, { x: 6, y: 6 }
-    ];
-    this.maison = this.creerMaison(largeurMaison, hauteurMaison, obstacles);
-    // Position de la base de charge
-    this.basePosition = { x: 0, y: 0 };
-    this.maison[this.basePosition.y][this.basePosition.x].type = 'B';
+    this.maison = this.initMaisonConfig();
+    // copie de la maison initiale (clone profond par valeur)
+    // this.maisonCopy = structuredClone(this.maison);
 
     // Créer et démarrer le robot
     // rafraîchissement de l'affichage du labyrinthe avec le robot à sa nouvelle position
     this.robot = new RobotAspirator(this.messageService, this.maison, this.basePosition);
-    this.robotLastPosition.position.x = this.robot.position.x;
-    this.robotLastPosition.position.y = this.robot.position.y;
-
-    // copie de la maison initiale (clone profond par valeur)
-    this.maisonCopy = structuredClone(this.maison);
-    // this.maisonCopy = Object.assign({}, this.maison);
-    // this.maisonCopy = [...this.maison];
-
 
     setTimeout(() => {
       // remplace un élément du tableau par le robot et l'affiche
@@ -185,28 +194,6 @@ export class AppComponent implements OnInit {
     return true;
   }
 
-  // private afficherMaison(): void {
-  //   for (let y = 0; y < this.maison.length; y++) {
-  //     let ligne = '';
-  //     for (let x = 0; x < this.maison[y].length; x++) {
-  //         const cell = this.maison[y][x];
-  //         if (cell.type === 'B') {
-  //             ligne += 'B';
-  //         } else if (cell.type === 'X') {
-  //             ligne += 'X';
-  //         } else if (cell.visited) {
-  //             ligne += 'O';
-  //         } else if (cell.type === 'N') {
-  //           ligne += 'N';
-  //       }
-  //         else {
-  //             ligne += '_';
-  //         }
-  //     }
-  //     this.log(ligne);
-  //   }
-  // }
-
   private updateMaisonWithRobot(): Cell[][] {
     // l'ancienne position du robot devient un bloc VISITE
     if(this.maison[this.robotLastPosition.position.y][this.robotLastPosition.position.x].type !== "B") {
@@ -226,21 +213,6 @@ export class AppComponent implements OnInit {
     this.maison[this.robot.position.y][this.robot.position.x].type = "N";
 
     return this.maison;
-
-    // return this.maison.map((row) => {
-    //     return row.map((cell) => {
-    //         // Vérifie si la position du robot correspond à la position de la cellule
-    //         if (cell.position.x === this.robot.position.x && cell.position.y === this.robot.position.y) {
-    //             return {
-    //                 ...cell,
-    //                 position: cell.position,
-    //                 type: 'N', // Remplace l'affichage de type vide par le type du robot
-    //                 visited: cell.visited
-    //             };
-    //         }
-    //         return cell; // retourne la cellule inchangée
-    //     });
-    // });
   }
 
   private log(message: string) {
