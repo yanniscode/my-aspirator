@@ -61,7 +61,7 @@ export class RobotAspirator {
             const { cell, distance } = queue.shift()!;
 
             // Si la cellule n'est pas visitée et n'est pas un obstacle, la retourner
-            if (!cell.visited && cell.type !== 'X') {
+            if (!cell.visited && cell.type !== 'X' && cell.type !== 'B') {
                 return cell;
             }
 
@@ -186,6 +186,7 @@ export class RobotAspirator {
             this.obtenirCellulesAdjacentes(current.position).forEach(cellule => {
                 // Ignorer les obstacles
                 if (cellule.type === 'X') return;
+                if (cellule.type === 'B') return;
 
                 const voisinKey = `${cellule.position.x},${cellule.position.y}`;
 

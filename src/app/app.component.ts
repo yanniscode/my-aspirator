@@ -96,12 +96,15 @@ export class AppComponent implements OnInit {
 
     // Créer et démarrer le robot
     // rafraîchissement de l'affichage du labyrinthe avec le robot à sa nouvelle position
+    this.robot = new RobotAspirator(this.messageService, this.maison, this.basePosition);
     this.robotLastPosition.position.x = this.robot.position.x;
     this.robotLastPosition.position.y = this.robot.position.y;
-    this.robot = new RobotAspirator(this.messageService, this.maison, this.basePosition);
 
-    // copie de la maison initiale:
-    this.maisonCopy = this.maison;
+    // copie de la maison initiale (clone profond par valeur)
+    this.maisonCopy = structuredClone(this.maison);
+    // this.maisonCopy = Object.assign({}, this.maison);
+    // this.maisonCopy = [...this.maison];
+
 
     setTimeout(() => {
       // remplace un élément du tableau par le robot et l'affiche
@@ -131,7 +134,9 @@ export class AppComponent implements OnInit {
   // Fonction principale pour nettoyer la maison
   private nettoyer(): void {
     // à chaque tour, la maison est réinitialisé, seule la position du robot sera mise à jour
-    this.maison = this.maisonCopy;
+    // copie de la maison initiale (clone profond par valeur)
+    this.maison = structuredClone(this.maisonCopy);
+    // // this.maison = this.maisonCopy;
 
     // rafraîchissement de l'affichage du labyrinthe avec le robot à sa nouvelle position
     this.robotLastPosition.position.x = this.robot.position.x;
@@ -172,7 +177,7 @@ export class AppComponent implements OnInit {
     for (let i = 0; i < this.grille.length; i++) {
         for (let j = 0; j < this.grille[i].length; j++) {
             const cell = this.grille[i][j];
-            if (cell.type !== 'X' && !cell.visited) {
+            if (cell.type !== 'X' && cell.type !== 'B' && !cell.visited) {
                 return false;
             }
         }
@@ -180,31 +185,43 @@ export class AppComponent implements OnInit {
     return true;
   }
 
-  private afficherMaison(): void {
-    for (let y = 0; y < this.maison.length; y++) {
-      let ligne = '';
-      for (let x = 0; x < this.maison[y].length; x++) {
-          const cell = this.maison[y][x];
-          if (cell.type === 'B') {
-              ligne += 'B';
-          } else if (cell.type === 'X') {
-              ligne += 'X';
-          } else if (cell.visited) {
-              ligne += 'O';
-          } else if (cell.type === 'N') {
-            ligne += 'N';
-        }
-          else {
-              ligne += '_';
-          }
-      }
-      this.log(ligne);
-    }
-  }
+  // private afficherMaison(): void {
+  //   for (let y = 0; y < this.maison.length; y++) {
+  //     let ligne = '';
+  //     for (let x = 0; x < this.maison[y].length; x++) {
+  //         const cell = this.maison[y][x];
+  //         if (cell.type === 'B') {
+  //             ligne += 'B';
+  //         } else if (cell.type === 'X') {
+  //             ligne += 'X';
+  //         } else if (cell.visited) {
+  //             ligne += 'O';
+  //         } else if (cell.type === 'N') {
+  //           ligne += 'N';
+  //       }
+  //         else {
+  //             ligne += '_';
+  //         }
+  //     }
+  //     this.log(ligne);
+  //   }
+  // }
 
   private updateMaisonWithRobot(): Cell[][] {
     // l'ancienne position du robot devient un bloc VISITE
-    this.maison[this.robotLastPosition.position.y][this.robotLastPosition.position.x].type = "O";
+    if(this.maison[this.robotLastPosition.position.y][this.robotLastPosition.position.x].type !== "B") {
+      this.maison[this.robotLastPosition.position.y][this.robotLastPosition.position.x].type = "O";
+      // this.maison[this.robot.position.y][this.robot.position.x].visited = true;
+    }
+
+    // à chaque tour, la maison est réinitialisé : la position du robot et sa position précédente visitée seront mises à jour
+    // copie de la maison initiale (clone profond par valeur)
+    this.maisonCopy = structuredClone(this.maison);
+
+    // // à chaque tour, la maison est réinitialisé, seule la position du robot sera mise à jour
+    // // copie de la maison initiale (clone profond par valeur)
+    // this.maison = structuredClone(this.maisonCopy);
+
     // la nouvelle position devient le bloc ROBOT
     this.maison[this.robot.position.y][this.robot.position.x].type = "N";
 
