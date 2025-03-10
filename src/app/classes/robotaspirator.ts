@@ -1,3 +1,4 @@
+import { AppComponent } from "../app.component";
 import { MessageService } from "../services/message.service";
 
 import { Cell } from "./cell";
@@ -7,8 +8,6 @@ type Direction = 'nord' | 'est' | 'sud' | 'ouest';
 
 export class RobotAspirator {
 
-  // Carte de l'environnement
-  private grille: Cell[][];
   // Position actuelle
   public position: Position;
   // Direction actuelle
@@ -23,13 +22,11 @@ export class RobotAspirator {
   // TODO: utiliser ??
   private energieRetourBase: number;
 
-  constructor(messageService: MessageService, grille: Cell[][], basePosition: Position);
-  // constructor(grille: Cell[][], basePosition?: Position);
+  constructor(messageService: MessageService, basePosition: Position);
 
-  constructor(private messageService: MessageService, grille: Cell[][], basePosition: Position) {
+  constructor(private messageService: MessageService, basePosition: Position) {
     this.messageService = messageService;
 
-    this.grille = grille;
     this.basePosition = basePosition;
     this.position = { ...basePosition };
     this.direction = 'nord';
@@ -94,12 +91,12 @@ export class RobotAspirator {
       const newX = position.x + dir.dx;
       const newY = position.y + dir.dy;
 
-      // Vérifier si la nouvelle position est dans les limites de la grille
+      // Vérifier si la nouvelle position est dans les limites de la maison
       if (
-        newX >= 0 && newX < this.grille[0].length &&
-        newY >= 0 && newY < this.grille.length
+        newX >= 0 && newX < AppComponent.maison[0].length &&
+        newY >= 0 && newY < AppComponent.maison.length
       ) {
-        cellules.push(this.grille[newY][newX]);
+        cellules.push(AppComponent.maison[newY][newX]);
       }
     });
 
@@ -161,8 +158,8 @@ export class RobotAspirator {
     const gScore = new Map<string, number>();
 
     // Initialiser gScore avec des valeurs infinies
-    for (let y = 0; y < this.grille.length; y++) {
-      for (let x = 0; x < this.grille[0].length; x++) {
+    for (let y = 0; y < AppComponent.maison.length; y++) {
+      for (let x = 0; x < AppComponent.maison[0].length; x++) {
         gScore.set(`${x},${y}`, Infinity);
       }
     }
@@ -240,7 +237,7 @@ export class RobotAspirator {
       }
 
       // Protection anti-boucle infinie
-      if (openSet.length > this.grille.length * this.grille[0].length) {
+      if (openSet.length > AppComponent.maison.length * AppComponent.maison[0].length) {
         console.error("Détection de boucle potentielle dans A*");
         break;
       }
@@ -302,7 +299,6 @@ export class RobotAspirator {
     // Suivre le chemin
     for (const pos of chemin) {
       robot = this.deplacer(robot, pos);
-
       this.log("retour à la base");
       this.log("robot : X =" + robot.position.x + "/ Y = " + robot.position.y);
 
@@ -323,9 +319,9 @@ export class RobotAspirator {
     robot.position = { ...position };
 
     // Marquer la cellule comme visitée
-    const cell = this.grille[position.y][position.x];
+    const cell = AppComponent.maison[position.y][position.x];
     cell.visited = true;
-    cell.type = 'O';
+    cell.type = '_';
     // Réduire la batterie
     robot.batterie -= this.consommationParMouvement;
 

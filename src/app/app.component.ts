@@ -38,26 +38,25 @@ export class AppComponent implements OnInit {
   largeurMaison: number = 10;
   hauteurMaison: number = 8;
   obstacles: Position[] = [];
-  maison: Cell[][] = [[]];
-  maisonCopy: Cell[][] = [[]]; // pour gérer l'animation
-  grille: Cell[][] = [];
-
+  static maison: Cell[][] = [[]];
+  get MaisonView() {
+    return AppComponent.maison;
+  }
   basePosition: Position = { x: 0, y: 0 };
   robot: RobotAspirator;
-  robotLastPosition: RobotAspirator;
+  robotAtLastPosition: RobotAspirator;
 
   constructor(private messageService: MessageService) {
     this.messageService = messageService;
 
-    this.maison = this.initMaisonConfig();
-    // copie de la maison initiale (clone profond par valeur)
-    this.maisonCopy = structuredClone(this.maison);
+    this.initMaisonConfig();
 
-    this.robot = new RobotAspirator(this.messageService, this.maison, this.basePosition);
-    this.robotLastPosition = this.robot;
+    this.robot = new RobotAspirator(this.messageService, this.basePosition);
+    // copie de la maison initiale (clone profond par valeur)
+    this.robotAtLastPosition = structuredClone(this.robot);
   }
 
-  private initMaisonConfig(): Cell[][] {
+  private initMaisonConfig(): void {
     // Création de la maison
     this.largeurMaison = 10;
     this.hauteurMaison = 8;
@@ -66,27 +65,17 @@ export class AppComponent implements OnInit {
       { x: 7, y: 1 }, { x: 7, y: 2 }, { x: 7, y: 3 },
       { x: 4, y: 6 }, { x: 5, y: 6 }, { x: 6, y: 6 }
     ];
-
-    this.maison = this.creerMaison(this.largeurMaison, this.hauteurMaison, this.obstacles);
-
-    // Position de la base de charge
     this.basePosition = { x: 0, y: 0 };
-    this.maison[this.basePosition.y][this.basePosition.x].type = 'B';
-    this.maison[this.basePosition.y][this.basePosition.x].visited = true;
-
-    return this.maison;
+    this.creerMaison(this.largeurMaison, this.hauteurMaison, this.obstacles, this.basePosition);
   }
 
-  // Exemple d'utilisation
-  private creerMaison(largeur: number, hauteur: number, obstacles: Position[]): Cell[][] {
-    this.grille = [];
-    // Initialiser la grille
+  private creerMaison(largeur: number, hauteur: number, obstacles: Position[], basePosition: Position): void {
     for (let y = 0; y < hauteur; y++) {
-      this.grille[y] = [];
+      AppComponent.maison[y] = [];
       for (let x = 0; x < largeur; x++) {
-        this.grille[y][x] = {
+        AppComponent.maison[y][x] = {
           position: { x, y },
-          type: '_',
+          type: 'O',
           visited: false
         };
       }
@@ -94,10 +83,12 @@ export class AppComponent implements OnInit {
     // Ajouter les obstacles
     obstacles.forEach(obs => {
       if (obs.x >= 0 && obs.x < largeur && obs.y >= 0 && obs.y < hauteur) {
-        this.grille[obs.y][obs.x].type = 'X';
+        AppComponent.maison[obs.y][obs.x].type = 'X';
       }
     });
-    return this.grille;
+    // Position de la base de charge
+    AppComponent.maison[this.basePosition.y][this.basePosition.x].type = 'B';
+    AppComponent.maison[this.basePosition.y][this.basePosition.x].visited = true;
   }
 
   ngOnInit(): void {
@@ -105,20 +96,16 @@ export class AppComponent implements OnInit {
   }
 
   startIntro(): void {
-
     // Création de la maison
-    this.maison = this.initMaisonConfig();
-    // copie de la maison initiale (clone profond par valeur)
-    // this.maisonCopy = structuredClone(this.maison);
+    this.initMaisonConfig();
 
     // Créer et démarrer le robot
-    // rafraîchissement de l'affichage du labyrinthe avec le robot à sa nouvelle position
-    this.robot = new RobotAspirator(this.messageService, this.maison, this.basePosition);
-    this.robotLastPosition = this.robot;
+    // rafraîchissement de l'affichage de la maison avec le robot à sa nouvelle position
+    this.robot = new RobotAspirator(this.messageService, this.basePosition);
 
     setTimeout(() => {
       // remplace un élément du tableau par le robot et l'affiche
-      this.maison = this.updateMaisonWithRobot(this.toutEstNettoye());
+      this.updateMaisonWithRobot(this.toutEstNettoye());
       // this.afficherMaison();
     }, 1000);
   }
@@ -131,8 +118,6 @@ export class AppComponent implements OnInit {
         this.nettoyer();
       })
     ).subscribe();
-    // Afficher l'état final de la maison
-    // this.afficherMaison();
   }
 
   pauseRobot(): void {
@@ -143,14 +128,8 @@ export class AppComponent implements OnInit {
 
   // Fonction principale pour nettoyer la maison
   private nettoyer(): void {
-    // à chaque tour, la maison est réinitialisé, seule la position du robot sera mise à jour
-    // copie de la maison initiale (clone profond par valeur)
-    this.maison = structuredClone(this.maisonCopy);
-    // // this.maison = this.maisonCopy;
-
     // rafraîchissement de l'affichage du labyrinthe avec le robot à sa nouvelle position
-    this.robotLastPosition.position.x = this.robot.position.x;
-    this.robotLastPosition.position.y = this.robot.position.y;
+    this.robotAtLastPosition = structuredClone(this.robot);
 
     // si la batterie est HS
     if (this.robot.batterie <= this.robot.energieNecessairePourRetour()) {
@@ -168,14 +147,14 @@ export class AppComponent implements OnInit {
 
     if (prochaineCellule) {
       this.robot = this.robot.seDeplacerVers(this.robot, prochaineCellule);
-      this.maison = this.updateMaisonWithRobot(this.toutEstNettoye());
+      this.updateMaisonWithRobot(this.toutEstNettoye());
     } else {
       // Si aucune cellule n'est trouvée, retourner à la base
       this.log("Aucune cellule accessible non visitée trouvée");
       // Retourner à la base de charge
       this.log(`Batterie: ${this.robot.batterie}%. Retour à la base.`);
       this.robot = this.robot.retournerALaBase(this.robot);
-      this.maison = this.updateMaisonWithRobot(this.toutEstNettoye());
+      this.updateMaisonWithRobot(this.toutEstNettoye());
       this.updateSubscription.unsubscribe();
       this.startIntro();
     }
@@ -183,9 +162,9 @@ export class AppComponent implements OnInit {
 
   // Vérifier si toutes les cellules accessibles ont été visitées
   private toutEstNettoye(): boolean {
-    for (let i = 0; i < this.grille.length; i++) {
-      for (let j = 0; j < this.grille[i].length; j++) {
-        const cell = this.grille[i][j];
+    for (let i = 0; i < AppComponent.maison.length; i++) {
+      for (let j = 0; j < AppComponent.maison[i].length; j++) {
+        const cell = AppComponent.maison[i][j];
         if (cell.type !== 'X' && cell.type !== 'B' && !cell.visited) {
           return false;
         }
@@ -194,25 +173,19 @@ export class AppComponent implements OnInit {
     return true;
   }
 
-  private updateMaisonWithRobot(toutEstNettoye: boolean): Cell[][] {
-    // l'ancienne position du robot devient un bloc VISITE, sauf au dernier tour (toutEstNettoye === true)
-    if (!toutEstNettoye && this.maison[this.robotLastPosition.position.y][this.robotLastPosition.position.x].type !== "B") {
-      this.maison[this.robotLastPosition.position.y][this.robotLastPosition.position.x].type = "O";
-      // this.maison[this.robot.position.y][this.robot.position.x].visited = true;
+  private updateMaisonWithRobot(toutEstNettoye: boolean): void {
+    // l'ancienne position du robot devient la BASE, ou bien un bloc VISITE,
+    // sauf au dernier tour (toutEstNettoye === true)
+    if(AppComponent.maison[this.basePosition.y][this.basePosition.x].type === 'N') {
+      // si le robot quitte la base, la base est de nouveau affichée:
+      AppComponent.maison[this.robotAtLastPosition.position.y][this.robotAtLastPosition.position.x].type = 'B';
+    } else if (!toutEstNettoye
+      // si le robot quitte une position autre que la base et que tout n'est pas nettoyé, la position devient "visitée"
+      && AppComponent.maison[this.robotAtLastPosition.position.y][this.robotAtLastPosition.position.x].type !== 'B') {
+      AppComponent.maison[this.robotAtLastPosition.position.y][this.robotAtLastPosition.position.x].type = '_';
     }
-
-    // à chaque tour, la maison est réinitialisé : la position du robot et sa position précédente visitée seront mises à jour
-    // copie de la maison initiale (clone profond par valeur)
-    this.maisonCopy = structuredClone(this.maison);
-
-    // // à chaque tour, la maison est réinitialisé, seule la position du robot sera mise à jour
-    // // copie de la maison initiale (clone profond par valeur)
-    // this.maison = structuredClone(this.maisonCopy);
-
     // la nouvelle position devient le bloc ROBOT
-    this.maison[this.robot.position.y][this.robot.position.x].type = "N";
-
-    return this.maison;
+    AppComponent.maison[this.robot.position.y][this.robot.position.x].type = 'N';
   }
 
   private log(message: string) {
