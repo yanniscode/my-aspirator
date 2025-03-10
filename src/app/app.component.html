@@ -1,21 +1,48 @@
+<img src="/assets/texture-non_visitee.png"/>
+<img src="/assets/texture-mur.png"/>
+<img src="/assets/texture-base.png"/>
+<img src="/assets/texture-visitee.png"/>
+<img src="/assets/robot-chevalier.png"/>
+
 <div class="content">
-  <div class="maison">
+  <!-- <div class="maison">
     <div *ngFor='let row of MaisonView' @maisonAnimation>
-      <div *ngFor='let cell of row'>{{cell.type}}</div>
+      <div *ngFor='let cell of row'>
+        <img *ngIf="cell.type === 'O'" src="/assets/texture-non_visitee.png"/>
+        <img *ngIf="cell.type === 'X'" src="/assets/texture-mur.png"/>
+        <img *ngIf="cell.type === 'B'" src="/assets/texture-base.png"/>
+        <img *ngIf="cell.type === '_'" src="/assets/texture-visitee.png"/>
+        <img *ngIf="cell.type === 'N'" src="/assets/robot-chevalier.png"/>
+        <ng-template #noImage>{{cell.type}}</ng-template></div>
     </div>
+  </div> -->
+
+  <div class="maison">
+    <p-table [value]="MaisonView">
+      <ng-template pTemplate="body" let-rowData>
+        <tr>
+          <td *ngFor="let cell of rowData" @maisonAnimation>
+            <img *ngIf="cell.type === 'O'" src="/assets/texture-non_visitee.png"/>
+            <img *ngIf="cell.type === 'X'" src="/assets/texture-mur.png"/>
+            <img *ngIf="cell.type === 'B'" src="/assets/texture-base.png"/>
+            <img *ngIf="cell.type === '_'" src="/assets/texture-visitee.png"/>
+            <img *ngIf="cell.type === 'N'" src="/assets/robot-chevalier.png"/>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
   </div>
-  <div>
-    <form (ngSubmit)="startRobot()" #maisonForm="ngForm">
-      <div class="start-button">
-        <button type="submit">Start</button>
-      </div>
-    </form>
-    <form (ngSubmit)="pauseRobot()" #maisonForm="ngForm">
-      <div class="pause-button">
-        <button type="submit">Pause</button>
-      </div>
-    </form>
-  </div>
+
+  <form (ngSubmit)="startRobot()" #maisonForm="ngForm">
+    <div class="start-button">
+      <button type="submit">Start</button>
+    </div>
+  </form>
+  <form (ngSubmit)="pauseRobot()" #maisonForm="ngForm">
+    <div class="pause-button">
+      <button type="submit">Pause</button>
+    </div>
+  </form>
 </div>
 
 <div>

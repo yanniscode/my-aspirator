@@ -1,9 +1,10 @@
-import { NgFor } from '@angular/common';
+import { NgFor, NgIf } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { trigger, transition, style } from '@angular/animations';
+import { trigger, transition, style, animate } from '@angular/animations';
 import { interval, Subscription } from "rxjs";
 import { map } from 'rxjs/operators';
+import { TableModule } from 'primeng/table';
 
 import { MessageService } from './services/message.service';
 import { MessagesComponent } from "./messages/messages.component";
@@ -14,17 +15,17 @@ import { Cell } from './classes/cell';
 
 @Component({
   selector: 'app-root',
-  imports: [NgFor, FormsModule, MessagesComponent],
+  imports: [NgFor, NgIf, FormsModule, MessagesComponent, TableModule],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
   animations: [
     trigger('maisonAnimation', [
       transition(':enter', [
         style({ opacity: 0 }),
-        // animate('100ms ease-out', style({ opacity: 1 }))
+        animate('50ms ease-out', style({ opacity: 1 }))
       ]),
       transition(':leave', [
-        //   animate('100ms ease-out', style({ opacity: 0 }))
+          animate('50ms ease-out', style({ opacity: 0 }))
       ])
     ])
   ]
