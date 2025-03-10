@@ -243,7 +243,6 @@ export class RobotAspirator {
             if (openSet.length > this.grille.length * this.grille[0].length) {
                 console.error("Détection de boucle potentielle dans A*");
                 break;
-            }
         }
 
         // Aucun chemin trouvé
