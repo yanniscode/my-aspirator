@@ -6,7 +6,7 @@ import { Position } from "./position";
 type Direction = 'nord' | 'est' | 'sud' | 'ouest';
 
 export class RobotAspirator {
-    
+
     // Carte de l'environnement
     private grille: Cell[][];
     // Position actuelle
@@ -33,7 +33,7 @@ export class RobotAspirator {
         this.basePosition = basePosition;
         this.position = { ...basePosition };
         this.direction = 'nord';
-        this.batterie = 10;
+        this.batterie = 100;
         this.consommationParMouvement = 0.5; // Valeur arbitraire
         this.energieRetourBase = 0; // Sera calculée dynamiquement
     }
@@ -122,7 +122,7 @@ export class RobotAspirator {
             robot = this.deplacer(robot, pos);
 
             this.log("seDeplacerVers");
-            this.log("robot : X ="+robot.position.x+"/ Y = "+robot.position.y);
+            this.log("robot : X =" + robot.position.x + "/ Y = " + robot.position.y);
 
             // Vérifier si la batterie est suffisante pour continuer
             if (this.batterie <= this.energieNecessairePourRetour()) {
@@ -133,112 +133,140 @@ export class RobotAspirator {
         return robot;
     }
 
+
+
+
     // Algorithme A* pour trouver le chemin optimal
     private trouverChemin(debut: Position, fin: Position): Position[] {
-        // Implémentation simplifiée de l'algorithme A*
-        const openSet: {
+        // Structure pour représenter un nœud dans l'algorithme A*
+        interface Node {
             position: Position;
-            gScore: number;
-            fScore: number;
-            parent: Position | null;
-        }[] = [];
+            g: number; // Coût depuis le départ
+            f: number; // Coût estimé total (g + h)
+        }
 
-        const closedSet: Set<string> = new Set();
-        const gScores: Map<string, number> = new Map();
-        const parents: Map<string, Position | null> = new Map();
+        // Fonction pour créer une clé unique pour une position
+        const positionKey = (pos: Position): string => `${pos.x},${pos.y}`;
 
-        const debutKey = `${debut.x},${debut.y}`;
-        gScores.set(debutKey, 0);
+        // Ensemble des nœuds à explorer (la file de priorité)
+        const openSet: Node[] = [];
 
+        // Ensemble des nœuds déjà explorés
+        const closedSet = new Set<string>();
+
+        // Map qui associe chaque position à son parent dans le chemin optimal
+        const cameFrom = new Map<string, Position>();
+
+        // Map qui stocke le coût g pour chaque position
+        const gScore = new Map<string, number>();
+
+        // Initialiser gScore avec des valeurs infinies
+        for (let y = 0; y < this.grille.length; y++) {
+            for (let x = 0; x < this.grille[0].length; x++) {
+                gScore.set(`${x},${y}`, Infinity);
+            }
+        }
+
+        // Coût du départ au départ est 0
+        gScore.set(positionKey(debut), 0);
+
+        // Ajouter le nœud de départ à openSet
         openSet.push({
             position: debut,
-            gScore: 0,
-            fScore: this.distance(debut, fin),
-            parent: null
+            g: 0,
+            f: this.distance(debut, fin)
         });
 
-        // ajout de la position de fin du chemin actuelle:
-        openSet.push({
-            position: fin,
-            gScore: 0,
-            fScore: this.distance(debut, fin),
-            parent: null
-        });
-
+        // Tant qu'il y a des nœuds à explorer
         while (openSet.length > 0) {
-            // Trouver le nœud avec le plus petit fScore
-            openSet.sort((a, b) => a.fScore - b.fScore);
-            const current = openSet.shift()!;
-            const currentKey = `${current.position.x},${current.position.y}`;
+            // Trier openSet pour obtenir le nœud avec le plus petit f
+            openSet.sort((a, b) => a.f - b.f);
 
-            // Si nous avons atteint la destination
+            // Récupérer le nœud avec le plus petit f
+            const current = openSet.shift()!;
+            const currentKey = positionKey(current.position);
+
+            // Si nous sommes arrivés à destination
             if (current.position.x === fin.x && current.position.y === fin.y) {
-                return this.reconstruireChemin(parents, current.position);
+                // Reconstruire le chemin
+                return this.reconstruireChemin(cameFrom, fin);
             }
 
+            // Marquer le nœud comme exploré
             closedSet.add(currentKey);
 
-            // Vérifier les voisins
-            this.obtenirCellulesAdjacentes(current.position).forEach(cellule => {
+            // Explorer les voisins
+            const voisins = this.obtenirCellulesAdjacentes(current.position);
+
+            for (const voisin of voisins) {
                 // Ignorer les obstacles
-                if (cellule.type === 'X') return;
-                if (cellule.type === 'B') return;
+                if (voisin.type === 'X') continue;
 
-                const voisinKey = `${cellule.position.x},${cellule.position.y}`;
+                const voisinKey = positionKey(voisin.position);
 
-                // Ignorer les nœuds déjà évalués
-                if (closedSet.has(voisinKey)) return;
+                // Ignorer si déjà exploré
+                if (closedSet.has(voisinKey)) continue;
 
-                const gScore = (gScores.get(currentKey) || Infinity) + 1;
+                // Calculer le nouveau score g tentative
+                const tentativeGScore = gScore.get(currentKey)! + 1;
 
-                // Vérifier si le chemin est meilleur
-                const existingGScore = gScores.get(voisinKey) || Infinity;
-                if (gScore >= existingGScore) return;
+                // Vérifier si ce chemin est meilleur
+                if (tentativeGScore < gScore.get(voisinKey)!) {
+                    // Ce chemin est meilleur, l'enregistrer
+                    cameFrom.set(voisinKey, current.position);
+                    gScore.set(voisinKey, tentativeGScore);
 
-                // Mettre à jour les scores
-                parents.set(voisinKey, current.position);
-                gScores.set(voisinKey, gScore);
+                    // Calculer f = g + h
+                    const fScore = tentativeGScore + this.distance(voisin.position, fin);
 
-                // Vérifier si le voisin est déjà dans openSet
-                const existingIndex = openSet.findIndex(
-                    node => node.position.x === cellule.position.x && node.position.y === cellule.position.y
-                );
+                    // Vérifier si le voisin est déjà dans openSet
+                    const existingIndex = openSet.findIndex(node =>
+                        node.position.x === voisin.position.x && node.position.y === voisin.position.y
+                    );
 
-                if (existingIndex !== -1) {
-                    openSet[existingIndex].gScore = gScore;
-                    openSet[existingIndex].fScore = gScore + this.distance(cellule.position, fin);
-                    openSet[existingIndex].parent = current.position;
-                } else {
-                    openSet.push({
-                        position: cellule.position,
-                        gScore: gScore,
-                        fScore: gScore + this.distance(cellule.position, fin),
-                        parent: current.position
-                    });
+                    if (existingIndex !== -1) {
+                        // Mettre à jour les valeurs
+                        openSet[existingIndex].g = tentativeGScore;
+                        openSet[existingIndex].f = fScore;
+                    } else {
+                        // Ajouter à openSet
+                        openSet.push({
+                            position: voisin.position,
+                            g: tentativeGScore,
+                            f: fScore
+                        });
+                    }
                 }
-            });
+            }
+
+            // Protection anti-boucle infinie
+            if (openSet.length > this.grille.length * this.grille[0].length) {
+                console.error("Détection de boucle potentielle dans A*");
+                break;
+            }
         }
 
-        return []; // Aucun chemin trouvé
+        // Aucun chemin trouvé
+        console.log("Aucun chemin trouvé de", debut, "à", fin);
+        return [];
     }
 
-    // Reconstruire le chemin à partir des parents
-    private reconstruireChemin(parents: Map<string, Position | null>, current: Position | null): Position[] {
+    // Méthode pour reconstruire le chemin
+    private reconstruireChemin(cameFrom: Map<string, Position>, current: Position): Position[] {
         const chemin: Position[] = [];
         let currentPos = current;
+        const positionKey = (pos: Position): string => `${pos.x},${pos.y}`;
 
-        while (currentPos) {
+        // Reconstruire le chemin en partant de la fin
+        while (cameFrom.has(positionKey(currentPos))) {
             chemin.unshift(currentPos);
-            const key = `${currentPos.x},${currentPos.y}`;
-            currentPos = parents.get(key) || null;
-
-            // Éviter les boucles infinies (ne devrait pas arriver avec A* correctement implémenté)
-            if (chemin.length > 100) break;
+            currentPos = cameFrom.get(positionKey(currentPos))!;
         }
 
-        // sauf s'il n'y a qu'une position trouvée pour le chemin:
-        if(chemin.length > 1) {
-            // Enlever la première position (position actuelle)
+        // Enlever le premier nœud si c'est la position actuelle
+        if (chemin.length > 0 &&
+            chemin[0].x === this.position.x &&
+            chemin[0].y === this.position.y) {
             chemin.shift();
         }
 
@@ -276,7 +304,7 @@ export class RobotAspirator {
             robot = this.deplacer(robot, pos);
 
             this.log("retour à la base");
-            this.log("robot : X ="+robot.position.x+"/ Y = "+robot.position.y);
+            this.log("robot : X =" + robot.position.x + "/ Y = " + robot.position.y);
 
             // Vérifier si nous avons assez de batterie
             if (this.batterie <= 0) {
