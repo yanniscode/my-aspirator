@@ -24,7 +24,7 @@ import { Cell } from './classes/cell';
         // animate('100ms ease-out', style({ opacity: 1 }))
       ]),
       transition(':leave', [
-      //   animate('100ms ease-out', style({ opacity: 0 }))
+        //   animate('100ms ease-out', style({ opacity: 0 }))
       ])
     ])
   ]
@@ -36,7 +36,7 @@ export class AppComponent implements OnInit {
   private updateSubscription!: Subscription;
 
   largeurMaison: number = 10;
-  hauteurMaison: number  = 8;
+  hauteurMaison: number = 8;
   obstacles: Position[] = [];
   maison: Cell[][] = [[]];
   maisonCopy: Cell[][] = [[]]; // pour gérer l'animation
@@ -61,10 +61,10 @@ export class AppComponent implements OnInit {
     // Création de la maison
     this.largeurMaison = 10;
     this.hauteurMaison = 8;
-    this. obstacles = [
-        { x: 2, y: 3 }, { x: 2, y: 4 }, { x: 3, y: 4 },
-        { x: 7, y: 1 }, { x: 7, y: 2 }, { x: 7, y: 3 },
-        { x: 4, y: 6 }, { x: 5, y: 6 }, { x: 6, y: 6 }
+    this.obstacles = [
+      { x: 2, y: 3 }, { x: 2, y: 4 }, { x: 3, y: 4 },
+      { x: 7, y: 1 }, { x: 7, y: 2 }, { x: 7, y: 3 },
+      { x: 4, y: 6 }, { x: 5, y: 6 }, { x: 6, y: 6 }
     ];
 
     this.maison = this.creerMaison(this.largeurMaison, this.hauteurMaison, this.obstacles);
@@ -76,26 +76,26 @@ export class AppComponent implements OnInit {
 
     return this.maison;
   }
-  
+
   // Exemple d'utilisation
   private creerMaison(largeur: number, hauteur: number, obstacles: Position[]): Cell[][] {
     this.grille = [];
     // Initialiser la grille
     for (let y = 0; y < hauteur; y++) {
-        this.grille[y] = [];
-        for (let x = 0; x < largeur; x++) {
-            this.grille[y][x] = {
-                position: { x, y },
-                type: '_',
-                visited: false
-            };
-        }
+      this.grille[y] = [];
+      for (let x = 0; x < largeur; x++) {
+        this.grille[y][x] = {
+          position: { x, y },
+          type: '_',
+          visited: false
+        };
+      }
     }
     // Ajouter les obstacles
     obstacles.forEach(obs => {
-        if (obs.x >= 0 && obs.x < largeur && obs.y >= 0 && obs.y < hauteur) {
-            this.grille[obs.y][obs.x].type = 'X';
-        }
+      if (obs.x >= 0 && obs.x < largeur && obs.y >= 0 && obs.y < hauteur) {
+        this.grille[obs.y][obs.x].type = 'X';
+      }
     });
     return this.grille;
   }
@@ -136,7 +136,7 @@ export class AppComponent implements OnInit {
   }
 
   pauseRobot(): void {
-    if(this.updateSubscription) {
+    if (this.updateSubscription) {
       this.updateSubscription.unsubscribe();
     }
   }
@@ -153,50 +153,50 @@ export class AppComponent implements OnInit {
     this.robotLastPosition.position.y = this.robot.position.y;
 
     // si la batterie est HS
-    if(this.robot.batterie <= this.robot.energieNecessairePourRetour()) {
-    // while (this.batterie > this.energieNecessairePourRetour()) {
-        this.updateSubscription.unsubscribe();
+    if (this.robot.batterie <= this.robot.energieNecessairePourRetour()) {
+      // while (this.batterie > this.energieNecessairePourRetour()) {
+      this.updateSubscription.unsubscribe();
     }
 
     // si toutes les cellules accessibles sont visitées, retourner à la base
     if (this.toutEstNettoye()) {
-        this.log("Toutes les zones accessibles sont nettoyées");
+      this.log("Toutes les zones accessibles sont nettoyées");
     }
 
     // // Chercher la prochaine cellule non visitée et s'y diriger
     const prochaineCellule = this.robot.trouverProchaineDestination();
 
     if (prochaineCellule) {
-        this.robot = this.robot.seDeplacerVers(this.robot, prochaineCellule);
-        this.maison = this.updateMaisonWithRobot(this.toutEstNettoye());
+      this.robot = this.robot.seDeplacerVers(this.robot, prochaineCellule);
+      this.maison = this.updateMaisonWithRobot(this.toutEstNettoye());
     } else {
-        // Si aucune cellule n'est trouvée, retourner à la base
-        this.log("Aucune cellule accessible non visitée trouvée");
-        // Retourner à la base de charge
-        this.log(`Batterie: ${this.robot.batterie}%. Retour à la base.`);
-        this.robot = this.robot.retournerALaBase(this.robot);
-        this.maison = this.updateMaisonWithRobot(this.toutEstNettoye());
-        this.updateSubscription.unsubscribe();
-        this.startIntro();
+      // Si aucune cellule n'est trouvée, retourner à la base
+      this.log("Aucune cellule accessible non visitée trouvée");
+      // Retourner à la base de charge
+      this.log(`Batterie: ${this.robot.batterie}%. Retour à la base.`);
+      this.robot = this.robot.retournerALaBase(this.robot);
+      this.maison = this.updateMaisonWithRobot(this.toutEstNettoye());
+      this.updateSubscription.unsubscribe();
+      this.startIntro();
     }
   }
-  
+
   // Vérifier si toutes les cellules accessibles ont été visitées
   private toutEstNettoye(): boolean {
     for (let i = 0; i < this.grille.length; i++) {
-        for (let j = 0; j < this.grille[i].length; j++) {
-            const cell = this.grille[i][j];
-            if (cell.type !== 'X' && cell.type !== 'B' && !cell.visited) {
-                return false;
-            }
+      for (let j = 0; j < this.grille[i].length; j++) {
+        const cell = this.grille[i][j];
+        if (cell.type !== 'X' && cell.type !== 'B' && !cell.visited) {
+          return false;
         }
+      }
     }
     return true;
   }
 
   private updateMaisonWithRobot(toutEstNettoye: boolean): Cell[][] {
     // l'ancienne position du robot devient un bloc VISITE, sauf au dernier tour (toutEstNettoye === true)
-    if(!toutEstNettoye && this.maison[this.robotLastPosition.position.y][this.robotLastPosition.position.x].type !== "B") {
+    if (!toutEstNettoye && this.maison[this.robotLastPosition.position.y][this.robotLastPosition.position.x].type !== "B") {
       this.maison[this.robotLastPosition.position.y][this.robotLastPosition.position.x].type = "O";
       // this.maison[this.robot.position.y][this.robot.position.x].visited = true;
     }
