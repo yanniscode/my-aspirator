@@ -140,13 +140,14 @@ export class AppComponent implements OnInit {
         this.updateSubscription = this.robot.retournerALaBase(this.robot).subscribe({
           next: (robot) => {
             this.log('next retournerALaBase...');
-            // rafraîchissement de l'affichage du labyrinthe avec le robot à sa nouvelle position
-            AppComponent.robotAtLastPosition.position = { ...robot.position };
+            // this.updateMaisonWithRobot();
+            this.log("## robotAtLastPosition.position");
             this.log(AppComponent.robotAtLastPosition.position.x.toString());
             this.log(AppComponent.robotAtLastPosition.position.y.toString());
+            this.log("## robot.position");
             this.log(robot.position.x.toString());
             this.log(robot.position.y.toString());
-            this.updateMaisonWithRobot();
+            console.log(AppComponent.maison);
           },
           error: (err) => {
             this.log('Erreur retournerALaBase: ' + err);
@@ -239,13 +240,12 @@ export class AppComponent implements OnInit {
     if (AppComponent.maison[this.basePosition.y][this.basePosition.x].type === 'N') {
       // si le robot quitte la base, la base est de nouveau affichée:
       AppComponent.maison[AppComponent.robotAtLastPosition.position.y][AppComponent.robotAtLastPosition.position.x].type = 'B';
-    } else if (this.toutEstNettoye() === false
       // si le robot quitte une position autre que la base et que tout n'est pas nettoyé, la position devient "visitée"
-      && AppComponent.maison[AppComponent.robotAtLastPosition.position.y][AppComponent.robotAtLastPosition.position.x].type !== 'B') {
+      
+    } else if(AppComponent.maison[AppComponent.robotAtLastPosition.position.y][AppComponent.robotAtLastPosition.position.x].type !== 'B') {
+      AppComponent.maison[this.robot.position.y][this.robot.position.x].type = 'N';
       AppComponent.maison[AppComponent.robotAtLastPosition.position.y][AppComponent.robotAtLastPosition.position.x].type = '_';
     }
-    // la nouvelle position devient le bloc ROBOT
-    AppComponent.maison[this.robot.position.y][this.robot.position.x].type = 'N';
   }
 
   private log(message: string) {

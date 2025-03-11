@@ -24,11 +24,11 @@
       <ng-template pTemplate="body" let-rowData>
         <tr class="cellsRowMaison">
           <td *ngFor="let cell of rowData" @maisonAnimation class="cellMaison">
-            <img *ngIf="cell.type === 'O'" src="/assets/texture-non-visitee.png"/>
-            <img *ngIf="cell.type === 'X'" src="/assets/texture-mur.png"/>
-            <img *ngIf="cell.type === 'B'" src="/assets/texture-base.png"/>
-            <img *ngIf="cell.type === '_'" src="/assets/texture-visitee.png"/>
-            <img *ngIf="cell.type === 'N'" src="/assets/robot-chevalier.png"/>
+            <img *ngIf="cell.type === 'O'" src="/assets/texture-non-visitee.png" alt='O'/>
+            <img *ngIf="cell.type === 'X'" src="/assets/texture-mur.png" alt='X'/>
+            <img *ngIf="cell.type === 'B'" src="/assets/texture-base.png" alt='B'/>
+            <img *ngIf="cell.type === '_'" src="/assets/texture-visitee.png" alt='_'/>
+            <img *ngIf="cell.type === 'N'" src="/assets/robot-chevalier.png" alt='N'/>
           </td>
         </tr>
       </ng-template>

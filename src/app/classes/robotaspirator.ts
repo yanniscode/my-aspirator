@@ -303,9 +303,12 @@ export class RobotAspirator {
       this.updateSubscription = this.suivreLeChemin(robot, chemin).subscribe({
         next: (pos) => {
           this.log('next suivreLeChemin...');
-          this.log(pos.x.toString());
-          this.log(pos.y.toString());
-        
+          // this.log("# robotAtLastPosition.position");
+          // this.log(AppComponent.robotAtLastPosition.position.x.toString());
+          // this.log(AppComponent.robotAtLastPosition.position.y.toString());
+          // this.log(pos.x.toString());
+          // this.log(pos.y.toString());
+          robot.position = {...pos};      
           observer.next(robot);
         },
         error: (err) => {
@@ -326,6 +329,8 @@ export class RobotAspirator {
     return new Observable((observer) => {
       let index = 0;
       const intervalId = setInterval(() => {
+        // rafraîchissement de l'affichage du labyrinthe avec le robot à sa nouvelle position
+        AppComponent.robotAtLastPosition.position = { ...robot.position };
         // Vérifier si nous avons assez de batterie
         if (this.batterie <= 0) {
           this.log("Batterie épuisée avant d'atteindre la base!");
@@ -338,6 +343,8 @@ export class RobotAspirator {
           this.log("retour à la base");
           this.log("robot : X =" + robot.position.x + "/ Y = " + robot.position.y);
           index++;
+          this.updateMaisonWithRobot();
+
           // return robot;
         } else {
           observer.complete(); // Termine l'observable après avoir émis tous les nombres
