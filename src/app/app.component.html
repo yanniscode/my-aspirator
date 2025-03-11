@@ -1,9 +1,11 @@
-<img src="/assets/texture-non_visitee.png"/>
+<div>
+<img src="/assets/texture-non-visitee.png"/>
 <img src="/assets/texture-mur.png"/>
 <img src="/assets/texture-base.png"/>
 <img src="/assets/texture-visitee.png"/>
 <img src="/assets/robot-chevalier.png"/>
-
+</div>
+<h1>Aspiro-Man</h1>
 <div class="content">
   <!-- <div class="maison">
     <div *ngFor='let row of MaisonView' @maisonAnimation>
@@ -20,9 +22,9 @@
   <div class="maison">
     <p-table [value]="MaisonView">
       <ng-template pTemplate="body" let-rowData>
-        <tr>
-          <td *ngFor="let cell of rowData" @maisonAnimation>
-            <img *ngIf="cell.type === 'O'" src="/assets/texture-non_visitee.png"/>
+        <tr class="cellsRowMaison">
+          <td *ngFor="let cell of rowData" @maisonAnimation class="cellMaison">
+            <img *ngIf="cell.type === 'O'" src="/assets/texture-non-visitee.png"/>
             <img *ngIf="cell.type === 'X'" src="/assets/texture-mur.png"/>
             <img *ngIf="cell.type === 'B'" src="/assets/texture-base.png"/>
             <img *ngIf="cell.type === '_'" src="/assets/texture-visitee.png"/>
@@ -43,6 +45,7 @@
       <button type="submit">Pause</button>
     </div>
   </form>
+
 </div>
 
 <div>

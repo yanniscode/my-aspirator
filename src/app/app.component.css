@@ -1,5 +1,9 @@
+h1 {
+    text-align: center;
+}
+
 .content {
-    background-color: #c7c1c1;
+    background-color: #dfd0d0;
     /* display: flex;
     align-items: flex-start;
     justify-content: space-around; */
@@ -10,7 +14,7 @@
 }
 
 .maison {
-    background-color: #c7c1c1;
+    background-color: #ffae2b;
     display: flex;
     align-items: flex-start;
     justify-content: space-evenly;    
@@ -34,4 +38,23 @@
     justify-content: center;
     margin-top: 20px;
     padding-bottom: 10px;
+}
+
+/* .p-datatable-tbody > tr > td {
+    text-align: end;
+    border-color: var(--p-datatable-body-cell-border-color);
+    border-style: solid;
+    border-width: 0 0 1px 0;
+    padding: var(--p-datatable-body-cell-padding);
+} */
+
+
+.cellsRowMaison {
+    background: rgb(0, 140, 133);
+}
+
+.cellMaison {
+    text-align: center;
+    border-style: none;
+    padding: inherit;
 }

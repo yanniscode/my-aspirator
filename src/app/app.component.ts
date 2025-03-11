@@ -2,7 +2,7 @@ import { NgFor, NgIf } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { trigger, transition, style, animate } from '@angular/animations';
-import { interval, Subscription } from "rxjs";
+import { interval, Observable, Subscription } from "rxjs";
 import { map } from 'rxjs/operators';
 import { TableModule } from 'primeng/table';
 
@@ -25,7 +25,7 @@ import { Cell } from './classes/cell';
         animate('50ms ease-out', style({ opacity: 1 }))
       ]),
       transition(':leave', [
-          animate('50ms ease-out', style({ opacity: 0 }))
+        animate('50ms ease-out', style({ opacity: 0 }))
       ])
     ])
   ]
@@ -96,6 +96,13 @@ export class AppComponent implements OnInit {
     this.startIntro();
   }
 
+  ngOnDestroy(): void {
+    // Se désabonner pour éviter les fuites de mémoire
+    if (this.updateSubscription) {
+      this.updateSubscription.unsubscribe();
+    }
+  }
+
   startIntro(): void {
     // Création de la maison
     this.initMaisonConfig();
@@ -103,22 +110,33 @@ export class AppComponent implements OnInit {
     // Créer et démarrer le robot
     // rafraîchissement de l'affichage de la maison avec le robot à sa nouvelle position
     this.robot = new RobotAspirator(this.messageService, this.basePosition);
+    this.robotAtLastPosition = structuredClone(this.robot);
 
     setTimeout(() => {
       // remplace un élément du tableau par le robot et l'affiche
-      this.updateMaisonWithRobot(this.toutEstNettoye());
+      this.updateMaisonWithRobot();
       // this.afficherMaison();
     }, 1000);
   }
 
   startRobot(): void {
-    // démarrage de l'algo principal de nettoyage de la maison:
     this.log("Début du nettoyage");
-    this.updateSubscription = interval(250).pipe(
-      map(() => {
-        this.nettoyer();
-      })
-    ).subscribe();
+    // algo principal de nettoyage de la maison
+    this.updateSubscription = this.nettoyer().subscribe({
+      next: () => {
+        this.log('next...');
+      },
+      error: (err) => {
+        this.log('Erreur: ' + err);
+      },
+      complete: () => {
+        this.log('complete: Nettoyage ok !');
+        // Retourner à la base de charge
+        this.log(`Batterie: ${this.robot.batterie}%. Retour à la base.`);
+        this.robot = this.robot.retournerALaBase(this.robot);    //   this.startIntro();
+        this.startIntro();
+      }
+    });
   }
 
   pauseRobot(): void {
@@ -128,37 +146,40 @@ export class AppComponent implements OnInit {
   }
 
   // Fonction principale pour nettoyer la maison
-  private nettoyer(): void {
-    // rafraîchissement de l'affichage du labyrinthe avec le robot à sa nouvelle position
-    this.robotAtLastPosition = structuredClone(this.robot);
+  private nettoyer(): Observable<void> {
+    return new Observable((observer) => {
+      const intervalId = setInterval(() => {
+        // rafraîchissement de l'affichage du labyrinthe avec le robot à sa nouvelle position
+        this.robotAtLastPosition = structuredClone(this.robot);
+        // si la batterie est HS
+        if (this.robot.batterie <= this.robot.energieNecessairePourRetour()) {
+          // while (this.batterie > this.energieNecessairePourRetour()) {
+          this.updateSubscription.unsubscribe();
+        }
+        // si toutes les cellules accessibles sont visitées, retourner à la base
+        if (this.toutEstNettoye()) {
+          this.log("Toutes les zones accessibles sont nettoyées");
+        }
+        // // Chercher la prochaine cellule non visitée et s'y diriger
+        const prochaineCellule = this.robot.trouverProchaineDestination();
 
-    // si la batterie est HS
-    if (this.robot.batterie <= this.robot.energieNecessairePourRetour()) {
-      // while (this.batterie > this.energieNecessairePourRetour()) {
-      this.updateSubscription.unsubscribe();
-    }
+        if (prochaineCellule) {
+          this.robot = this.robot.seDeplacerVers(this.robot, prochaineCellule);
+          this.updateMaisonWithRobot();
+        } else {
+          // Si aucune cellule n'est trouvée, retourner à la base
+          this.log("Aucune cellule accessible non visitée trouvée");
+          this.updateMaisonWithRobot();
+          // force ici la fin de l'observable
+          observer.complete();
+        }
+      }, 250); // Émet une nouvelle valeur toutes les secondes
 
-    // si toutes les cellules accessibles sont visitées, retourner à la base
-    if (this.toutEstNettoye()) {
-      this.log("Toutes les zones accessibles sont nettoyées");
-    }
-
-    // // Chercher la prochaine cellule non visitée et s'y diriger
-    const prochaineCellule = this.robot.trouverProchaineDestination();
-
-    if (prochaineCellule) {
-      this.robot = this.robot.seDeplacerVers(this.robot, prochaineCellule);
-      this.updateMaisonWithRobot(this.toutEstNettoye());
-    } else {
-      // Si aucune cellule n'est trouvée, retourner à la base
-      this.log("Aucune cellule accessible non visitée trouvée");
-      // Retourner à la base de charge
-      this.log(`Batterie: ${this.robot.batterie}%. Retour à la base.`);
-      this.robot = this.robot.retournerALaBase(this.robot);
-      this.updateMaisonWithRobot(this.toutEstNettoye());
-      this.updateSubscription.unsubscribe();
-      this.startIntro();
-    }
+      // Gestion de l'annulation de l'intervalle si l'observable est désabonné
+      return () => {
+        clearInterval(intervalId);
+      };
+    });
   }
 
   // Vérifier si toutes les cellules accessibles ont été visitées
@@ -174,13 +195,12 @@ export class AppComponent implements OnInit {
     return true;
   }
 
-  private updateMaisonWithRobot(toutEstNettoye: boolean): void {
+  private updateMaisonWithRobot(): void {
     // l'ancienne position du robot devient la BASE, ou bien un bloc VISITE,
-    // sauf au dernier tour (toutEstNettoye === true)
-    if(AppComponent.maison[this.basePosition.y][this.basePosition.x].type === 'N') {
+    if (AppComponent.maison[this.basePosition.y][this.basePosition.x].type === 'N') {
       // si le robot quitte la base, la base est de nouveau affichée:
       AppComponent.maison[this.robotAtLastPosition.position.y][this.robotAtLastPosition.position.x].type = 'B';
-    } else if (!toutEstNettoye
+    } else if (this.toutEstNettoye() === false
       // si le robot quitte une position autre que la base et que tout n'est pas nettoyé, la position devient "visitée"
       && AppComponent.maison[this.robotAtLastPosition.position.y][this.robotAtLastPosition.position.x].type !== 'B') {
       AppComponent.maison[this.robotAtLastPosition.position.y][this.robotAtLastPosition.position.x].type = '_';
