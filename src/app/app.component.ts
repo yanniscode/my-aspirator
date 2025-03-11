@@ -45,7 +45,7 @@ export class AppComponent implements OnInit {
   }
   basePosition: Position = { x: 0, y: 0 };
   robot: RobotAspirator;
-  robotAtLastPosition: RobotAspirator;
+  static robotAtLastPosition: RobotAspirator;
 
   constructor(private messageService: MessageService) {
     this.messageService = messageService;
@@ -54,10 +54,11 @@ export class AppComponent implements OnInit {
 
     this.robot = new RobotAspirator(this.messageService, this.basePosition);
     // copie de la maison initiale (clone profond par valeur)
-    this.robotAtLastPosition = structuredClone(this.robot);
+    AppComponent.robotAtLastPosition = structuredClone(this.robot);
   }
 
   private initMaisonConfig(): void {
+    this.log("initMaisonConfig");
     // Création de la maison
     this.largeurMaison = 10;
     this.hauteurMaison = 8;
@@ -110,7 +111,7 @@ export class AppComponent implements OnInit {
     // Créer et démarrer le robot
     // rafraîchissement de l'affichage de la maison avec le robot à sa nouvelle position
     this.robot = new RobotAspirator(this.messageService, this.basePosition);
-    this.robotAtLastPosition = structuredClone(this.robot);
+    AppComponent.robotAtLastPosition = structuredClone(this.robot);
 
     setTimeout(() => {
       // remplace un élément du tableau par le robot et l'affiche
@@ -124,20 +125,58 @@ export class AppComponent implements OnInit {
     // algo principal de nettoyage de la maison
     this.updateSubscription = this.nettoyer().subscribe({
       next: () => {
-        this.log('next...');
+        this.log('next nettoyer...');
       },
       error: (err) => {
-        this.log('Erreur: ' + err);
+        this.log('Erreur nettoyer: ' + err);
       },
       complete: () => {
-        this.log('complete: Nettoyage ok !');
+        this.log('complete nettoyer: Nettoyage ok !');
         // Retourner à la base de charge
         this.log(`Batterie: ${this.robot.batterie}%. Retour à la base.`);
-        this.robot = this.robot.retournerALaBase(this.robot);    //   this.startIntro();
-        this.startIntro();
+        // on ne souscrit plus à nettoyer()
+        this.updateSubscription.unsubscribe();
+        // puis on souscrit à retournerALaBase
+        this.updateSubscription = this.robot.retournerALaBase(this.robot).subscribe({
+          next: (robot) => {
+            this.log('next retournerALaBase...');
+            // rafraîchissement de l'affichage du labyrinthe avec le robot à sa nouvelle position
+            AppComponent.robotAtLastPosition.position = { ...robot.position };
+            this.log(AppComponent.robotAtLastPosition.position.x.toString());
+            this.log(AppComponent.robotAtLastPosition.position.y.toString());
+            this.log(robot.position.x.toString());
+            this.log(robot.position.y.toString());
+            this.updateMaisonWithRobot();
+          },
+          error: (err) => {
+            this.log('Erreur retournerALaBase: ' + err);
+          },
+          complete: () => {
+            this.log('complete retournerALaBase: ok !');
+            this.updateSubscription.unsubscribe();
+          }
+        });
+        // this.startIntro();
       }
     });
   }
+
+  // retournerALaBase(): void {
+  //   this.updateSubscription.unsubscribe();
+  //   this.updateSubscription = this.robot.retournerALaBase(this.robot).subscribe({
+  //     next: () => {
+  //       this.log('next retournerALaBase...');
+  //     },
+  //     error: (err) => {
+  //       this.log('Erreur retournerALaBase: ' + err);
+  //     },
+  //     complete: () => {
+  //       this.log('complete retournerALaBase: retour à la base ok !');
+  //       // Retourner à la base de charge
+  //       this.startIntro();
+  //     }
+  //   });
+  // }
 
   pauseRobot(): void {
     if (this.updateSubscription) {
@@ -150,7 +189,7 @@ export class AppComponent implements OnInit {
     return new Observable((observer) => {
       const intervalId = setInterval(() => {
         // rafraîchissement de l'affichage du labyrinthe avec le robot à sa nouvelle position
-        this.robotAtLastPosition = structuredClone(this.robot);
+        AppComponent.robotAtLastPosition.position = { ...this.robot.position };
         // si la batterie est HS
         if (this.robot.batterie <= this.robot.energieNecessairePourRetour()) {
           // while (this.batterie > this.energieNecessairePourRetour()) {
@@ -199,11 +238,11 @@ export class AppComponent implements OnInit {
     // l'ancienne position du robot devient la BASE, ou bien un bloc VISITE,
     if (AppComponent.maison[this.basePosition.y][this.basePosition.x].type === 'N') {
       // si le robot quitte la base, la base est de nouveau affichée:
-      AppComponent.maison[this.robotAtLastPosition.position.y][this.robotAtLastPosition.position.x].type = 'B';
+      AppComponent.maison[AppComponent.robotAtLastPosition.position.y][AppComponent.robotAtLastPosition.position.x].type = 'B';
     } else if (this.toutEstNettoye() === false
       // si le robot quitte une position autre que la base et que tout n'est pas nettoyé, la position devient "visitée"
-      && AppComponent.maison[this.robotAtLastPosition.position.y][this.robotAtLastPosition.position.x].type !== 'B') {
-      AppComponent.maison[this.robotAtLastPosition.position.y][this.robotAtLastPosition.position.x].type = '_';
+      && AppComponent.maison[AppComponent.robotAtLastPosition.position.y][AppComponent.robotAtLastPosition.position.x].type !== 'B') {
+      AppComponent.maison[AppComponent.robotAtLastPosition.position.y][AppComponent.robotAtLastPosition.position.x].type = '_';
     }
     // la nouvelle position devient le bloc ROBOT
     AppComponent.maison[this.robot.position.y][this.robot.position.x].type = 'N';

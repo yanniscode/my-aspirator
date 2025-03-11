@@ -1,3 +1,4 @@
+import { Observable, Subscription } from "rxjs";
 import { AppComponent } from "../app.component";
 import { MessageService } from "../services/message.service";
 
@@ -7,6 +8,9 @@ import { Position } from "./position";
 type Direction = 'nord' | 'est' | 'sud' | 'ouest';
 
 export class RobotAspirator {
+
+  // nécessaire pour l'animation (écoute d'observable avec rxjs)
+  private updateSubscription!: Subscription;
 
   // Position actuelle
   public position: Position;
@@ -285,32 +289,68 @@ export class RobotAspirator {
   }
 
   // Retourner à la base de charge
-  public retournerALaBase(robot: RobotAspirator): RobotAspirator {
-    this.log("Retour à la base de charge");
+  public retournerALaBase(robot: RobotAspirator): Observable<RobotAspirator> {
+    return new Observable((observer) => {
+      this.log("Retour à la base de charge");
+      // Trouver le chemin vers la base
+      const chemin = this.trouverChemin(this.position, this.basePosition);
 
-    // Trouver le chemin vers la base
-    const chemin = this.trouverChemin(this.position, this.basePosition);
-
-    if (chemin.length === 0) {
-      this.log("Impossible de trouver un chemin vers la base de charge!");
-      return robot
-    }
-
-    // Suivre le chemin
-    for (const pos of chemin) {
-      robot = this.deplacer(robot, pos);
-      this.log("retour à la base");
-      this.log("robot : X =" + robot.position.x + "/ Y = " + robot.position.y);
-
-      // Vérifier si nous avons assez de batterie
-      if (this.batterie <= 0) {
-        this.log("Batterie épuisée avant d'atteindre la base!");
-        return robot;
+      if (chemin.length === 0) {
+        this.log("Impossible de trouver un chemin vers la base de charge!");
       }
-    }
 
-    this.log("Arrivé à la base de charge avec une batterie de " + this.batterie.toFixed(1) + "%");
-    return robot;
+      // Suivre le chemin
+      this.updateSubscription = this.suivreLeChemin(robot, chemin).subscribe({
+        next: (pos) => {
+          this.log('next suivreLeChemin...');
+          this.log(pos.x.toString());
+          this.log(pos.y.toString());
+        
+          observer.next(robot);
+        },
+        error: (err) => {
+          this.log('Erreur suivreLeChemin: ' + err);
+        },
+        complete: () => {
+          this.log('complete suivreLeChemin');
+          this.updateSubscription.unsubscribe();
+          observer.complete();
+        }
+      });
+
+      this.log("Arrivé à la base de charge avec une batterie de " + this.batterie.toFixed(1) + "%");
+    });
+  }
+
+  private suivreLeChemin(robot: RobotAspirator, chemin: Position[]): Observable<Position> {
+    return new Observable((observer) => {
+      let index = 0;
+      const intervalId = setInterval(() => {
+        // Vérifier si nous avons assez de batterie
+        if (this.batterie <= 0) {
+          this.log("Batterie épuisée avant d'atteindre la base!");
+          // return robot;
+        } 
+        else if (index < chemin.length) {
+          // for (const pos of chemin) {
+          observer.next(chemin[index]);
+          robot = this.deplacer(robot, chemin[index]);
+          this.log("retour à la base");
+          this.log("robot : X =" + robot.position.x + "/ Y = " + robot.position.y);
+          index++;
+          // return robot;
+        } else {
+          observer.complete(); // Termine l'observable après avoir émis tous les nombres
+          clearInterval(intervalId); // Nettoie l'intervalle
+          // return robot;
+        }
+      }, 250); // Émet une nouvelle valeur toutes les 250ms
+
+      // Nettoyage si l'abonnement est annulé
+      return () => {
+        clearInterval(intervalId);
+      };
+    });
   }
 
   // Déplacer le robot à une position spécifique
