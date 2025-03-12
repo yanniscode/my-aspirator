@@ -43,8 +43,8 @@ export class AppComponent implements OnInit {
   get MaisonView() {
     return AppComponent.maison;
   }
-  basePosition: Position = { x: 0, y: 0 };
-  robot: RobotAspirator;
+  static basePosition: Position = { x: 0, y: 0 };
+  static robot: RobotAspirator;
   static robotAtLastPosition: RobotAspirator;
 
   constructor(private messageService: MessageService) {
@@ -52,9 +52,9 @@ export class AppComponent implements OnInit {
 
     this.initMaisonConfig();
 
-    this.robot = new RobotAspirator(this.messageService, this.basePosition);
+    AppComponent.robot = new RobotAspirator(this.messageService, AppComponent.basePosition);
     // copie de la maison initiale (clone profond par valeur)
-    AppComponent.robotAtLastPosition = structuredClone(this.robot);
+    AppComponent.robotAtLastPosition = structuredClone(AppComponent.robot);
   }
 
   private initMaisonConfig(): void {
@@ -67,8 +67,8 @@ export class AppComponent implements OnInit {
       { x: 7, y: 1 }, { x: 7, y: 2 }, { x: 7, y: 3 },
       { x: 4, y: 6 }, { x: 5, y: 6 }, { x: 6, y: 6 }
     ];
-    this.basePosition = { x: 0, y: 0 };
-    this.creerMaison(this.largeurMaison, this.hauteurMaison, this.obstacles, this.basePosition);
+    AppComponent.basePosition = { x: 0, y: 0 };
+    this.creerMaison(this.largeurMaison, this.hauteurMaison, this.obstacles, AppComponent.basePosition);
   }
 
   private creerMaison(largeur: number, hauteur: number, obstacles: Position[], basePosition: Position): void {
@@ -89,8 +89,8 @@ export class AppComponent implements OnInit {
       }
     });
     // Position de la base de charge
-    AppComponent.maison[this.basePosition.y][this.basePosition.x].type = 'B';
-    AppComponent.maison[this.basePosition.y][this.basePosition.x].visited = true;
+    AppComponent.maison[AppComponent.basePosition.y][AppComponent.basePosition.x].type = 'B';
+    AppComponent.maison[AppComponent.basePosition.y][AppComponent.basePosition.x].visited = true;
   }
 
   ngOnInit(): void {
@@ -110,12 +110,12 @@ export class AppComponent implements OnInit {
 
     // Créer et démarrer le robot
     // rafraîchissement de l'affichage de la maison avec le robot à sa nouvelle position
-    this.robot = new RobotAspirator(this.messageService, this.basePosition);
-    AppComponent.robotAtLastPosition = structuredClone(this.robot);
+    AppComponent.robot = new RobotAspirator(this.messageService, AppComponent.basePosition);
+    AppComponent.robotAtLastPosition = structuredClone(AppComponent.robot);
 
     setTimeout(() => {
       // remplace un élément du tableau par le robot et l'affiche
-      this.updateMaisonWithRobot();
+      AppComponent.updateMaisonWithRobot();
       // this.afficherMaison();
     }, 1000);
   }
@@ -133,21 +133,18 @@ export class AppComponent implements OnInit {
       complete: () => {
         this.log('complete nettoyer: Nettoyage ok !');
         // Retourner à la base de charge
-        this.log(`Batterie: ${this.robot.batterie}%. Retour à la base.`);
+        this.log(`Batterie: ${AppComponent.robot.batterie}%. Retour à la base.`);
         // on ne souscrit plus à nettoyer()
         this.updateSubscription.unsubscribe();
         // puis on souscrit à retournerALaBase
-        this.updateSubscription = this.robot.retournerALaBase(this.robot).subscribe({
+        this.updateSubscription = AppComponent.robot.retournerALaBase(AppComponent.robot).subscribe({
           next: (robot) => {
             this.log('next retournerALaBase...');
-            // this.updateMaisonWithRobot();
-            this.log("## robotAtLastPosition.position");
             this.log(AppComponent.robotAtLastPosition.position.x.toString());
             this.log(AppComponent.robotAtLastPosition.position.y.toString());
-            this.log("## robot.position");
             this.log(robot.position.x.toString());
             this.log(robot.position.y.toString());
-            console.log(AppComponent.maison);
+            // AppComponent.updateMaisonWithRobot();
           },
           error: (err) => {
             this.log('Erreur retournerALaBase: ' + err);
@@ -155,9 +152,9 @@ export class AppComponent implements OnInit {
           complete: () => {
             this.log('complete retournerALaBase: ok !');
             this.updateSubscription.unsubscribe();
+            this.startIntro();
           }
         });
-        // this.startIntro();
       }
     });
   }
@@ -190,26 +187,26 @@ export class AppComponent implements OnInit {
     return new Observable((observer) => {
       const intervalId = setInterval(() => {
         // rafraîchissement de l'affichage du labyrinthe avec le robot à sa nouvelle position
-        AppComponent.robotAtLastPosition.position = { ...this.robot.position };
+        AppComponent.robotAtLastPosition.position = { ...AppComponent.robot.position };
         // si la batterie est HS
-        if (this.robot.batterie <= this.robot.energieNecessairePourRetour()) {
+        if (AppComponent.robot.batterie <= AppComponent.robot.energieNecessairePourRetour()) {
           // while (this.batterie > this.energieNecessairePourRetour()) {
           this.updateSubscription.unsubscribe();
         }
         // si toutes les cellules accessibles sont visitées, retourner à la base
-        if (this.toutEstNettoye()) {
+        if (AppComponent.toutEstNettoye()) {
           this.log("Toutes les zones accessibles sont nettoyées");
         }
         // // Chercher la prochaine cellule non visitée et s'y diriger
-        const prochaineCellule = this.robot.trouverProchaineDestination();
+        const prochaineCellule = AppComponent.robot.trouverProchaineDestination();
 
         if (prochaineCellule) {
-          this.robot = this.robot.seDeplacerVers(this.robot, prochaineCellule);
-          this.updateMaisonWithRobot();
+          AppComponent.robot = AppComponent.robot.seDeplacerVers(AppComponent.robot, prochaineCellule);
+          AppComponent.updateMaisonWithRobot();
         } else {
           // Si aucune cellule n'est trouvée, retourner à la base
           this.log("Aucune cellule accessible non visitée trouvée");
-          this.updateMaisonWithRobot();
+          AppComponent.updateMaisonWithRobot();
           // force ici la fin de l'observable
           observer.complete();
         }
@@ -223,7 +220,7 @@ export class AppComponent implements OnInit {
   }
 
   // Vérifier si toutes les cellules accessibles ont été visitées
-  private toutEstNettoye(): boolean {
+  static toutEstNettoye(): boolean {
     for (let i = 0; i < AppComponent.maison.length; i++) {
       for (let j = 0; j < AppComponent.maison[i].length; j++) {
         const cell = AppComponent.maison[i][j];
@@ -235,17 +232,20 @@ export class AppComponent implements OnInit {
     return true;
   }
 
-  private updateMaisonWithRobot(): void {
+  static updateMaisonWithRobot(): void {
     // l'ancienne position du robot devient la BASE, ou bien un bloc VISITE,
     if (AppComponent.maison[this.basePosition.y][this.basePosition.x].type === 'N') {
       // si le robot quitte la base, la base est de nouveau affichée:
       AppComponent.maison[AppComponent.robotAtLastPosition.position.y][AppComponent.robotAtLastPosition.position.x].type = 'B';
+    } else if (
       // si le robot quitte une position autre que la base et que tout n'est pas nettoyé, la position devient "visitée"
-      
-    } else if(AppComponent.maison[AppComponent.robotAtLastPosition.position.y][AppComponent.robotAtLastPosition.position.x].type !== 'B') {
-      AppComponent.maison[this.robot.position.y][this.robot.position.x].type = 'N';
+      AppComponent.maison[AppComponent.robotAtLastPosition.position.y][AppComponent.robotAtLastPosition.position.x].type !== 'B') {
       AppComponent.maison[AppComponent.robotAtLastPosition.position.y][AppComponent.robotAtLastPosition.position.x].type = '_';
+      // la nouvelle position devient le bloc ROBOT
+      AppComponent.maison[this.robot.position.y][this.robot.position.x].type = 'N';
     }
+    // // la nouvelle position devient le bloc ROBOT
+    AppComponent.maison[this.robot.position.y][this.robot.position.x].type = 'N';
   }
 
   private log(message: string) {

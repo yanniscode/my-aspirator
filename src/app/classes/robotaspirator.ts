@@ -308,7 +308,7 @@ export class RobotAspirator {
           // this.log(AppComponent.robotAtLastPosition.position.y.toString());
           // this.log(pos.x.toString());
           // this.log(pos.y.toString());
-          robot.position = {...pos};      
+          robot.position = {...pos};   
           observer.next(robot);
         },
         error: (err) => {
@@ -343,8 +343,7 @@ export class RobotAspirator {
           this.log("retour à la base");
           this.log("robot : X =" + robot.position.x + "/ Y = " + robot.position.y);
           index++;
-          this.updateMaisonWithRobot();
-
+          AppComponent.updateMaisonWithRobot();
           // return robot;
         } else {
           observer.complete(); // Termine l'observable après avoir émis tous les nombres
