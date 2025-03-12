@@ -18,7 +18,7 @@ h1 {
     display: flex;
     align-items: flex-start;
     justify-content: space-evenly;    
-    color: #752713;
+    /* color: #752713; */
     width: 100%;
     /* max-width: 700px; modif */
     /* margin-bottom: 3rem; */
@@ -56,5 +56,5 @@ h1 {
 .cellMaison {
     text-align: center;
     border-style: none;
-    padding: inherit;
+    /* padding: inherit; */
 }
