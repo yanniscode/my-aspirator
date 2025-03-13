@@ -3,7 +3,7 @@
 <img src="/assets/texture-mur.png"/>
 <img src="/assets/texture-base.png"/>
 <img src="/assets/texture-visitee.png"/>
-<img src="/assets/robot-chevalier.png"/>
+<img src="/assets/megaman.png"/>
 </div>
 <h1>Aspiro-Man</h1>
 <div class="content">
@@ -20,15 +20,15 @@
   </div> -->
 
   <div class="maison">
-    <p-table [value]="MaisonView">
+    <p-table [value]="MaisonView" @maisonAnimation>
       <ng-template pTemplate="body" let-rowData>
         <tr class="cellsRowMaison">
-          <td *ngFor="let cell of rowData" @maisonAnimation class="cellMaison">
+          <td *ngFor="let cell of rowData">
             <img *ngIf="cell.type === 'O'" src="/assets/texture-non-visitee.png" alt='O'/>
             <img *ngIf="cell.type === 'X'" src="/assets/texture-mur.png" alt='X'/>
             <img *ngIf="cell.type === 'B'" src="/assets/texture-base.png" alt='B'/>
             <img *ngIf="cell.type === '_'" src="/assets/texture-visitee.png" alt='_'/>
-            <img *ngIf="cell.type === 'N'" src="/assets/robot-chevalier.png" alt='N'/>
+            <img *ngIf="cell.type === 'N'" src="/assets/megaman.png" alt='N'/>
           </td>
         </tr>
       </ng-template>

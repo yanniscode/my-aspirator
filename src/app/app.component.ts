@@ -2,8 +2,7 @@ import { NgFor, NgIf } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { trigger, transition, style, animate } from '@angular/animations';
-import { interval, Observable, Subscription } from "rxjs";
-import { map } from 'rxjs/operators';
+import { Observable, Subscription } from "rxjs";
 import { TableModule } from 'primeng/table';
 
 import { MessageService } from './services/message.service';
@@ -22,11 +21,11 @@ import { Cell } from './classes/cell';
     trigger('maisonAnimation', [
       transition(':enter', [
         style({ opacity: 0 }),
-        animate('50ms ease-out', style({ opacity: 1 }))
+        animate('1500ms ease-out', style({ opacity: 1 }))
       ]),
-      transition(':leave', [
-        animate('50ms ease-out', style({ opacity: 0 }))
-      ])
+      // transition(':leave', [
+      //   animate('1000ms ease-out', style({ opacity: 0 }))
+      // ])
     ])
   ]
 })
