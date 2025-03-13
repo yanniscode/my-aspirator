@@ -3,11 +3,12 @@ h1 {
 }
 
 .content {
-    background-color: #dfd0d0;
+    background-color: #752713;
+    text-align: center;
     /* display: flex;
     align-items: flex-start;
     justify-content: space-around; */
-    color: #752713;
+    color: #0071e6;
     width: 100%;
     /* max-width: 700px; modif */
     /* margin-bottom: 3rem; */

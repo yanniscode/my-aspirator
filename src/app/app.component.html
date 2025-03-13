@@ -1,24 +1,12 @@
-<div>
-<img src="/assets/texture-non-visitee.png"/>
-<img src="/assets/texture-mur.png"/>
-<img src="/assets/texture-base.png"/>
-<img src="/assets/texture-visitee.png"/>
-<img src="/assets/megaman.png"/>
-</div>
-<h1>Aspiro-Man</h1>
 <div class="content">
-  <!-- <div class="maison">
-    <div *ngFor='let row of MaisonView' @maisonAnimation>
-      <div *ngFor='let cell of row'>
-        <img *ngIf="cell.type === 'O'" src="/assets/texture-non_visitee.png"/>
-        <img *ngIf="cell.type === 'X'" src="/assets/texture-mur.png"/>
-        <img *ngIf="cell.type === 'B'" src="/assets/texture-base.png"/>
-        <img *ngIf="cell.type === '_'" src="/assets/texture-visitee.png"/>
-        <img *ngIf="cell.type === 'N'" src="/assets/robot-chevalier.png"/>
-        <ng-template #noImage>{{cell.type}}</ng-template></div>
-    </div>
-  </div> -->
-
+  <div>
+    <img src="/assets/texture-non-visitee.png"/>
+    <img src="/assets/texture-mur.png"/>
+    <img src="/assets/texture-base.png"/>
+    <img src="/assets/texture-visitee.png"/>
+    <img src="/assets/megaman.png"/>
+  </div>
+  <h1>Aspiro-Man</h1>
   <div class="maison">
     <p-table [value]="MaisonView" @maisonAnimation>
       <ng-template pTemplate="body" let-rowData>

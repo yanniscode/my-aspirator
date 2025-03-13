@@ -7,8 +7,12 @@ h2 {
     font-weight: lighter;
 }
 
+.messages {
+    text-align: center;
+}
+
 .clear {
-    display: flex;
+    align-items: flex-start;
     justify-content: space-around;
     color: #333;
     background-color: #eee;
@@ -18,7 +22,7 @@ h2 {
     font-size: 1rem;
 }
 .clear:hover {
-    display: flex;
+    align-items: flex-start;
     justify-content: space-around;
     color: #fff;
     background-color: #42545C;
