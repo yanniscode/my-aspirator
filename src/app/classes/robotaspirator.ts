@@ -303,12 +303,7 @@ export class RobotAspirator {
       this.updateSubscription = this.suivreLeChemin(robot, chemin).subscribe({
         next: (pos) => {
           this.log('next suivreLeChemin...');
-          // this.log("# robotAtLastPosition.position");
-          // this.log(AppComponent.robotAtLastPosition.position.x.toString());
-          // this.log(AppComponent.robotAtLastPosition.position.y.toString());
-          // this.log(pos.x.toString());
-          // this.log(pos.y.toString());
-          robot.position = {...pos};   
+          robot.position = {...pos};
           observer.next(robot);
         },
         error: (err) => {
@@ -329,13 +324,13 @@ export class RobotAspirator {
     return new Observable((observer) => {
       let index = 0;
       const intervalId = setInterval(() => {
-        // rafraîchissement de l'affichage du labyrinthe avec le robot à sa nouvelle position
+        // rafraîchissement de l'affichage de la maison avec le robot à sa nouvelle position
         AppComponent.robotAtLastPosition.position = { ...robot.position };
         // Vérifier si nous avons assez de batterie
         if (this.batterie <= 0) {
           this.log("Batterie épuisée avant d'atteindre la base!");
           // return robot;
-        } 
+        }
         else if (index < chemin.length) {
           // for (const pos of chemin) {
           observer.next(chemin[index]);

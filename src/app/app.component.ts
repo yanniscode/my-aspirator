@@ -185,14 +185,14 @@ export class AppComponent implements OnInit {
   private nettoyer(): Observable<void> {
     return new Observable((observer) => {
       const intervalId = setInterval(() => {
-        // rafraîchissement de l'affichage du labyrinthe avec le robot à sa nouvelle position
+        // rafraîchissement de l'affichage de la maison avec le robot à sa nouvelle position
+
         AppComponent.robotAtLastPosition.position = { ...AppComponent.robot.position };
         // si la batterie est HS
         if (AppComponent.robot.batterie <= AppComponent.robot.energieNecessairePourRetour()) {
-          // while (this.batterie > this.energieNecessairePourRetour()) {
           this.updateSubscription.unsubscribe();
         }
-        // si toutes les cellules accessibles sont visitées, retourner à la base
+        // si toutes les cellules accessibles sont visitées, on logge simplement
         if (AppComponent.toutEstNettoye()) {
           this.log("Toutes les zones accessibles sont nettoyées");
         }
