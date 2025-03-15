@@ -2,7 +2,7 @@ import { NgFor, NgIf } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { trigger, transition, style, animate } from '@angular/animations';
-import { Observable, Subscription } from "rxjs";
+import { Subscription } from "rxjs";
 import { TableModule } from 'primeng/table';
 
 import { MessageService } from './services/message.service';
@@ -122,7 +122,7 @@ export class AppComponent implements OnInit {
   startRobot(): void {
     this.log("Début du nettoyage");
     // algo principal de nettoyage de la maison
-    this.updateSubscription = this.nettoyer().subscribe({
+    this.updateSubscription = AppComponent.robot.nettoyer().subscribe({
       next: () => {
         this.log('next nettoyer...');
       },
@@ -158,64 +158,10 @@ export class AppComponent implements OnInit {
     });
   }
 
-  // retournerALaBase(): void {
-  //   this.updateSubscription.unsubscribe();
-  //   this.updateSubscription = this.robot.retournerALaBase(this.robot).subscribe({
-  //     next: () => {
-  //       this.log('next retournerALaBase...');
-  //     },
-  //     error: (err) => {
-  //       this.log('Erreur retournerALaBase: ' + err);
-  //     },
-  //     complete: () => {
-  //       this.log('complete retournerALaBase: retour à la base ok !');
-  //       // Retourner à la base de charge
-  //       this.startIntro();
-  //     }
-  //   });
-  // }
-
   pauseRobot(): void {
     if (this.updateSubscription) {
       this.updateSubscription.unsubscribe();
     }
-  }
-
-  // Fonction principale pour nettoyer la maison
-  private nettoyer(): Observable<void> {
-    return new Observable((observer) => {
-      const intervalId = setInterval(() => {
-        // rafraîchissement de l'affichage de la maison avec le robot à sa nouvelle position
-
-        AppComponent.robotAtLastPosition.position = { ...AppComponent.robot.position };
-        // si la batterie est HS
-        if (AppComponent.robot.batterie <= AppComponent.robot.energieNecessairePourRetour()) {
-          this.updateSubscription.unsubscribe();
-        }
-        // si toutes les cellules accessibles sont visitées, on logge simplement
-        if (AppComponent.toutEstNettoye()) {
-          this.log("Toutes les zones accessibles sont nettoyées");
-        }
-        // // Chercher la prochaine cellule non visitée et s'y diriger
-        const prochaineCellule = AppComponent.robot.trouverProchaineDestination();
-
-        if (prochaineCellule) {
-          AppComponent.robot = AppComponent.robot.seDeplacerVers(AppComponent.robot, prochaineCellule);
-          AppComponent.updateMaisonWithRobot();
-        } else {
-          // Si aucune cellule n'est trouvée, retourner à la base
-          this.log("Aucune cellule accessible non visitée trouvée");
-          AppComponent.updateMaisonWithRobot();
-          // force ici la fin de l'observable
-          observer.complete();
-        }
-      }, 250); // Émet une nouvelle valeur toutes les secondes
-
-      // Gestion de l'annulation de l'intervalle si l'observable est désabonné
-      return () => {
-        clearInterval(intervalId);
-      };
-    });
   }
 
   // Vérifier si toutes les cellules accessibles ont été visitées
@@ -240,8 +186,6 @@ export class AppComponent implements OnInit {
       // si le robot quitte une position autre que la base et que tout n'est pas nettoyé, la position devient "visitée"
       AppComponent.maison[AppComponent.robotAtLastPosition.position.y][AppComponent.robotAtLastPosition.position.x].type !== 'B') {
       AppComponent.maison[AppComponent.robotAtLastPosition.position.y][AppComponent.robotAtLastPosition.position.x].type = '_';
-      // la nouvelle position devient le bloc ROBOT
-      AppComponent.maison[this.robot.position.y][this.robot.position.x].type = 'N';
     }
     // // la nouvelle position devient le bloc ROBOT
     AppComponent.maison[this.robot.position.y][this.robot.position.x].type = 'N';

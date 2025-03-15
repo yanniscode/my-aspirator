@@ -9,7 +9,7 @@ type Direction = 'nord' | 'est' | 'sud' | 'ouest';
 
 export class RobotAspirator {
 
-  // nécessaire pour l'animation (écoute d'observable avec rxjs)
+  // nécessaire pour l'animation (écoute d'observables avec rxjs)
   private updateSubscription!: Subscription;
 
   // Position actuelle
@@ -39,8 +39,45 @@ export class RobotAspirator {
     this.energieRetourBase = 0; // Sera calculée dynamiquement
   }
 
+  // Fonction principale pour nettoyer la maison
+  public nettoyer(): Observable<void> {
+    return new Observable((observer) => {
+      const intervalId = setInterval(() => {
+        // rafraîchissement de l'affichage de la maison avec le robot à sa nouvelle position
+
+        AppComponent.robotAtLastPosition.position = { ...AppComponent.robot.position };
+        // si la batterie est HS
+        if (AppComponent.robot.batterie <= AppComponent.robot.energieNecessairePourRetour()) {
+          this.updateSubscription.unsubscribe();
+        }
+        // si toutes les cellules accessibles sont visitées, on logge simplement
+        if (AppComponent.toutEstNettoye()) {
+          this.log("Toutes les zones accessibles sont nettoyées");
+        }
+        // // Chercher la prochaine cellule non visitée et s'y diriger
+        const prochaineCellule = AppComponent.robot.trouverProchaineDestination();
+
+        if (prochaineCellule) {
+          AppComponent.robot = AppComponent.robot.seDeplacerVers(AppComponent.robot, prochaineCellule);
+          AppComponent.updateMaisonWithRobot();
+        } else {
+          // Si aucune cellule n'est trouvée, retourner à la base
+          this.log("Aucune cellule accessible non visitée trouvée");
+          AppComponent.updateMaisonWithRobot();
+          // force ici la fin de l'observable
+          observer.complete();
+        }
+      }, 250); // Émet une nouvelle valeur toutes les secondes
+
+      // Gestion de l'annulation de l'intervalle si l'observable est désabonné
+      return () => {
+        clearInterval(intervalId);
+      };
+    });
+  }
+
   // Trouver la prochaine cellule accessible non visitée la plus proche
-  public trouverProchaineDestination(): Cell | null {
+  private trouverProchaineDestination(): Cell | null {
     // Utiliser un algorithme de recherche en largeur (BFS) pour trouver la cellule non visitée la plus proche
     const queue: { cell: Cell; distance: number }[] = [];
     const visited: Set<string> = new Set();
@@ -108,7 +145,7 @@ export class RobotAspirator {
   }
 
   // Se déplacer vers une cellule spécifique
-  public seDeplacerVers(robot: RobotAspirator, destination: Cell): RobotAspirator {
+  private seDeplacerVers(robot: RobotAspirator, destination: Cell): RobotAspirator {
     // Utiliser A* ou un autre algorithme de recherche de chemin pour trouver le chemin optimal
     const chemin = this.trouverChemin(this.position, destination.position);
 
@@ -133,9 +170,6 @@ export class RobotAspirator {
     }
     return robot;
   }
-
-
-
 
   // Algorithme A* pour trouver le chemin optimal
   private trouverChemin(debut: Position, fin: Position): Position[] {
@@ -280,7 +314,7 @@ export class RobotAspirator {
   }
 
   // Estimer l'énergie nécessaire pour retourner à la base
-  public energieNecessairePourRetour(): number {
+  private energieNecessairePourRetour(): number {
     // Estimer la distance jusqu'à la base
     const distance = this.distance(this.position, this.basePosition);
 
