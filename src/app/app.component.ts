@@ -33,11 +33,11 @@ export class AppComponent implements OnInit {
   title = 'my-aspirator-robot';
 
   // nécessaire pour l'animation (écoute d'observable avec rxjs)
-  private updateSubscription!: Subscription;
+  static updateSubscription: Subscription;
 
-  largeurMaison: number = 10;
-  hauteurMaison: number = 8;
-  obstacles: Position[] = [];
+  static largeurMaison: number = 10;
+  static hauteurMaison: number = 8;
+  static obstacles: Position[] = [];
   static maison: Cell[][] = [[]];
   get MaisonView() {
     return AppComponent.maison;
@@ -45,35 +45,36 @@ export class AppComponent implements OnInit {
   static basePosition: Position = { x: 0, y: 0 };
   static robot: RobotAspirator;
   static robotAtLastPosition: RobotAspirator;
-
+  static messageService: MessageService;
+  
   constructor(private messageService: MessageService) {
-    this.messageService = messageService;
+    AppComponent.messageService = messageService;
 
-    this.initMaisonConfig();
+    AppComponent.initMaisonConfig();
 
-    AppComponent.robot = new RobotAspirator(this.messageService, AppComponent.basePosition);
+    AppComponent.robot = new RobotAspirator(AppComponent.messageService, AppComponent.basePosition);
     // copie de la maison initiale (clone profond par valeur)
     AppComponent.robotAtLastPosition = structuredClone(AppComponent.robot);
   }
 
-  private initMaisonConfig(): void {
-    this.log("initMaisonConfig");
+  static initMaisonConfig(): void {
+    AppComponent.log("initMaisonConfig");
     // Création de la maison
-    this.largeurMaison = 10;
-    this.hauteurMaison = 8;
-    this.obstacles = [
+    AppComponent.largeurMaison = 10;
+    AppComponent.hauteurMaison = 8;
+    AppComponent.obstacles = [
       { x: 2, y: 3 }, { x: 2, y: 4 }, { x: 3, y: 4 },
       { x: 7, y: 1 }, { x: 7, y: 2 }, { x: 7, y: 3 },
       { x: 4, y: 6 }, { x: 5, y: 6 }, { x: 6, y: 6 }
     ];
     AppComponent.basePosition = { x: 0, y: 0 };
-    this.creerMaison(this.largeurMaison, this.hauteurMaison, this.obstacles, AppComponent.basePosition);
+    AppComponent.creerMaison();
   }
 
-  private creerMaison(largeur: number, hauteur: number, obstacles: Position[], basePosition: Position): void {
-    for (let y = 0; y < hauteur; y++) {
+  static creerMaison(): void {
+    for (let y = 0; y < AppComponent.hauteurMaison; y++) {
       AppComponent.maison[y] = [];
-      for (let x = 0; x < largeur; x++) {
+      for (let x = 0; x < AppComponent.largeurMaison; x++) {
         AppComponent.maison[y][x] = {
           position: { x, y },
           type: 'O',
@@ -82,8 +83,8 @@ export class AppComponent implements OnInit {
       }
     }
     // Ajouter les obstacles
-    obstacles.forEach(obs => {
-      if (obs.x >= 0 && obs.x < largeur && obs.y >= 0 && obs.y < hauteur) {
+    AppComponent.obstacles.forEach(obs => {
+      if (obs.x >= 0 && obs.x < AppComponent.largeurMaison && obs.y >= 0 && obs.y < AppComponent.hauteurMaison) {
         AppComponent.maison[obs.y][obs.x].type = 'X';
       }
     });
@@ -93,74 +94,79 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.startIntro();
+    AppComponent.startIntro();
   }
 
   ngOnDestroy(): void {
     // Se désabonner pour éviter les fuites de mémoire
-    if (this.updateSubscription) {
-      this.updateSubscription.unsubscribe();
+    if (AppComponent.updateSubscription) {
+      AppComponent.updateSubscription.unsubscribe();
     }
   }
 
-  startIntro(): void {
+  static startIntro(): void {
     // Création de la maison
-    this.initMaisonConfig();
+    AppComponent.initMaisonConfig();
 
     // Créer et démarrer le robot
     // rafraîchissement de l'affichage de la maison avec le robot à sa nouvelle position
-    AppComponent.robot = new RobotAspirator(this.messageService, AppComponent.basePosition);
+    AppComponent.robot = new RobotAspirator(AppComponent.messageService, AppComponent.basePosition);
     AppComponent.robotAtLastPosition = structuredClone(AppComponent.robot);
 
     setTimeout(() => {
       // remplace un élément du tableau par le robot et l'affiche
       AppComponent.updateMaisonWithRobot();
-      // this.afficherMaison();
     }, 1000);
   }
 
-  startRobot(): void {
-    this.log("Début du nettoyage");
+  get startRobotButton() {
+    return AppComponent.startRobot();
+  }
+  static startRobot(): void {
+    AppComponent.log("Début du nettoyage");
     // algo principal de nettoyage de la maison
-    this.updateSubscription = AppComponent.robot.nettoyer().subscribe({
+    AppComponent.updateSubscription = AppComponent.robot.nettoyer().subscribe({
       next: () => {
-        this.log('next nettoyer...');
+        AppComponent.log('next nettoyer...');
       },
       error: (err) => {
-        this.log('Erreur nettoyer: ' + err);
+        AppComponent.log('Erreur nettoyer: ' + err);
       },
       complete: () => {
-        this.log('complete nettoyer: Nettoyage ok !');
+        AppComponent.log('complete nettoyer: Nettoyage ok !');
         // Retourner à la base de charge
-        this.log(`Batterie: ${AppComponent.robot.batterie}%. Retour à la base.`);
+        AppComponent.log(`Batterie: ${AppComponent.robot.batterie}%. Retour à la base.`);
         // on ne souscrit plus à nettoyer()
-        this.updateSubscription.unsubscribe();
+        AppComponent.updateSubscription.unsubscribe();
         // puis on souscrit à retournerALaBase
-        this.updateSubscription = AppComponent.robot.retournerALaBase(AppComponent.robot).subscribe({
+        AppComponent.updateSubscription = AppComponent.robot.retournerALaBase(AppComponent.robot).subscribe({
           next: (robot) => {
-            this.log('next retournerALaBase...');
-            this.log(AppComponent.robotAtLastPosition.position.x.toString());
-            this.log(AppComponent.robotAtLastPosition.position.y.toString());
-            this.log(robot.position.x.toString());
-            this.log(robot.position.y.toString());
+            AppComponent.log('next retournerALaBase...');
+            AppComponent.log(AppComponent.robotAtLastPosition.position.x.toString());
+            AppComponent.log(AppComponent.robotAtLastPosition.position.y.toString());
+            AppComponent.log(robot.position.x.toString());
+            AppComponent.log(robot.position.y.toString());
             // AppComponent.updateMaisonWithRobot();
           },
           error: (err) => {
-            this.log('Erreur retournerALaBase: ' + err);
+            AppComponent.log('Erreur retournerALaBase: ' + err);
           },
           complete: () => {
-            this.log('complete retournerALaBase: ok !');
-            this.updateSubscription.unsubscribe();
-            this.startIntro();
+            AppComponent.log('complete retournerALaBase: ok !');
+            AppComponent.updateSubscription.unsubscribe();
+            AppComponent.startIntro();
           }
         });
       }
     });
   }
 
-  pauseRobot(): void {
-    if (this.updateSubscription) {
-      this.updateSubscription.unsubscribe();
+  get pauseRobotButton() {
+    return AppComponent.pauseRobot();
+  }
+  static pauseRobot(): void {
+    if (AppComponent.updateSubscription) {
+      AppComponent.updateSubscription.unsubscribe();
     }
   }
 
@@ -179,7 +185,7 @@ export class AppComponent implements OnInit {
 
   static updateMaisonWithRobot(): void {
     // l'ancienne position du robot devient la BASE, ou bien un bloc VISITE,
-    if (AppComponent.maison[this.basePosition.y][this.basePosition.x].type === 'N') {
+    if (AppComponent.maison[AppComponent.basePosition.y][AppComponent.basePosition.x].type === 'N') {
       // si le robot quitte la base, la base est de nouveau affichée:
       AppComponent.maison[AppComponent.robotAtLastPosition.position.y][AppComponent.robotAtLastPosition.position.x].type = 'B';
     } else if (
@@ -188,11 +194,11 @@ export class AppComponent implements OnInit {
       AppComponent.maison[AppComponent.robotAtLastPosition.position.y][AppComponent.robotAtLastPosition.position.x].type = '_';
     }
     // // la nouvelle position devient le bloc ROBOT
-    AppComponent.maison[this.robot.position.y][this.robot.position.x].type = 'N';
+    AppComponent.maison[AppComponent.robot.position.y][AppComponent.robot.position.x].type = 'N';
   }
 
-  private log(message: string) {
-    this.messageService.add(`AppComponent: ${message}`);
+  static log(message: string) {
+    AppComponent.messageService.add(`AppComponent: ${message}`);
   }
 
 }
