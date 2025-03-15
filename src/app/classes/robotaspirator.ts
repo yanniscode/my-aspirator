@@ -36,7 +36,6 @@ export class RobotAspirator {
     return new Observable((observer) => {
       const intervalId = setInterval(() => {
         // rafraîchissement de l'affichage de la maison avec le robot à sa nouvelle position
-
         AppComponent.robotAtLastPosition.position = { ...AppComponent.robot.position };
         // si la batterie est HS
         if (AppComponent.robot.batterie <= AppComponent.robot.energieNecessairePourRetour()) {
@@ -50,12 +49,21 @@ export class RobotAspirator {
         const prochaineCellule = AppComponent.robot.trouverProchaineDestination();
 
         if (prochaineCellule) {
-          AppComponent.robot = AppComponent.robot.seDeplacerVers(AppComponent.robot, prochaineCellule);
-          AppComponent.updateMaisonWithRobot();
+          AppComponent.robot.seDeplacerVers(AppComponent.robot, prochaineCellule).subscribe({
+            next: (position) => {
+              AppComponent.robot.position = { ...position};
+            },
+            error: (err) => {
+              AppComponent.log('Erreur seDeplacerVers: ' + err);
+            },
+            complete: () => {
+              AppComponent.log('complete seDeplacerVers: ok !');
+              // AppComponent.updateSubscription.unsubscribe();
+            }
+          });
         } else {
           // Si aucune cellule n'est trouvée, retourner à la base
           AppComponent.log("Aucune cellule accessible non visitée trouvée");
-          AppComponent.updateMaisonWithRobot();
           // force ici la fin de l'observable
           observer.complete();
         }
@@ -137,30 +145,49 @@ export class RobotAspirator {
   }
 
   // Se déplacer vers une cellule spécifique
-  private seDeplacerVers(robot: RobotAspirator, destination: Cell): RobotAspirator {
+  private seDeplacerVers(robot: RobotAspirator, destination: Cell): Observable<Position> {
     // Utiliser A* ou un autre algorithme de recherche de chemin pour trouver le chemin optimal
     const chemin = this.trouverChemin(this.position, destination.position);
 
-    if (chemin.length === 0) {
-      AppComponent.log("Impossible de trouver un chemin vers la destination");
-      return robot;
-    }
+    return new Observable((observer) => {
 
-    // Suivre le chemin
-    for (const pos of chemin) {
-      // renvoyer la nouvelle position du robot + la cellule marquée comme visitée
-      robot = this.deplacer(robot, pos);
-
-      AppComponent.log("seDeplacerVers");
-      AppComponent.log("robot : X =" + robot.position.x + "/ Y = " + robot.position.y);
-
-      // Vérifier si la batterie est suffisante pour continuer
-      if (this.batterie <= this.energieNecessairePourRetour()) {
-        AppComponent.log("Batterie faible, interruption du déplacement");
-        return robot;
+      if (chemin.length === 0) {
+        AppComponent.log("Impossible de trouver un chemin vers la destination");
+        observer.complete();
       }
-    }
-    return robot;
+
+      let index = 0;
+      const intervalId = setInterval(() => {
+        // Suivre le chemin
+        if(index < chemin.length) {
+          observer.next(chemin[index]);
+
+          // renvoyer la nouvelle position du robot + la cellule marquée comme visitée
+          AppComponent.robot = this.deplacer(robot, chemin[index]);
+
+          AppComponent.log("seDeplacerVers");
+          AppComponent.log("robotAtLastPosition : X =" + AppComponent.robotAtLastPosition.position.x + "/ Y = " + AppComponent.robotAtLastPosition.position.y);
+          AppComponent.log("robot : X =" + AppComponent.robot.position.x + "/ Y = " + AppComponent.robot.position.y);
+
+          // TODO: retester ici en ajoutant interval(250)
+          AppComponent.updateMaisonWithRobot();
+
+          // Vérifier si la batterie est suffisante pour continuer
+          if (this.batterie <= this.energieNecessairePourRetour()) {
+            AppComponent.log("Batterie faible, interruption du déplacement");
+            observer.complete();
+          }
+          index++;
+        }
+        return robot.position;
+      }, 250);
+
+      // Gestion de l'annulation de l'intervalle si l'observable est désabonnée
+      return () => {
+        clearInterval(intervalId);
+      };
+    });
+
   }
 
   // Algorithme A* pour trouver le chemin optimal
@@ -326,27 +353,26 @@ export class RobotAspirator {
       }
 
       // Suivre le chemin
-      this.updateSubscription = this.suivreLeChemin(robot, chemin).subscribe({
+      this.updateSubscription = this.suivreLeCheminVersLaBase(robot, chemin).subscribe({
         next: (pos) => {
-          AppComponent.log('next suivreLeChemin...');
+          AppComponent.log('next suivreLeCheminVersLaBase...');
           robot.position = {...pos};
           observer.next(robot);
         },
         error: (err) => {
-          AppComponent.log('Erreur suivreLeChemin: ' + err);
+          AppComponent.log('Erreur suivreLeCheminVersLaBase: ' + err);
         },
         complete: () => {
-          AppComponent.log('complete suivreLeChemin');
+          AppComponent.log('complete suivreLeCheminVersLaBase');
           this.updateSubscription.unsubscribe();
           observer.complete();
+          AppComponent.log("Arrivé à la base de charge avec une batterie de " + this.batterie.toFixed(1) + "%");
         }
       });
-
-      AppComponent.log("Arrivé à la base de charge avec une batterie de " + this.batterie.toFixed(1) + "%");
     });
   }
 
-  private suivreLeChemin(robot: RobotAspirator, chemin: Position[]): Observable<Position> {
+  private suivreLeCheminVersLaBase(robot: RobotAspirator, chemin: Position[]): Observable<Position> {
     return new Observable((observer) => {
       let index = 0;
       const intervalId = setInterval(() => {
@@ -356,7 +382,6 @@ export class RobotAspirator {
         if (this.batterie <= 0) {
           AppComponent.log("Batterie épuisée avant d'atteindre la base!");
           observer.complete();
-          clearInterval(intervalId);
         }
         else if (index < chemin.length) {
           // for (const pos of chemin) {
@@ -369,8 +394,6 @@ export class RobotAspirator {
           // return robot;
         } else {
           observer.complete(); // Termine l'observable après avoir émis tous les nombres
-          clearInterval(intervalId); // Nettoie l'intervalle
-          // return robot;
         }
       }, 250); // Émet une nouvelle valeur toutes les 250ms
 
