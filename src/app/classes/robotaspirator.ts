@@ -40,7 +40,7 @@ export class RobotAspirator {
         AppComponent.robotAtLastPosition.position = { ...AppComponent.robot.position };
         // si la batterie est HS
         if (AppComponent.robot.batterie <= AppComponent.robot.energieNecessairePourRetour()) {
-          this.updateSubscription.unsubscribe();
+          observer.complete();
         }
         // si toutes les cellules accessibles sont visitées, on logge simplement
         if (AppComponent.toutEstNettoye()) {
@@ -355,7 +355,8 @@ export class RobotAspirator {
         // Vérifier si nous avons assez de batterie
         if (this.batterie <= 0) {
           AppComponent.log("Batterie épuisée avant d'atteindre la base!");
-          // return robot;
+          observer.complete();
+          clearInterval(intervalId);
         }
         else if (index < chemin.length) {
           // for (const pos of chemin) {
