@@ -8,6 +8,9 @@ type Direction = 'nord' | 'est' | 'sud' | 'ouest';
 
 export class RobotAspirator {
 
+  // nécessaire pour l'animation (écoute d'observables avec rxjs)
+  private updateSubscription!: Subscription;
+
   // Position actuelle
   public position: Position;
   // Direction actuelle
@@ -37,7 +40,7 @@ export class RobotAspirator {
         AppComponent.robotAtLastPosition.position = { ...AppComponent.robot.position };
         // si la batterie est HS
         if (AppComponent.robot.batterie <= AppComponent.robot.energieNecessairePourRetour()) {
-          AppComponent.updateSubscription.unsubscribe();
+          this.updateSubscription.unsubscribe();
         }
         // si toutes les cellules accessibles sont visitées, on logge simplement
         if (AppComponent.toutEstNettoye()) {
@@ -323,7 +326,7 @@ export class RobotAspirator {
       }
 
       // Suivre le chemin
-      AppComponent.updateSubscription = this.suivreLeChemin(robot, chemin).subscribe({
+      this.updateSubscription = this.suivreLeChemin(robot, chemin).subscribe({
         next: (pos) => {
           AppComponent.log('next suivreLeChemin...');
           robot.position = {...pos};
@@ -334,7 +337,7 @@ export class RobotAspirator {
         },
         complete: () => {
           AppComponent.log('complete suivreLeChemin');
-          AppComponent.updateSubscription.unsubscribe();
+          this.updateSubscription.unsubscribe();
           observer.complete();
         }
       });
