@@ -20,8 +20,6 @@ export class RobotAspirator {
   // TODO: utiliser ??
   private energieRetourBase: number;
 
-  // constructor(messageService: MessageService, basePosition: Position);
-
   constructor() {
     this.position = { ...AppComponent.basePosition };
     this.direction = 'nord';
