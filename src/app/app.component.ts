@@ -47,12 +47,12 @@ export class AppComponent implements OnInit {
   static robotAtLastPosition: RobotAspirator;
   static messageService: MessageService;
   
-  constructor(private messageService: MessageService) {
+  constructor(messageService: MessageService) {
     AppComponent.messageService = messageService;
 
     AppComponent.initMaisonConfig();
 
-    AppComponent.robot = new RobotAspirator(AppComponent.messageService, AppComponent.basePosition);
+    AppComponent.robot = new RobotAspirator();
     // copie de la maison initiale (clone profond par valeur)
     AppComponent.robotAtLastPosition = structuredClone(AppComponent.robot);
   }
@@ -110,7 +110,7 @@ export class AppComponent implements OnInit {
 
     // Créer et démarrer le robot
     // rafraîchissement de l'affichage de la maison avec le robot à sa nouvelle position
-    AppComponent.robot = new RobotAspirator(AppComponent.messageService, AppComponent.basePosition);
+    AppComponent.robot = new RobotAspirator();
     AppComponent.robotAtLastPosition = structuredClone(AppComponent.robot);
 
     setTimeout(() => {

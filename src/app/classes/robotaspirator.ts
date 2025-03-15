@@ -1,6 +1,5 @@
 import { Observable, Subscription } from "rxjs";
 import { AppComponent } from "../app.component";
-import { MessageService } from "../services/message.service";
 
 import { Cell } from "./cell";
 import { Position } from "./position";
@@ -16,8 +15,6 @@ export class RobotAspirator {
   public position: Position;
   // Direction actuelle
   private direction: Direction;
-  // Position de la base de charge
-  private basePosition: Position;
   // Niveau de batterie (en pourcentage)
   public batterie: number;
   // Combien d'énergie est consommée par mouvement
@@ -26,13 +23,10 @@ export class RobotAspirator {
   // TODO: utiliser ??
   private energieRetourBase: number;
 
-  constructor(messageService: MessageService, basePosition: Position);
+  // constructor(messageService: MessageService, basePosition: Position);
 
-  constructor(private messageService: MessageService, basePosition: Position) {
-    this.messageService = messageService;
-
-    this.basePosition = basePosition;
-    this.position = { ...basePosition };
+  constructor() {
+    this.position = { ...AppComponent.basePosition };
     this.direction = 'nord';
     this.batterie = 100;
     this.consommationParMouvement = 0.5; // Valeur arbitraire
@@ -52,7 +46,7 @@ export class RobotAspirator {
         }
         // si toutes les cellules accessibles sont visitées, on logge simplement
         if (AppComponent.toutEstNettoye()) {
-          this.log("Toutes les zones accessibles sont nettoyées");
+          AppComponent.log("Toutes les zones accessibles sont nettoyées");
         }
         // // Chercher la prochaine cellule non visitée et s'y diriger
         const prochaineCellule = AppComponent.robot.trouverProchaineDestination();
@@ -62,7 +56,7 @@ export class RobotAspirator {
           AppComponent.updateMaisonWithRobot();
         } else {
           // Si aucune cellule n'est trouvée, retourner à la base
-          this.log("Aucune cellule accessible non visitée trouvée");
+          AppComponent.log("Aucune cellule accessible non visitée trouvée");
           AppComponent.updateMaisonWithRobot();
           // force ici la fin de l'observable
           observer.complete();
@@ -150,7 +144,7 @@ export class RobotAspirator {
     const chemin = this.trouverChemin(this.position, destination.position);
 
     if (chemin.length === 0) {
-      this.log("Impossible de trouver un chemin vers la destination");
+      AppComponent.log("Impossible de trouver un chemin vers la destination");
       return robot;
     }
 
@@ -159,12 +153,12 @@ export class RobotAspirator {
       // renvoyer la nouvelle position du robot + la cellule marquée comme visitée
       robot = this.deplacer(robot, pos);
 
-      this.log("seDeplacerVers");
-      this.log("robot : X =" + robot.position.x + "/ Y = " + robot.position.y);
+      AppComponent.log("seDeplacerVers");
+      AppComponent.log("robot : X =" + robot.position.x + "/ Y = " + robot.position.y);
 
       // Vérifier si la batterie est suffisante pour continuer
       if (this.batterie <= this.energieNecessairePourRetour()) {
-        this.log("Batterie faible, interruption du déplacement");
+        AppComponent.log("Batterie faible, interruption du déplacement");
         return robot;
       }
     }
@@ -316,7 +310,7 @@ export class RobotAspirator {
   // Estimer l'énergie nécessaire pour retourner à la base
   private energieNecessairePourRetour(): number {
     // Estimer la distance jusqu'à la base
-    const distance = this.distance(this.position, this.basePosition);
+    const distance = this.distance(this.position, AppComponent.basePosition);
 
     // Ajouter une marge de sécurité
     return (distance * this.consommationParMouvement) * 1.2;
@@ -325,32 +319,32 @@ export class RobotAspirator {
   // Retourner à la base de charge
   public retournerALaBase(robot: RobotAspirator): Observable<RobotAspirator> {
     return new Observable((observer) => {
-      this.log("Retour à la base de charge");
+      AppComponent.log("Retour à la base de charge");
       // Trouver le chemin vers la base
-      const chemin = this.trouverChemin(this.position, this.basePosition);
+      const chemin = this.trouverChemin(this.position, AppComponent.basePosition);
 
       if (chemin.length === 0) {
-        this.log("Impossible de trouver un chemin vers la base de charge!");
+        AppComponent.log("Impossible de trouver un chemin vers la base de charge!");
       }
 
       // Suivre le chemin
       this.updateSubscription = this.suivreLeChemin(robot, chemin).subscribe({
         next: (pos) => {
-          this.log('next suivreLeChemin...');
+          AppComponent.log('next suivreLeChemin...');
           robot.position = {...pos};
           observer.next(robot);
         },
         error: (err) => {
-          this.log('Erreur suivreLeChemin: ' + err);
+          AppComponent.log('Erreur suivreLeChemin: ' + err);
         },
         complete: () => {
-          this.log('complete suivreLeChemin');
+          AppComponent.log('complete suivreLeChemin');
           this.updateSubscription.unsubscribe();
           observer.complete();
         }
       });
 
-      this.log("Arrivé à la base de charge avec une batterie de " + this.batterie.toFixed(1) + "%");
+      AppComponent.log("Arrivé à la base de charge avec une batterie de " + this.batterie.toFixed(1) + "%");
     });
   }
 
@@ -362,15 +356,15 @@ export class RobotAspirator {
         AppComponent.robotAtLastPosition.position = { ...robot.position };
         // Vérifier si nous avons assez de batterie
         if (this.batterie <= 0) {
-          this.log("Batterie épuisée avant d'atteindre la base!");
+          AppComponent.log("Batterie épuisée avant d'atteindre la base!");
           // return robot;
         }
         else if (index < chemin.length) {
           // for (const pos of chemin) {
           observer.next(chemin[index]);
           robot = this.deplacer(robot, chemin[index]);
-          this.log("retour à la base");
-          this.log("robot : X =" + robot.position.x + "/ Y = " + robot.position.y);
+          AppComponent.log("retour à la base");
+          AppComponent.log("robot : X =" + robot.position.x + "/ Y = " + robot.position.y);
           index++;
           AppComponent.updateMaisonWithRobot();
           // return robot;
@@ -400,11 +394,8 @@ export class RobotAspirator {
     // Réduire la batterie
     robot.batterie -= this.consommationParMouvement;
 
-    this.log(`Déplacement vers (${position.x}, ${position.y}). Batterie: ${robot.batterie.toFixed(1)}%`);
+    AppComponent.log(`Déplacement vers (${position.x}, ${position.y}). Batterie: ${robot.batterie.toFixed(1)}%`);
     return robot;
   }
 
-  private log(message: string) {
-    this.messageService.add(`AppComponent: ${message}`);
-  }
 }
