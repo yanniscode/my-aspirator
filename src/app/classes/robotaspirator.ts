@@ -32,7 +32,6 @@ export class RobotAspirator {
     return new Observable((observer) => {
       const intervalId = setInterval(() => {
         // rafraîchissement de l'affichage de la maison avec le robot à sa nouvelle position
-        AppComponent.robotAtLastPosition.position = { ...AppComponent.robot.position };
         // si la batterie est HS
         if (AppComponent.robot.batterie <= AppComponent.robot.energieNecessairePourRetour()) {
           observer.complete();
@@ -154,6 +153,7 @@ export class RobotAspirator {
 
       let index = 0;
       const intervalId = setInterval(() => {
+        AppComponent.robotAtLastPosition.position = { ...AppComponent.robot.position };
         // Suivre le chemin
         if(index < chemin.length) {
           observer.next(chemin[index]);
