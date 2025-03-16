@@ -1,5 +1,5 @@
 import { NgFor, NgIf } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { Subscription } from "rxjs";
@@ -29,11 +29,12 @@ import { Cell } from './classes/cell';
     ])
   ]
 })
-export class AppComponent implements OnInit {
+export class AppComponent {
   title = 'my-aspirator-robot';
 
   // nécessaire pour l'animation (écoute d'observable avec rxjs)
-  static updateSubscription: Subscription;
+  private updateSubscriptionNettoyer!: Subscription;
+  private updateSubscriptionRetourABase!: Subscription;
 
   static largeurMaison: number = 10;
   static hauteurMaison: number = 8;
@@ -46,7 +47,7 @@ export class AppComponent implements OnInit {
   static robot: RobotAspirator;
   static robotAtLastPosition: RobotAspirator;
   static messageService: MessageService;
-  
+
   constructor(messageService: MessageService) {
     AppComponent.messageService = messageService;
 
@@ -99,8 +100,11 @@ export class AppComponent implements OnInit {
 
   ngOnDestroy(): void {
     // Se désabonner pour éviter les fuites de mémoire
-    if (AppComponent.updateSubscription) {
-      AppComponent.updateSubscription.unsubscribe();
+    if (this.updateSubscriptionNettoyer) {
+      this.updateSubscriptionNettoyer.unsubscribe();
+    }
+    if (this.updateSubscriptionRetourABase) {
+      this.updateSubscriptionRetourABase.unsubscribe();
     }
   }
 
@@ -119,13 +123,10 @@ export class AppComponent implements OnInit {
     }, 1000);
   }
 
-  get startRobotButton() {
-    return AppComponent.startRobot();
-  }
-  static startRobot(): void {
+  startRobot(): void {
     AppComponent.log("Début du nettoyage");
     // algo principal de nettoyage de la maison
-    AppComponent.updateSubscription = AppComponent.robot.nettoyer().subscribe({
+    this.updateSubscriptionNettoyer = AppComponent.robot.nettoyer().subscribe({
       next: () => {
         AppComponent.log('next nettoyer...');
       },
@@ -137,23 +138,22 @@ export class AppComponent implements OnInit {
         // Retourner à la base de charge
         AppComponent.log(`Batterie: ${AppComponent.robot.batterie}%. Retour à la base.`);
         // on ne souscrit plus à nettoyer()
-        AppComponent.updateSubscription.unsubscribe();
+        this.updateSubscriptionNettoyer.unsubscribe();
         // puis on souscrit à retournerALaBase
-        AppComponent.updateSubscription = AppComponent.robot.retournerALaBase(AppComponent.robot).subscribe({
+        this.updateSubscriptionRetourABase = AppComponent.robot.retournerALaBase(AppComponent.robot).subscribe({
           next: (robot) => {
             AppComponent.log('next retournerALaBase...');
             AppComponent.log(AppComponent.robotAtLastPosition.position.x.toString());
             AppComponent.log(AppComponent.robotAtLastPosition.position.y.toString());
             AppComponent.log(robot.position.x.toString());
             AppComponent.log(robot.position.y.toString());
-            // AppComponent.updateMaisonWithRobot();
           },
           error: (err) => {
             AppComponent.log('Erreur retournerALaBase: ' + err);
           },
           complete: () => {
             AppComponent.log('complete retournerALaBase: ok !');
-            AppComponent.updateSubscription.unsubscribe();
+            this.updateSubscriptionRetourABase.unsubscribe();
             AppComponent.startIntro();
           }
         });
@@ -161,12 +161,9 @@ export class AppComponent implements OnInit {
     });
   }
 
-  get pauseRobotButton() {
-    return AppComponent.pauseRobot();
-  }
-  static pauseRobot(): void {
-    if (AppComponent.updateSubscription) {
-      AppComponent.updateSubscription.unsubscribe();
+  pauseRobot(): void {
+    if (this.updateSubscriptionNettoyer) {
+      this.updateSubscriptionNettoyer.unsubscribe();
     }
   }
 

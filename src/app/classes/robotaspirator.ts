@@ -4,17 +4,14 @@ import { AppComponent } from "../app.component";
 import { Cell } from "./cell";
 import { Position } from "./position";
 
-type Direction = 'nord' | 'est' | 'sud' | 'ouest';
-
 export class RobotAspirator {
 
   // nécessaire pour l'animation (écoute d'observables avec rxjs)
-  private updateSubscription!: Subscription;
+  private updateSouscriptionNettoyer!: Subscription;
+  private updateSubscriptionSuivreCheminVersBase!: Subscription;
 
   // Position actuelle
   public position: Position;
-  // Direction actuelle
-  private direction: Direction;
   // Niveau de batterie (en pourcentage)
   public batterie: number;
   // Combien d'énergie est consommée par mouvement
@@ -25,7 +22,6 @@ export class RobotAspirator {
 
   constructor() {
     this.position = { ...AppComponent.basePosition };
-    this.direction = 'nord';
     this.batterie = 100;
     this.consommationParMouvement = 0.5; // Valeur arbitraire
     this.energieRetourBase = 0; // Sera calculée dynamiquement
@@ -49,7 +45,7 @@ export class RobotAspirator {
         const prochaineCellule = AppComponent.robot.trouverProchaineDestination();
 
         if (prochaineCellule) {
-          AppComponent.robot.seDeplacerVers(AppComponent.robot, prochaineCellule).subscribe({
+          this.updateSouscriptionNettoyer = AppComponent.robot.seDeplacerVers(AppComponent.robot, prochaineCellule).subscribe({
             next: (position) => {
               AppComponent.robot.position = { ...position};
             },
@@ -58,6 +54,7 @@ export class RobotAspirator {
             },
             complete: () => {
               AppComponent.log('complete seDeplacerVers: ok !');
+              this.updateSouscriptionNettoyer.unsubscribe();
             }
           });
         } else {
@@ -351,7 +348,7 @@ export class RobotAspirator {
       }
 
       // Suivre le chemin
-      this.updateSubscription = this.suivreLeCheminVersLaBase(robot, chemin).subscribe({
+      this.updateSubscriptionSuivreCheminVersBase = this.suivreLeCheminVersLaBase(robot, chemin).subscribe({
         next: (pos) => {
           AppComponent.log('next suivreLeCheminVersLaBase...');
           robot.position = {...pos};
@@ -362,7 +359,7 @@ export class RobotAspirator {
         },
         complete: () => {
           AppComponent.log('complete suivreLeCheminVersLaBase');
-          this.updateSubscription.unsubscribe();
+          this.updateSubscriptionSuivreCheminVersBase.unsubscribe();
           observer.complete();
           AppComponent.log("Arrivé à la base de charge avec une batterie de " + this.batterie.toFixed(1) + "%");
         }
