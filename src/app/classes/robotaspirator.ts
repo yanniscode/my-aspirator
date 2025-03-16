@@ -58,7 +58,6 @@ export class RobotAspirator {
             },
             complete: () => {
               AppComponent.log('complete seDeplacerVers: ok !');
-              // AppComponent.updateSubscription.unsubscribe();
             }
           });
         } else {
@@ -146,10 +145,10 @@ export class RobotAspirator {
 
   // Se déplacer vers une cellule spécifique
   private seDeplacerVers(robot: RobotAspirator, destination: Cell): Observable<Position> {
-    // Utiliser A* ou un autre algorithme de recherche de chemin pour trouver le chemin optimal
-    const chemin = this.trouverChemin(this.position, destination.position);
-
     return new Observable((observer) => {
+
+      // Utiliser A* ou un autre algorithme de recherche de chemin pour trouver le chemin optimal
+      const chemin = this.trouverChemin(this.position, destination.position);
 
       if (chemin.length === 0) {
         AppComponent.log("Impossible de trouver un chemin vers la destination");
@@ -179,7 +178,6 @@ export class RobotAspirator {
           }
           index++;
         }
-        return robot.position;
       }, 250);
 
       // Gestion de l'annulation de l'intervalle si l'observable est désabonnée
