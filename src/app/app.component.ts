@@ -54,7 +54,7 @@ export class AppComponent {
     AppComponent.initMaisonConfig();
 
     AppComponent.robot = new RobotAspirator();
-    // copie de la maison initiale (clone profond par valeur)
+    // copie du robot initiale (clone profond par valeur)
     AppComponent.robotAtLastPosition = structuredClone(AppComponent.robot);
   }
 
