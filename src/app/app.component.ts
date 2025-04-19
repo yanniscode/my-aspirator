@@ -45,6 +45,7 @@ export class AppComponent {
   }
   static basePosition: Position = { x: 0, y: 0 };
   static robot: RobotAspirator;
+  static isRobotStarted: boolean = false;
   static robotAtLastPosition: RobotAspirator;
   static messageService: MessageService;
 
@@ -124,7 +125,11 @@ export class AppComponent {
   }
 
   startRobot(): void {
+    if(AppComponent.isRobotStarted === true) {
+      return;
+    }
     AppComponent.log("Début du nettoyage");
+    AppComponent.isRobotStarted = true;
     // algo principal de nettoyage de la maison
     this.updateSubscriptionNettoyer = AppComponent.robot.nettoyer().subscribe({
       next: () => {
@@ -154,6 +159,7 @@ export class AppComponent {
           complete: () => {
             AppComponent.log('complete retournerALaBase: ok !');
             this.updateSubscriptionRetourABase.unsubscribe();
+            AppComponent.isRobotStarted = false;
             AppComponent.startIntro();
           }
         });
@@ -164,6 +170,7 @@ export class AppComponent {
   pauseRobot(): void {
     if (this.updateSubscriptionNettoyer) {
       this.updateSubscriptionNettoyer.unsubscribe();
+      AppComponent.isRobotStarted = false;
     }
   }
 
@@ -197,5 +204,4 @@ export class AppComponent {
   static log(message: string) {
     AppComponent.messageService.add(`AppComponent: ${message}`);
   }
-
 }
