@@ -82,14 +82,14 @@ export class RobotAspirator {
     // Ajouter les cellules adjacentes à la position actuelle
     this.obtenirCellulesAdjacentes(this.position).forEach(cell => {
       queue.push({ cell, distance: 1 });
-      visited.add(`${cell.position.x},${cell.position.y}`);
+      visited.add(`${cell.cellStack[0].position.x},${cell.cellStack[0].position.y}`);
     });
 
     while (queue.length > 0) {
       const { cell, distance } = queue.shift()!;
 
       // Si la cellule n'est pas visitée et n'est pas un obstacle, la retourner
-      if (!cell.visited && cell.type !== 'X' && cell.type !== 'B') {
+      if (!cell.cellStack[0].visited && cell.cellStack[0].type !== 'X' && cell.cellStack[0].type !== 'B') {
         return cell;
       }
 
@@ -99,8 +99,8 @@ export class RobotAspirator {
       }
 
       // Ajouter les cellules adjacentes à la file d'attente
-      this.obtenirCellulesAdjacentes(cell.position).forEach(adjacentCell => {
-        const key = `${adjacentCell.position.x},${adjacentCell.position.y}`;
+      this.obtenirCellulesAdjacentes(cell.cellStack[0].position).forEach(adjacentCell => {
+        const key = `${adjacentCell.cellStack[0].position.x},${adjacentCell.cellStack[0].position.y}`;
         if (!visited.has(key)) {
           queue.push({ cell: adjacentCell, distance: distance + 1 });
           visited.add(key);
@@ -143,7 +143,7 @@ export class RobotAspirator {
     return new Observable((observer) => {
 
       // Utiliser A* ou un autre algorithme de recherche de chemin pour trouver le chemin optimal
-      const chemin = this.trouverChemin(this.position, destination.position);
+      const chemin = this.trouverChemin(this.position, destination.cellStack[0].position);
 
       if (chemin.length === 0) {
         AppComponent.log("Impossible de trouver un chemin vers la destination");
@@ -154,7 +154,7 @@ export class RobotAspirator {
       const intervalId = setInterval(() => {
         AppComponent.robotAtLastPosition.position = { ...AppComponent.robot.position };
         // Suivre le chemin
-        if(index < chemin.length) {
+        if (index < chemin.length) {
           observer.next(chemin[index]);
 
           // renvoyer la nouvelle position du robot + la cellule marquée comme visitée
@@ -248,9 +248,9 @@ export class RobotAspirator {
 
       for (const voisin of voisins) {
         // Ignorer les obstacles
-        if (voisin.type === 'X') continue;
+        if (voisin.cellStack[0].type === 'X') continue;
 
-        const voisinKey = positionKey(voisin.position);
+        const voisinKey = positionKey(voisin.cellStack[0].position);
 
         // Ignorer si déjà exploré
         if (closedSet.has(voisinKey)) continue;
@@ -265,11 +265,11 @@ export class RobotAspirator {
           gScore.set(voisinKey, tentativeGScore);
 
           // Calculer f = g + h
-          const fScore = tentativeGScore + this.distance(voisin.position, fin);
+          const fScore = tentativeGScore + this.distance(voisin.cellStack[0].position, fin);
 
           // Vérifier si le voisin est déjà dans openSet
           const existingIndex = openSet.findIndex(node =>
-            node.position.x === voisin.position.x && node.position.y === voisin.position.y
+            node.position.x === voisin.cellStack[0].position.x && node.position.y === voisin.cellStack[0].position.y
           );
 
           if (existingIndex !== -1) {
@@ -279,7 +279,7 @@ export class RobotAspirator {
           } else {
             // Ajouter à openSet
             openSet.push({
-              position: voisin.position,
+              position: voisin.cellStack[0].position,
               g: tentativeGScore,
               f: fScore
             });
@@ -404,8 +404,8 @@ export class RobotAspirator {
 
     // Marquer la cellule comme visitée
     const cell = AppComponent.maison[position.y][position.x];
-    cell.visited = true;
-    cell.type = '_';
+    cell.cellStack[0].visited = true;
+    cell.cellStack[0].type = '_';
     // Réduire la batterie
     robot.batterie -= this.consommationParMouvement;
 

@@ -5,31 +5,52 @@ h1 {
 .content {
     background-color: #752713;
     text-align: center;
-    /* display: flex;
-    align-items: flex-start;
-    justify-content: space-around; */
     color: #0071e6;
     width: 100%;
-    /* max-width: 700px; modif */
-    /* margin-bottom: 3rem; */
+}
+
+.buttons {
+    background-color: #752713;
+    text-align: center;
+    color: #0071e6;
+    width: 100%;
 }
 
 .maison {
     background-color: #ffae2b;
     display: flex;
-    align-items: flex-start;
-    justify-content: space-evenly;    
-    /* color: #752713; */
-    width: 100%;
-    /* max-width: 700px; modif */
-    /* margin-bottom: 3rem; */
+    justify-content: space-evenly;
+    height: 60vh;
+}
+
+.table-maison {
+    position: absolute;
+    padding-top: 8vh;
+}
+
+.tr-maison {
+    background: rgb(0, 140, 133);
+}
+
+.tr-robot {
+    background: none;
+}
+
+.td-maison {
+    width: 50px;
+    height: 50px;
+    text-align: center !important;
+    border-color: var(--p-datatable-body-cell-border-color); /* test d'une surcharge non prise en compte, ici, car pas !important */
+    border-width: 0 0 0px 0 !important;
+    border-style: none !important;
+    padding: 0rem .1rem !important;
 }
 
 .start-button {
     display: flex;
     align-items: flex-start;
     justify-content: center;
-    margin-top: 20px;
+    padding-top: 20px;
     padding-bottom: 10px;
 }
 
@@ -41,15 +62,3 @@ h1 {
     padding-bottom: 10px;
 }
 
-.cellsRowMaison {
-    background: rgb(0, 140, 133);
-}
-
-/* utilisation de !important, sinon pas de surcharge du css de primeng */
-::ng-deep .p-datatable-tbody > tr > td {
-    text-align: center !important;
-    border-color: var(--p-datatable-body-cell-border-color); /* test d'une surcharge non prise en compte, ici, car pas !important */
-    border-width: 0 0 0px 0 !important;
-    border-style: none !important;
-    padding: 0rem .1rem !important;
-}
