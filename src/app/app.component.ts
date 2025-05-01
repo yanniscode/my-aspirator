@@ -142,8 +142,6 @@ export class AppComponent {
         AppComponent.log('complete nettoyer: Nettoyage ok !');
         // Retourner à la base de charge
         AppComponent.log(`Batterie: ${AppComponent.robot.batterie}%. Retour à la base.`);
-        // on ne souscrit plus à nettoyer()
-        this.updateSubscriptionNettoyer.unsubscribe();
         // puis on souscrit à retournerALaBase
         this.updateSubscriptionRetourABase = AppComponent.robot.retournerALaBase(AppComponent.robot).subscribe({
           next: (robot) => {
@@ -158,7 +156,6 @@ export class AppComponent {
           },
           complete: () => {
             AppComponent.log('complete retournerALaBase: ok !');
-            this.updateSubscriptionRetourABase.unsubscribe();
             AppComponent.isRobotStarted = false;
             AppComponent.startIntro();
           }

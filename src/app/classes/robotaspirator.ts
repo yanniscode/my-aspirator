@@ -53,7 +53,6 @@ export class RobotAspirator {
             },
             complete: () => {
               AppComponent.log('complete seDeplacerVers: ok !');
-              this.updateSouscriptionNettoyer.unsubscribe();
             }
           });
         } else {
@@ -359,7 +358,6 @@ export class RobotAspirator {
         },
         complete: () => {
           AppComponent.log('complete suivreLeCheminVersLaBase');
-          this.updateSubscriptionSuivreCheminVersBase.unsubscribe();
           observer.complete();
           AppComponent.log("Arrivé à la base de charge avec une batterie de " + this.batterie.toFixed(1) + "%");
         }
