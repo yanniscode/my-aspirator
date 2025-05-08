@@ -8,7 +8,7 @@
   </div>
   <h1>Aspiro-Man</h1>
   <div class="maison">
-    <p-table [value]="MaisonView" @maisonAnimation class="table-maison"  cellspacing="0" cellpadding="0">
+    <p-table [value]="MaisonView" @maisonAnimation class="table-maison" cellspacing="0" cellpadding="0">
       <ng-template pTemplate="body" let-rowData>
         <tr class="tr-maison">
           <td *ngFor="let cell of rowData" class="td-maison">
@@ -20,7 +20,8 @@
         </tr>
       </ng-template>
     </p-table>
-    <p-table [value]="MaisonView" @maisonAnimation class="table-maison"  cellspacing="0" cellpadding="0">
+
+    <!-- <p-table [value]="MaisonView" @maisonAnimation class="table-maison"  cellspacing="0" cellpadding="0">
       <ng-template pTemplate="body" let-rowData>
         <tr class="tr-robot">
           <td *ngFor="let cell of rowData" class="td-maison">
@@ -28,9 +29,13 @@
           </td>
         </tr>
       </ng-template>
-    </p-table>
-  </div>
+    </p-table> -->
 
+    <canvas #aspiratorCanvas  class="table-maison" width="500" height="400"></canvas>
+    <!-- Image cachée pour l'aspirateur -->
+    <img #aspiratorImage src="/assets/megaman.png" style="display: none;" alt='R' />
+
+  </div>
 </div>
 
 <div class="buttons">
@@ -46,5 +51,5 @@
   </form>
 </div>
 
-<app-messages></app-messages>
+<!--<app-messages></app-messages>-->
 

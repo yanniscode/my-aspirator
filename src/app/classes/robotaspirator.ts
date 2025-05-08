@@ -6,6 +6,8 @@ import { Position } from "./position";
 
 export class RobotAspirator {
 
+  private appComponent: AppComponent;
+
   // nécessaire pour l'animation (écoute d'observables avec rxjs)
   private updateSouscriptionNettoyer!: Subscription;
   private updateSubscriptionSuivreCheminVersBase!: Subscription;
@@ -20,7 +22,9 @@ export class RobotAspirator {
   // TODO: utiliser ??
   private energieRetourBase: number;
 
-  constructor() {
+  constructor(appComponent: AppComponent) {
+    this.appComponent = appComponent;
+
     this.position = { ...AppComponent.basePosition };
     this.batterie = 100;
     this.consommationParMouvement = 0.5; // Valeur arbitraire
@@ -61,7 +65,7 @@ export class RobotAspirator {
           // force ici la fin de l'observable
           observer.complete();
         }
-      }, 250); // Émet une nouvelle valeur toutes les secondes
+      }, 250); // Émet une nouvelle valeur toutes les 250ms
 
       // Gestion de l'annulation de l'intervalle si l'observable est désabonné
       return () => {
@@ -165,7 +169,7 @@ export class RobotAspirator {
           AppComponent.log("robot : X =" + AppComponent.robot.position.x + "/ Y = " + AppComponent.robot.position.y);
 
           // TODO: retester ici en ajoutant interval(250)
-          AppComponent.updateMaisonWithRobot();
+          this.appComponent.updateMaisonWithRobot();
 
           // Vérifier si la batterie est suffisante pour continuer
           if (this.batterie <= this.energieNecessairePourRetour()) {
@@ -383,7 +387,7 @@ export class RobotAspirator {
           AppComponent.log("retour à la base");
           AppComponent.log("robot : X =" + robot.position.x + "/ Y = " + robot.position.y);
           index++;
-          AppComponent.updateMaisonWithRobot();
+          this.appComponent.updateMaisonWithRobot();
           // return robot;
         } else {
           observer.complete(); // Termine l'observable après avoir émis tous les nombres

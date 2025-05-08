@@ -18,8 +18,8 @@ h1 {
 
 .maison {
     background-color: #ffae2b;
-    display: flex;
-    justify-content: space-evenly;
+    /* display: flex; */
+    /* justify-content: space-evenly; */
     height: 60vh;
 }
 

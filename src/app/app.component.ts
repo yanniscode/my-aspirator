@@ -1,8 +1,8 @@
 import { NgFor, NgIf } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, ViewChild, ElementRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { trigger, transition, style, animate } from '@angular/animations';
-import { Subscription } from "rxjs";
+import { Observable, Subscription } from "rxjs";
 import { TableModule } from 'primeng/table';
 
 import { MessageService } from './services/message.service';
@@ -33,9 +33,25 @@ import { CellElement } from './classes/cellElement';
 export class AppComponent {
   title = 'my-aspirator-robot';
 
+  @ViewChild('aspiratorCanvas', { static: true }) aspiratorCanvas!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('aspiratorImage', { static: true }) aspiratorImage!: ElementRef<HTMLImageElement>;
+
+  private ctx!: CanvasRenderingContext2D;
+  private aspiratorImageLoaded = false;
+
+  // Dimensions
+  private width = 500;
+  private height = 400;
+  private aspiroSize = 50;
+  // Positions
+  private aspiroX = 0;
+  private aspiroY = 0;
+  private aspiroSpeedX = 0;
+  private aspiroSpeedY = 0;
   // nécessaire pour l'animation (écoute d'observable avec rxjs)
   private updateSubscriptionNettoyer!: Subscription;
   private updateSubscriptionRetourABase!: Subscription;
+  private updateDrawEverything!: Subscription;
 
   static largeurMaison: number = 10;
   static hauteurMaison: number = 8;
@@ -55,9 +71,67 @@ export class AppComponent {
 
     AppComponent.initMaisonConfig();
 
-    AppComponent.robot = new RobotAspirator();
-    // copie du robot initiale (clone profond par valeur)
-    AppComponent.robotAtLastPosition = structuredClone(AppComponent.robot);
+    AppComponent.robot = new RobotAspirator(this);
+    AppComponent.robotAtLastPosition = new RobotAspirator(this);
+  }
+
+
+  ngOnInit(): void {
+    console.log("ya ngOnInit");
+    this.ctx = this.aspiratorCanvas.nativeElement.getContext('2d')!;
+
+    // Chargement de l'image du ballon
+    this.aspiratorImage.nativeElement.onload = () => {
+      console.log("ya ! onload");
+      this.aspiratorImageLoaded = true;
+      // this.updateDrawEverything = this.drawEverything().subscribe({
+      //   next: () => {
+      //     AppComponent.log('next : updateDrawEverything');
+      //     // AppComponent.robot.position = { ...position};
+      //   },
+      //   error: (err) => {
+      //     AppComponent.log('Erreur updateDrawEverything: ' + err);
+      //   },
+      //   complete: () => {
+      //     AppComponent.log('complete updateDrawEverything: ok !');
+      //     this.updateDrawEverything.unsubscribe();
+      //   }
+      // });
+    };
+
+    // Si l'image est déjà chargée (cache du navigateur)
+    if (this.aspiratorImage.nativeElement.complete) {
+      console.log("ya ! complete");
+      this.aspiratorImageLoaded = true;
+      this.updateDrawEverything = this.drawEverything().subscribe({
+        next: () => {
+          AppComponent.log('next : updateDrawEverything');
+          // AppComponent.robot.position = { ...position};
+        },
+        error: (err) => {
+          AppComponent.log('Erreur updateDrawEverything: ' + err);
+        },
+        complete: () => {
+          AppComponent.log('complete updateDrawEverything: ok !');
+          this.updateDrawEverything.unsubscribe();
+        }
+      });
+    }
+
+    this.startIntro();
+  }
+  
+  ngOnDestroy(): void {
+    // Se désabonner pour éviter les fuites de mémoire
+    if (this.updateSubscriptionNettoyer) {
+      this.updateSubscriptionNettoyer.unsubscribe();
+    }
+    if (this.updateSubscriptionRetourABase) {
+      this.updateSubscriptionRetourABase.unsubscribe();
+    }
+    if (this.updateDrawEverything) {
+      this.updateDrawEverything.unsubscribe();
+    }
   }
 
   static initMaisonConfig(): void {
@@ -104,41 +178,35 @@ export class AppComponent {
     AppComponent.maison[AppComponent.basePosition.y][AppComponent.basePosition.x].cellStack[0].visited = true;
   }
 
-  ngOnInit(): void {
-    AppComponent.startIntro();
-  }
+  private startIntro(): void {
 
-  ngOnDestroy(): void {
-    // Se désabonner pour éviter les fuites de mémoire
-    if (this.updateSubscriptionNettoyer) {
-      this.updateSubscriptionNettoyer.unsubscribe();
-    }
-    if (this.updateSubscriptionRetourABase) {
-      this.updateSubscriptionRetourABase.unsubscribe();
-    }
-  }
+    // this.aspiroSpeedX = 0;
+    // this.aspiroSpeedY = 0;
 
-  static startIntro(): void {
     // Création de la maison
     AppComponent.initMaisonConfig();
 
     // Créer et démarrer le robot
     // rafraîchissement de l'affichage de la maison avec le robot à sa nouvelle position
-    AppComponent.robot = new RobotAspirator();
-    AppComponent.robotAtLastPosition = structuredClone(AppComponent.robot);
+    AppComponent.robot = new RobotAspirator(this);
+    AppComponent.robotAtLastPosition = new RobotAspirator(this);
 
     setTimeout(() => {
       // remplace un élément du tableau par le robot et l'affiche
-       AppComponent.updateMaisonWithRobot();
+      this.updateMaisonWithRobot();
     }, 1000);
   }
 
   startRobot(): void {
-    if(AppComponent.isRobotStarted === true) {
+    if (AppComponent.isRobotStarted === true) {
       return;
     }
+
+    // this.aspiroSpeedX = 0;
+    // this.aspiroSpeedY = 0;
+
     // si l'on veut afficher le robot seulement après clic sur start:
-//    AppComponent.updateMaisonWithRobot();
+    //    AppComponent.updateMaisonWithRobot();
 
     AppComponent.log("Début du nettoyage");
     AppComponent.isRobotStarted = true;
@@ -170,7 +238,7 @@ export class AppComponent {
           complete: () => {
             AppComponent.log('complete retournerALaBase: ok !');
             AppComponent.isRobotStarted = false;
-            AppComponent.startIntro();
+            this.startIntro();
           }
         });
       }
@@ -180,6 +248,7 @@ export class AppComponent {
   pauseRobot(): void {
     if (this.updateSubscriptionNettoyer) {
       this.updateSubscriptionNettoyer.unsubscribe();
+      this.updateDrawEverything.unsubscribe();
       AppComponent.isRobotStarted = false;
     }
   }
@@ -197,19 +266,105 @@ export class AppComponent {
     return true;
   }
 
-  static updateMaisonWithRobot(): void {
-    // si le robot est à la BASE ou si sa position précédente est autre que la BASE:
-    if (AppComponent.maison[AppComponent.basePosition.y][AppComponent.basePosition.x].cellStack[1]?.type === 'R'
-    || AppComponent.maison[AppComponent.robotAtLastPosition.position.y][AppComponent.robotAtLastPosition.position.x].cellStack[0]?.type !== 'B'
-    ) { // R = robot
-      // on retire le robot = dernier élément de la cellule (= pile LIFO)
-      AppComponent.maison[AppComponent.robotAtLastPosition.position.y][AppComponent.robotAtLastPosition.position.x].cellStack.pop();
-    }
-    // dans tous les cas, la nouvelle position devient le bloc ROBOT:
-    let robotElement: CellElement = getCellElement('R');
-    robotElement.type = "R";
-    // on ajoute le robot comme 2nd élément de la cellule (= pile LIFO)
-    AppComponent.maison[AppComponent.robot.position.y][AppComponent.robot.position.x].cellStack.push(robotElement);
+  public updateMaisonWithRobot(): void {
+    console.log("ya updateMaisonWithRobot");
+    this.setAspiroSpeed();
+    this.updateDrawEverything = this.drawEverything().subscribe({
+      next: () => {
+        console.log('next : updateDrawEverything');
+        // AppComponent.robot.position = { ...position};
+      },
+      error: (err) => {
+        console.log('Erreur updateDrawEverything: ' + err);
+      },
+      complete: () => {
+        console.log('complete updateDrawEverything: ok !');
+        this.updateDrawEverything.unsubscribe();
+      }
+    });
+
+    // requestAnimationFrame(() => this.updateMaisonWithRobot());
+
+    // // si le robot est à la BASE ou si sa position précédente est autre que la BASE:
+    // if (AppComponent.maison[AppComponent.basePosition.y][AppComponent.basePosition.x].cellStack[1]?.type === 'R'
+    //   || AppComponent.maison[AppComponent.robotAtLastPosition.position.y][AppComponent.robotAtLastPosition.position.x].cellStack[0]?.type !== 'B'
+    // ) {
+    //   // R = robot
+    //   // on retire le robot = dernier élément de la cellule (= pile LIFO)
+    //   AppComponent.maison[AppComponent.robotAtLastPosition.position.y][AppComponent.robotAtLastPosition.position.x].cellStack.pop();
+    // }
+    // // dans tous les cas, la nouvelle position devient le bloc ROBOT:
+    // let robotElement: CellElement = getCellElement('R');
+    // robotElement.type = "R";
+    // // on ajoute le robot comme 2nd élément de la cellule (= pile LIFO)
+    // AppComponent.maison[AppComponent.robot.position.y][AppComponent.robot.position.x].cellStack.push(robotElement);
+  }
+  
+  private setAspiroSpeed() {
+    this.aspiroSpeedX = (AppComponent.robot.position.x - AppComponent.robotAtLastPosition.position.x) === 1 ? 1   :
+      (AppComponent.robot.position.x - AppComponent.robotAtLastPosition.position.x) === -1 ? -1 : 0;
+    this.aspiroSpeedY = (AppComponent.robot.position.y - AppComponent.robotAtLastPosition.position.y) === 1 ? 1 :
+      (AppComponent.robot.position.y - AppComponent.robotAtLastPosition.position.y) === -1 ? -1 : 0;
+  }
+
+  private drawEverything(): Observable<void> {
+    return new Observable((observer) => {
+      let i: number = 0;
+
+      const intervalId = setInterval(() => {
+        // do {
+          console.log("ya");
+          this.aspiroX += this.aspiroSpeedX;
+          this.aspiroY += this.aspiroSpeedY;
+          // Effacer le canvas
+          this.ctx.clearRect(0, 0, this.width, this.height);
+          // Redessine le canevas
+          this.ctx.fillStyle = 'transparent';
+          this.ctx.fillRect(0, 0, this.width, this.height);
+
+          // aspirateur avec image
+          if (this.aspiratorImageLoaded) {
+            this.ctx.save();
+            // Translater au centre de l'aspirateur
+            this.ctx.translate(this.aspiroX + this.aspiroSize / 2, this.aspiroY + this.aspiroSize / 2);
+
+            // Dessiner l'image centrée
+            this.ctx.drawImage(
+              this.aspiratorImage.nativeElement,
+              (-this.aspiroSize / 2) + 0,
+              (-this.aspiroSize / 2) + 0,
+              this.aspiroSize,
+              this.aspiroSize
+            );
+            this.ctx.restore();
+          }
+            //     else {
+            // Fallback si l'image n'est pas chargée
+            //       this.ctx.fillStyle = 'white';
+            //       this.ctx.beginPath();
+            //       this.ctx.arc(this.ballX + this.ballSize / 2, this.ballY + this.ballSize / 2, this.ballSize / 2, 0, Math.PI * 2, true);
+            //       this.ctx.fill();
+            //     }
+
+          
+          // if(i === 5) { 
+          //   return;
+          // }
+
+          console.log(i);
+          i++;
+        // } while (i < 50);
+        if(i >= 50) {
+          console.log("unsubscribe !");
+          this.updateDrawEverything.unsubscribe();
+          return;
+        }
+      }, 50); // Émet une nouvelle valeur toutes les 250ms
+      // Gestion de l'annulation de l'intervalle si l'observable est désabonné
+      return () => {
+        clearInterval(intervalId);
+      };   
+    });
   }
 
   static log(message: string) {
