@@ -46,8 +46,8 @@ export class AppComponent {
   // Positions
   private aspiroX = 0;
   private aspiroY = 0;
-  private aspiroSpeedX = 0;
-  private aspiroSpeedY = 0;
+  private aspiroDirX = 0;
+  private aspiroDirY = 0;
   // nécessaire pour l'animation (écoute d'observable avec rxjs)
   private updateSubscriptionNettoyer!: Subscription;
   private updateSubscriptionRetourABase!: Subscription;
@@ -80,23 +80,10 @@ export class AppComponent {
     console.log("ya ngOnInit");
     this.ctx = this.aspiratorCanvas.nativeElement.getContext('2d')!;
 
-    // Chargement de l'image du ballon
+    // Chargement de l'image de l'aspirateur
     this.aspiratorImage.nativeElement.onload = () => {
       console.log("ya ! onload");
       this.aspiratorImageLoaded = true;
-      // this.updateDrawEverything = this.drawEverything().subscribe({
-      //   next: () => {
-      //     AppComponent.log('next : updateDrawEverything');
-      //     // AppComponent.robot.position = { ...position};
-      //   },
-      //   error: (err) => {
-      //     AppComponent.log('Erreur updateDrawEverything: ' + err);
-      //   },
-      //   complete: () => {
-      //     AppComponent.log('complete updateDrawEverything: ok !');
-      //     this.updateDrawEverything.unsubscribe();
-      //   }
-      // });
     };
 
     // Si l'image est déjà chargée (cache du navigateur)
@@ -106,7 +93,6 @@ export class AppComponent {
       this.updateDrawEverything = this.drawEverything().subscribe({
         next: () => {
           AppComponent.log('next : updateDrawEverything');
-          // AppComponent.robot.position = { ...position};
         },
         error: (err) => {
           AppComponent.log('Erreur updateDrawEverything: ' + err);
@@ -164,7 +150,6 @@ export class AppComponent {
         AppComponent.maison[y][x] = {
           cellStack: cellStack
         }
-        // AppComponent.maison[y][x].cellStack.push(cellElement);
       }
     }
     // Ajouter les obstacles
@@ -179,10 +164,6 @@ export class AppComponent {
   }
 
   private startIntro(): void {
-
-    // this.aspiroSpeedX = 0;
-    // this.aspiroSpeedY = 0;
-
     // Création de la maison
     AppComponent.initMaisonConfig();
 
@@ -202,10 +183,7 @@ export class AppComponent {
       return;
     }
 
-    // this.aspiroSpeedX = 0;
-    // this.aspiroSpeedY = 0;
-
-    // si l'on veut afficher le robot seulement après clic sur start:
+    // si l'on préfère afficher le robot seulement après clic sur start:
     //    AppComponent.updateMaisonWithRobot();
 
     AppComponent.log("Début du nettoyage");
@@ -224,7 +202,7 @@ export class AppComponent {
         AppComponent.log(`Batterie: ${AppComponent.robot.batterie}%. Retour à la base.`);
 
         // puis on souscrit à retournerALaBase
-        this.updateSubscriptionRetourABase = AppComponent.robot.retournerALaBase(AppComponent.robot).subscribe({
+        this.updateSubscriptionRetourABase = AppComponent.robot.retournerALaBase().subscribe({
           next: (robot) => {
             AppComponent.log('next retournerALaBase...');
             AppComponent.log(AppComponent.robotAtLastPosition.position.x.toString());
@@ -268,11 +246,42 @@ export class AppComponent {
 
   public updateMaisonWithRobot(): void {
     console.log("ya updateMaisonWithRobot");
-    this.setAspiroSpeed();
+    this.setAspiroDirection();
     this.updateDrawEverything = this.drawEverything().subscribe({
-      next: () => {
+      next: (i) => {
         console.log('next : updateDrawEverything');
-        // AppComponent.robot.position = { ...position};
+        console.log(i);
+        this.aspiroX += this.aspiroDirX;
+        this.aspiroY += this.aspiroDirY;
+        console.log("this.aspiroSize = "+ this.aspiroSize);
+        console.log("this.aspiroDirX = "+ this.aspiroDirX);
+        console.log("this.aspiroDirY = "+ this.aspiroDirY);
+
+        console.log("this.aspiroX ="+ this.aspiroX);
+        console.log("this.aspiroY ="+ this.aspiroY);
+
+        // Effacer le canvas
+        this.ctx.clearRect(0, 0, this.width, this.height);
+        // Redessine le canevas
+        this.ctx.fillStyle = 'transparent';
+        this.ctx.fillRect(0, 0, this.width, this.height);
+
+        // aspirateur avec image
+        if (this.aspiratorImageLoaded) {
+          this.ctx.save();
+          // Déplacement de l'aspirateur
+          this.ctx.translate(this.aspiroX + this.aspiroSize / 2, this.aspiroY + this.aspiroSize / 2);
+
+          // Dessiner l'image centrée
+          this.ctx.drawImage(
+            this.aspiratorImage.nativeElement,
+            (-this.aspiroSize / 2),
+            (-this.aspiroSize / 2),
+            this.aspiroSize,
+            this.aspiroSize
+          );
+          this.ctx.restore();
+        }
       },
       error: (err) => {
         console.log('Erreur updateDrawEverything: ' + err);
@@ -282,84 +291,29 @@ export class AppComponent {
         this.updateDrawEverything.unsubscribe();
       }
     });
-
-    // requestAnimationFrame(() => this.updateMaisonWithRobot());
-
-    // // si le robot est à la BASE ou si sa position précédente est autre que la BASE:
-    // if (AppComponent.maison[AppComponent.basePosition.y][AppComponent.basePosition.x].cellStack[1]?.type === 'R'
-    //   || AppComponent.maison[AppComponent.robotAtLastPosition.position.y][AppComponent.robotAtLastPosition.position.x].cellStack[0]?.type !== 'B'
-    // ) {
-    //   // R = robot
-    //   // on retire le robot = dernier élément de la cellule (= pile LIFO)
-    //   AppComponent.maison[AppComponent.robotAtLastPosition.position.y][AppComponent.robotAtLastPosition.position.x].cellStack.pop();
-    // }
-    // // dans tous les cas, la nouvelle position devient le bloc ROBOT:
-    // let robotElement: CellElement = getCellElement('R');
-    // robotElement.type = "R";
-    // // on ajoute le robot comme 2nd élément de la cellule (= pile LIFO)
-    // AppComponent.maison[AppComponent.robot.position.y][AppComponent.robot.position.x].cellStack.push(robotElement);
   }
   
-  private setAspiroSpeed() {
-    this.aspiroSpeedX = (AppComponent.robot.position.x - AppComponent.robotAtLastPosition.position.x) === 1 ? 1   :
+  private setAspiroDirection() {
+    this.aspiroDirX = (AppComponent.robot.position.x - AppComponent.robotAtLastPosition.position.x) === 1 ? 1   :
       (AppComponent.robot.position.x - AppComponent.robotAtLastPosition.position.x) === -1 ? -1 : 0;
-    this.aspiroSpeedY = (AppComponent.robot.position.y - AppComponent.robotAtLastPosition.position.y) === 1 ? 1 :
+    this.aspiroDirY = (AppComponent.robot.position.y - AppComponent.robotAtLastPosition.position.y) === 1 ? 1 :
       (AppComponent.robot.position.y - AppComponent.robotAtLastPosition.position.y) === -1 ? -1 : 0;
   }
 
-  private drawEverything(): Observable<void> {
+  private drawEverything(): Observable<number> {
     return new Observable((observer) => {
       let i: number = 0;
 
       const intervalId = setInterval(() => {
-        // do {
-          console.log("ya");
-          this.aspiroX += this.aspiroSpeedX;
-          this.aspiroY += this.aspiroSpeedY;
-          // Effacer le canvas
-          this.ctx.clearRect(0, 0, this.width, this.height);
-          // Redessine le canevas
-          this.ctx.fillStyle = 'transparent';
-          this.ctx.fillRect(0, 0, this.width, this.height);
-
-          // aspirateur avec image
-          if (this.aspiratorImageLoaded) {
-            this.ctx.save();
-            // Translater au centre de l'aspirateur
-            this.ctx.translate(this.aspiroX + this.aspiroSize / 2, this.aspiroY + this.aspiroSize / 2);
-
-            // Dessiner l'image centrée
-            this.ctx.drawImage(
-              this.aspiratorImage.nativeElement,
-              (-this.aspiroSize / 2) + 0,
-              (-this.aspiroSize / 2) + 0,
-              this.aspiroSize,
-              this.aspiroSize
-            );
-            this.ctx.restore();
-          }
-            //     else {
-            // Fallback si l'image n'est pas chargée
-            //       this.ctx.fillStyle = 'white';
-            //       this.ctx.beginPath();
-            //       this.ctx.arc(this.ballX + this.ballSize / 2, this.ballY + this.ballSize / 2, this.ballSize / 2, 0, Math.PI * 2, true);
-            //       this.ctx.fill();
-            //     }
-
-          
-          // if(i === 5) { 
-          //   return;
-          // }
-
-          console.log(i);
-          i++;
-        // } while (i < 50);
+        console.log("i = "+ i);
+        observer.next(i);
+        i++;
         if(i >= 50) {
           console.log("unsubscribe !");
           this.updateDrawEverything.unsubscribe();
-          return;
+          observer.complete();
         }
-      }, 50); // Émet une nouvelle valeur toutes les 250ms
+      }, 1); // Émet une nouvelle valeur toutes les ms
       // Gestion de l'annulation de l'intervalle si l'observable est désabonné
       return () => {
         clearInterval(intervalId);
@@ -371,15 +325,3 @@ export class AppComponent {
     AppComponent.messageService.add(`AppComponent: ${message}`);
   }
 }
-
-function getCellElement(type: CellElement["type"]): CellElement {
-  return {
-    position: {
-      x: AppComponent.robot.position.x,
-      y: AppComponent.robot.position.y
-    },
-    type: type, // ou autre redéfini
-    visited: true
-  };
-}
-

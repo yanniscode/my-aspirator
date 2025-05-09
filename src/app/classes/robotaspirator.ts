@@ -20,7 +20,7 @@ export class RobotAspirator {
   private consommationParMouvement: number;
   // Combien d'énergie est nécessaire pour retourner à la base
   // TODO: utiliser ??
-  private energieRetourBase: number;
+  // private energieRetourBase: number;
 
   constructor(appComponent: AppComponent) {
     this.appComponent = appComponent;
@@ -28,7 +28,7 @@ export class RobotAspirator {
     this.position = { ...AppComponent.basePosition };
     this.batterie = 100;
     this.consommationParMouvement = 0.5; // Valeur arbitraire
-    this.energieRetourBase = 0; // Sera calculée dynamiquement
+    // this.energieRetourBase = 0; // Sera calculée dynamiquement
   }
 
   // Fonction principale pour nettoyer la maison
@@ -48,9 +48,15 @@ export class RobotAspirator {
         const prochaineCellule = AppComponent.robot.trouverProchaineDestination();
 
         if (prochaineCellule) {
-          this.updateSouscriptionNettoyer = AppComponent.robot.seDeplacerVers(AppComponent.robot, prochaineCellule).subscribe({
-            next: (position) => {
-              AppComponent.robot.position = { ...position};
+          this.updateSouscriptionNettoyer = AppComponent.robot.seDeplacerVers(prochaineCellule).subscribe({
+            next: (pos) => {
+              if(AppComponent.robot.position.x !== pos.x || AppComponent.robot.position.y !== pos.y) {
+                // marquer la cellule comme visitée + opérer le déplacement:
+                this.deplacer(pos);
+                AppComponent.log("seDeplacerVers");
+                AppComponent.log("robotAtLastPosition : X =" + AppComponent.robotAtLastPosition.position.x + "/ Y = " + AppComponent.robotAtLastPosition.position.y);
+                AppComponent.log("robot : X =" + AppComponent.robot.position.x + "/ Y = " + AppComponent.robot.position.y);
+              }
             },
             error: (err) => {
               AppComponent.log('Erreur seDeplacerVers: ' + err);
@@ -65,7 +71,7 @@ export class RobotAspirator {
           // force ici la fin de l'observable
           observer.complete();
         }
-      }, 250); // Émet une nouvelle valeur toutes les 250ms
+      }, 280); // Émet une nouvelle valeur toutes les 250ms
 
       // Gestion de l'annulation de l'intervalle si l'observable est désabonné
       return () => {
@@ -143,7 +149,7 @@ export class RobotAspirator {
   }
 
   // Se déplacer vers une cellule spécifique
-  private seDeplacerVers(robot: RobotAspirator, destination: Cell): Observable<Position> {
+  private seDeplacerVers(destination: Cell): Observable<Position> {
     return new Observable((observer) => {
 
       // Utiliser A* ou un autre algorithme de recherche de chemin pour trouver le chemin optimal
@@ -160,17 +166,6 @@ export class RobotAspirator {
         // Suivre le chemin
         if (index < chemin.length) {
           observer.next(chemin[index]);
-
-          // renvoyer la nouvelle position du robot + la cellule marquée comme visitée
-          AppComponent.robot = this.deplacer(robot, chemin[index]);
-
-          AppComponent.log("seDeplacerVers");
-          AppComponent.log("robotAtLastPosition : X =" + AppComponent.robotAtLastPosition.position.x + "/ Y = " + AppComponent.robotAtLastPosition.position.y);
-          AppComponent.log("robot : X =" + AppComponent.robot.position.x + "/ Y = " + AppComponent.robot.position.y);
-
-          // TODO: retester ici en ajoutant interval(250)
-          this.appComponent.updateMaisonWithRobot();
-
           // Vérifier si la batterie est suffisante pour continuer
           if (this.batterie <= this.energieNecessairePourRetour()) {
             AppComponent.log("Batterie faible, interruption du déplacement");
@@ -178,7 +173,7 @@ export class RobotAspirator {
           }
           index++;
         }
-      }, 250);
+      }, 500);
 
       // Gestion de l'annulation de l'intervalle si l'observable est désabonnée
       return () => {
@@ -340,7 +335,7 @@ export class RobotAspirator {
   }
 
   // Retourner à la base de charge
-  public retournerALaBase(robot: RobotAspirator): Observable<RobotAspirator> {
+  public retournerALaBase(): Observable<RobotAspirator> {
     return new Observable((observer) => {
       AppComponent.log("Retour à la base de charge");
       // Trouver le chemin vers la base
@@ -351,11 +346,13 @@ export class RobotAspirator {
       }
 
       // Suivre le chemin
-      this.updateSubscriptionSuivreCheminVersBase = this.suivreLeCheminVersLaBase(robot, chemin).subscribe({
+      this.updateSubscriptionSuivreCheminVersBase = this.suivreLeCheminVersLaBase(chemin).subscribe({
         next: (pos) => {
           AppComponent.log('next suivreLeCheminVersLaBase...');
-          robot.position = {...pos};
-          observer.next(robot);
+          this.deplacer(pos);
+          AppComponent.log("retour à la base");
+          AppComponent.log("robot : X =" + AppComponent.robot.position.x + "/ Y = " + AppComponent.robot.position.y);          
+          observer.next(AppComponent.robot);
         },
         error: (err) => {
           AppComponent.log('Erreur suivreLeCheminVersLaBase: ' + err);
@@ -369,32 +366,27 @@ export class RobotAspirator {
     });
   }
 
-  private suivreLeCheminVersLaBase(robot: RobotAspirator, chemin: Position[]): Observable<Position> {
+  private suivreLeCheminVersLaBase(chemin: Position[]): Observable<Position> {
     return new Observable((observer) => {
       let index = 0;
+
       const intervalId = setInterval(() => {
         // rafraîchissement de l'affichage de la maison avec le robot à sa nouvelle position
-        AppComponent.robotAtLastPosition.position = { ...robot.position };
+        AppComponent.robotAtLastPosition.position = { ...AppComponent.robot.position };
         // Vérifier si nous avons assez de batterie
         if (this.batterie <= 0) {
           AppComponent.log("Batterie épuisée avant d'atteindre la base!");
           observer.complete();
         }
         else if (index < chemin.length) {
-          // for (const pos of chemin) {
           observer.next(chemin[index]);
-          robot = this.deplacer(robot, chemin[index]);
-          AppComponent.log("retour à la base");
-          AppComponent.log("robot : X =" + robot.position.x + "/ Y = " + robot.position.y);
-          index++;
-          this.appComponent.updateMaisonWithRobot();
-          // return robot;
+            index++;
         } else {
           observer.complete(); // Termine l'observable après avoir émis tous les nombres
         }
-      }, 250); // Émet une nouvelle valeur toutes les 250ms
+      }, 500); // Émet une nouvelle valeur toutes les 250ms
 
-      // Nettoyage si l'abonnement est annulé
+      // Nettoyage de l'intervalle si l'abonnement est annulé
       return () => {
         clearInterval(intervalId);
       };
@@ -402,19 +394,19 @@ export class RobotAspirator {
   }
 
   // Déplacer le robot à une position spécifique
-  private deplacer(robot: RobotAspirator, position: Position): RobotAspirator {
+  private deplacer(position: Position): void {
     // Mettre à jour la position
-    robot.position = { ...position };
+    AppComponent.robot.position = { ...position };
+    // Réduire la batterie
+    AppComponent.robot.batterie -= this.consommationParMouvement;
+
+    AppComponent.log(`Déplacement vers (${position.x}, ${position.y}). Batterie: ${AppComponent.robot.batterie.toFixed(1)}%`);
+    this.appComponent.updateMaisonWithRobot();
 
     // Marquer la cellule comme visitée
-    const cell = AppComponent.maison[position.y][position.x];
-    cell.cellStack[0].visited = true;
-    cell.cellStack[0].type = '_';
-    // Réduire la batterie
-    robot.batterie -= this.consommationParMouvement;
-
-    AppComponent.log(`Déplacement vers (${position.x}, ${position.y}). Batterie: ${robot.batterie.toFixed(1)}%`);
-    return robot;
+    setTimeout(()=> {
+      AppComponent.maison[position.y][position.x].cellStack[0].visited = true;
+      AppComponent.maison[position.y][position.x].cellStack[0].type = '_';
+    }, 250);
   }
-
 }
