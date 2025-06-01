@@ -1,55 +1,53 @@
-<div class="content">
-  <div>
-    <img src="/assets/texture-non-visitee.png"/>
-    <img src="/assets/texture-mur.png"/>
-    <img src="/assets/texture-base.png"/>
-    <img src="/assets/texture-visitee.png"/>
-    <img src="/assets/megaman.png"  style="background-image: url('/assets/texture-non-visitee.png');"/>
-  </div>
-  <h1>Aspiro-Man</h1>
-  <div class="maison">
-    <p-table [value]="MaisonView" @maisonAnimation class="table-maison" cellspacing="0" cellpadding="0">
-      <ng-template pTemplate="body" let-rowData>
-        <tr class="tr-maison">
-          <td *ngFor="let cell of rowData" class="td-maison">
-            <img *ngIf="cell.cellStack[0].type === 'O'" src="/assets/texture-non-visitee.png" alt='O'/>
-            <img *ngIf="cell.cellStack[0].type === 'X'" src="/assets/texture-mur.png" alt='X'/>
-            <img *ngIf="cell.cellStack[0].type === 'B'" src="/assets/texture-base.png" alt='B'/>
-            <img *ngIf="cell.cellStack[0].type === '_'" src="/assets/texture-visitee.png" alt='_'/>
-          </td>
-        </tr>
-      </ng-template>
-    </p-table>
+<div class="main">
+  <div class="content">
 
-    <!-- <p-table [value]="MaisonView" @maisonAnimation class="table-maison"  cellspacing="0" cellpadding="0">
-      <ng-template pTemplate="body" let-rowData>
-        <tr class="tr-robot">
-          <td *ngFor="let cell of rowData" class="td-maison">
-            <img *ngIf="cell.cellStack[1]?.type === 'R'" src="/assets/megaman.png" alt='R' />
-          </td>
-        </tr>
-      </ng-template>
-    </p-table> -->
-
-    <canvas #aspiratorCanvas  class="table-maison" width="500" height="400"></canvas>
-    <!-- Image cachée pour l'aspirateur -->
-    <img #aspiratorImage src="/assets/megaman.png" style="display: none;" alt='R' />
-
-  </div>
-</div>
-
-<div class="buttons">
-  <form (ngSubmit)="startRobot()" #maisonForm="ngForm">
-    <div class="start-button">
-      <button type="submit">Start</button>
+    <div>
+      <img src="/assets/texture-non-visitee.png"/>
+      <img src="/assets/texture-mur.png"/>
+      <img src="/assets/texture-base.png"/>
+      <img src="/assets/texture-visitee.png"/>
+      <img src="/assets/megaman.png"  style="background-image: url('/assets/texture-non-visitee.png');"/>
     </div>
-  </form>
-  <form (ngSubmit)="pauseRobot()" #maisonForm="ngForm">
-    <div class="pause-button">
-      <button type="submit">Pause</button>
+
+    <h1>Aspiro-Man</h1>
+
+    <div class="game-container">
+      <div class="maison">
+        <p-table [value]="MaisonView" @maisonAnimation class="table-maison" cellspacing="0" cellpadding="0">
+          <ng-template pTemplate="body" let-rowData>
+            <tr class="tr-maison">
+              <td *ngFor="let cell of rowData" class="td-maison">
+                <img *ngIf="cell.cellStack[0].type === 'O'" src="/assets/texture-non-visitee.png" alt='O'/>
+                <img *ngIf="cell.cellStack[0].type === 'X'" src="/assets/texture-mur.png" alt='X'/>
+                <img *ngIf="cell.cellStack[0].type === 'B'" src="/assets/texture-base.png" alt='B'/>
+                <img *ngIf="cell.cellStack[0].type === '_'" src="/assets/texture-visitee.png" alt='_'/>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+
+      <div [@moveRobot]="{ value: moveTrigger, params: { x: aspiroX, y: aspiroY } }"
+            class="robot"
+            (click)="toggleAnimation()">
+        <img #aspiratorImage src="/assets/megaman.png" style="display: auto;" alt='R' />
+      </div>
     </div>
-  </form>
+
+    <div class="buttons">
+      <form (ngSubmit)="startRobot()" #maisonForm="ngForm">
+        <div class="start-button">
+          <button type="submit">Start</button>
+        </div>
+      </form>
+      <form (ngSubmit)="pauseRobot()" #maisonForm="ngForm">
+        <div class="pause-button">
+          <button type="submit">Pause</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <app-messages></app-messages>
+
 </div>
-
-<!--<app-messages></app-messages>-->
-

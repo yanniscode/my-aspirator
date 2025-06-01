@@ -1,35 +1,40 @@
-h1 {
-    text-align: center;
+.main {
+    display: flex;
+    justify-content: center; /* avec flex, pour centrer les éléments contenus*/
+    background-color: darkgrey;
 }
 
 .content {
+    position: relative; /* nécessaire pour avoir des div superposées */
     background-color: #752713;
     text-align: center;
     color: #0071e6;
-    width: 100%;
+    width: auto;
 }
 
-.buttons {
-    background-color: #752713;
-    text-align: center;
-    color: #0071e6;
-    width: 100%;
+.game-container {
+    display: grid;
+    grid-template-areas: "overlap";
+}
+
+.maison, .robot {
+    grid-area: overlap;
 }
 
 .maison {
     background-color: #ffae2b;
-    /* display: flex; */
-    /* justify-content: space-evenly; */
-    height: 60vh;
+    display: flex; /* pour centrage de la maison */
+    align-items: center;
+    height: 450px;
+    position:relative;
 }
 
-.table-maison {
-    position: absolute;
-    padding-top: 8vh;
+.table-maison .p-datatable {
+    display: unset;
 }
 
 .tr-maison {
-    background: rgb(0, 140, 133);
+    background: rgb(0, 140, 133) !important;
 }
 
 .tr-robot {
@@ -40,25 +45,27 @@ h1 {
     width: 50px;
     height: 50px;
     text-align: center !important;
-    border-color: var(--p-datatable-body-cell-border-color); /* test d'une surcharge non prise en compte, ici, car pas !important */
-    border-width: 0 0 0px 0 !important;
     border-style: none !important;
-    padding: 0rem .1rem !important;
+    padding: 0rem 0.5rem !important;
+}
+
+.robot {
+    width: 50px;
+    height: 50px;
+    /* background-color: red; */ /* pour tests */
+    /* border-radius: 50%; */
+}
+
+.buttons {
+    background-color: #752713;
 }
 
 .start-button {
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
     padding-top: 20px;
     padding-bottom: 10px;
 }
 
 .pause-button {
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
     margin-top: 20px;
     padding-bottom: 10px;
 }
-

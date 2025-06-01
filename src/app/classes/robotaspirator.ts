@@ -9,6 +9,7 @@ export class RobotAspirator {
   private appComponent: AppComponent;
 
   // nécessaire pour l'animation (écoute d'observables avec rxjs)
+  private updateSubscriptionMaisonWithRobot!: Subscription;
   private updateSouscriptionNettoyer!: Subscription;
   private updateSubscriptionSuivreCheminVersBase!: Subscription;
 
@@ -351,7 +352,7 @@ export class RobotAspirator {
           AppComponent.log('next suivreLeCheminVersLaBase...');
           this.deplacer(pos);
           AppComponent.log("retour à la base");
-          AppComponent.log("robot : X =" + AppComponent.robot.position.x + "/ Y = " + AppComponent.robot.position.y);          
+          AppComponent.log("robot : X =" + AppComponent.robot.position.x + "/ Y = " + AppComponent.robot.position.y);
           observer.next(AppComponent.robot);
         },
         error: (err) => {
@@ -400,8 +401,10 @@ export class RobotAspirator {
     // Réduire la batterie
     AppComponent.robot.batterie -= this.consommationParMouvement;
 
+    console.log(`Déplacement vers (${position.x}, ${position.y}). Batterie: ${AppComponent.robot.batterie.toFixed(1)}%`);
+
     AppComponent.log(`Déplacement vers (${position.x}, ${position.y}). Batterie: ${AppComponent.robot.batterie.toFixed(1)}%`);
-    this.appComponent.updateMaisonWithRobot();
+    this.updateSubscriptionMaisonWithRobot = this.appComponent.updateMaisonWithRobot().subscribe();
 
     // Marquer la cellule comme visitée
     setTimeout(()=> {

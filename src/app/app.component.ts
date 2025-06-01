@@ -1,54 +1,72 @@
-import { NgFor, NgIf } from '@angular/common';
-import { Component, ViewChild, ElementRef } from '@angular/core';
+import { CommonModule, NgFor, NgIf } from '@angular/common';
+import { Component, ViewChild, ViewEncapsulation, ElementRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { trigger, transition, style, animate } from '@angular/animations';
-import { Observable, Subscription } from "rxjs";
+import { trigger, transition, state, style, animate } from '@angular/animations';
+import { interval, Observable, Subscription } from "rxjs";
 import { TableModule } from 'primeng/table';
 
 import { MessageService } from './services/message.service';
-import { MessagesComponent } from "./messages/messages.component";
 
 import { Position } from './classes/position';
 import { RobotAspirator } from './classes/robotaspirator';
 import { Cell } from './classes/cell';
 import { CellElement } from './classes/cellElement';
+import { MessagesComponent } from "./messages/messages.component";
 
 @Component({
   selector: 'app-root',
-  imports: [NgFor, NgIf, FormsModule, MessagesComponent, TableModule],
+  imports: [CommonModule, NgFor, NgIf, FormsModule, TableModule, MessagesComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
+  encapsulation: ViewEncapsulation.None,
   animations: [
     trigger('maisonAnimation', [
       transition(':enter', [
         style({ opacity: 0 }),
         animate('1500ms ease-out', style({ opacity: 1 }))
-      ]),
-      // transition(':leave', [
-      //   animate('1000ms ease-out', style({ opacity: 0 }))
-      // ])
+      ])
+    ]),
+    trigger('moveRobot', [
+      state('*', style({
+        transform: 'translate({{ x }}px, {{ y }}px)'
+      }), { params: { x: 0, y: 0 + 32 } }), // décalage de Y de 32 pour le robot
+      transition('* <=> *', [
+        animate('500ms ease-in-out')
+      ])
     ])
   ]
 })
 export class AppComponent {
   title = 'my-aspirator-robot';
 
-  @ViewChild('aspiratorCanvas', { static: true }) aspiratorCanvas!: ElementRef<HTMLCanvasElement>;
-  @ViewChild('aspiratorImage', { static: true }) aspiratorImage!: ElementRef<HTMLImageElement>;
+// test du déplacement au clic
+  toggleAnimation() {
+    console.log("toogle anim");
+    this.aspiroDirX = 50;
+    this.aspiroDirY = 0;
+    this.aspiroX += this.aspiroDirX;
+    this.aspiroY += this.aspiroDirY;
 
-  private ctx!: CanvasRenderingContext2D;
-  private aspiratorImageLoaded = false;
+    console.log(this.aspiroX);
+    console.log(this.aspiroY);
+    this.moveTrigger++;
+  }
 
-  // Dimensions
-  private width = 500;
-  private height = 400;
-  private aspiroSize = 50;
-  // Positions
-  private aspiroX = 0;
-  private aspiroY = 0;
-  private aspiroDirX = 0;
-  private aspiroDirY = 0;
+  // pour mettre à jour l'animation du déplacement du robot
+  moveTrigger: number = 0;
+
+  // Position
+  aspiroX: number = 0;
+  // ajout d'un décalage du robot au départ  Y += 32px:
+  aspiroY: number = 0 + 32;
+
+  // Direction
+  aspiroDirX: number = 0;
+  aspiroDirY: number = 0;
+
   // nécessaire pour l'animation (écoute d'observable avec rxjs)
+  private updateSubscriptionMaisonWithRobot!: Subscription;
+  private subscription !: Subscription;
   private updateSubscriptionNettoyer!: Subscription;
   private updateSubscriptionRetourABase!: Subscription;
   private updateDrawEverything!: Subscription;
@@ -77,38 +95,19 @@ export class AppComponent {
 
 
   ngOnInit(): void {
-    console.log("ya ngOnInit");
-    this.ctx = this.aspiratorCanvas.nativeElement.getContext('2d')!;
-
-    // Chargement de l'image de l'aspirateur
-    this.aspiratorImage.nativeElement.onload = () => {
-      console.log("ya ! onload");
-      this.aspiratorImageLoaded = true;
-    };
-
-    // Si l'image est déjà chargée (cache du navigateur)
-    if (this.aspiratorImage.nativeElement.complete) {
-      console.log("ya ! complete");
-      this.aspiratorImageLoaded = true;
-      this.updateDrawEverything = this.drawEverything().subscribe({
-        next: () => {
-          AppComponent.log('next : updateDrawEverything');
-        },
-        error: (err) => {
-          AppComponent.log('Erreur updateDrawEverything: ' + err);
-        },
-        complete: () => {
-          AppComponent.log('complete updateDrawEverything: ok !');
-          this.updateDrawEverything.unsubscribe();
-        }
-      });
-    }
-
+    console.log("ngOnInit");
+    this.setAspiroDirection();
     this.startIntro();
   }
-  
+
   ngOnDestroy(): void {
+    // réinitialisation du déplacement du robot
+    this.moveTrigger = 0;
+
     // Se désabonner pour éviter les fuites de mémoire
+    if (this.subscription) {
+      this.subscription.unsubscribe();
+    }
     if (this.updateSubscriptionNettoyer) {
       this.updateSubscriptionNettoyer.unsubscribe();
     }
@@ -174,7 +173,7 @@ export class AppComponent {
 
     setTimeout(() => {
       // remplace un élément du tableau par le robot et l'affiche
-      this.updateMaisonWithRobot();
+      this.updateSubscriptionMaisonWithRobot = this.updateMaisonWithRobot().subscribe();
     }, 1000);
   }
 
@@ -184,8 +183,6 @@ export class AppComponent {
     }
 
     // si l'on préfère afficher le robot seulement après clic sur start:
-    //    AppComponent.updateMaisonWithRobot();
-
     AppComponent.log("Début du nettoyage");
     AppComponent.isRobotStarted = true;
     // algo principal de nettoyage de la maison
@@ -226,7 +223,6 @@ export class AppComponent {
   pauseRobot(): void {
     if (this.updateSubscriptionNettoyer) {
       this.updateSubscriptionNettoyer.unsubscribe();
-      this.updateDrawEverything.unsubscribe();
       AppComponent.isRobotStarted = false;
     }
   }
@@ -244,81 +240,26 @@ export class AppComponent {
     return true;
   }
 
-  public updateMaisonWithRobot(): void {
-    console.log("ya updateMaisonWithRobot");
-    this.setAspiroDirection();
-    this.updateDrawEverything = this.drawEverything().subscribe({
-      next: (i) => {
-        console.log('next : updateDrawEverything');
-        console.log(i);
-        this.aspiroX += this.aspiroDirX;
-        this.aspiroY += this.aspiroDirY;
-        console.log("this.aspiroSize = "+ this.aspiroSize);
-        console.log("this.aspiroDirX = "+ this.aspiroDirX);
-        console.log("this.aspiroDirY = "+ this.aspiroDirY);
-
-        console.log("this.aspiroX ="+ this.aspiroX);
-        console.log("this.aspiroY ="+ this.aspiroY);
-
-        // Effacer le canvas
-        this.ctx.clearRect(0, 0, this.width, this.height);
-        // Redessine le canevas
-        this.ctx.fillStyle = 'transparent';
-        this.ctx.fillRect(0, 0, this.width, this.height);
-
-        // aspirateur avec image
-        if (this.aspiratorImageLoaded) {
-          this.ctx.save();
-          // Déplacement de l'aspirateur
-          this.ctx.translate(this.aspiroX + this.aspiroSize / 2, this.aspiroY + this.aspiroSize / 2);
-
-          // Dessiner l'image centrée
-          this.ctx.drawImage(
-            this.aspiratorImage.nativeElement,
-            (-this.aspiroSize / 2),
-            (-this.aspiroSize / 2),
-            this.aspiroSize,
-            this.aspiroSize
-          );
-          this.ctx.restore();
-        }
-      },
-      error: (err) => {
-        console.log('Erreur updateDrawEverything: ' + err);
-      },
-      complete: () => {
-        console.log('complete updateDrawEverything: ok !');
-        this.updateDrawEverything.unsubscribe();
-      }
-    });
-  }
-  
-  private setAspiroDirection() {
-    this.aspiroDirX = (AppComponent.robot.position.x - AppComponent.robotAtLastPosition.position.x) === 1 ? 1   :
-      (AppComponent.robot.position.x - AppComponent.robotAtLastPosition.position.x) === -1 ? -1 : 0;
-    this.aspiroDirY = (AppComponent.robot.position.y - AppComponent.robotAtLastPosition.position.y) === 1 ? 1 :
-      (AppComponent.robot.position.y - AppComponent.robotAtLastPosition.position.y) === -1 ? -1 : 0;
-  }
-
-  private drawEverything(): Observable<number> {
+  public updateMaisonWithRobot(): Observable<void> {
     return new Observable((observer) => {
-      let i: number = 0;
-
-      const intervalId = setInterval(() => {
-        console.log("i = "+ i);
-        observer.next(i);
-        i++;
-        if(i >= 50) {
-          console.log("unsubscribe !");
-          this.updateDrawEverything.unsubscribe();
-          observer.complete();
-        }
-      }, 1); // Émet une nouvelle valeur toutes les ms
-      // Gestion de l'annulation de l'intervalle si l'observable est désabonné
-      return () => {
-        clearInterval(intervalId);
-      };   
+      console.log("updateMaisonWithRobot");
+      this.setAspiroDirection();
     });
+  }
+
+  private setAspiroDirection() {
+
+    this.aspiroDirX = (AppComponent.robot.position.x - AppComponent.robotAtLastPosition.position.x) === 1 ? 50 :
+      (AppComponent.robot.position.x - AppComponent.robotAtLastPosition.position.x) === -1 ? -50 : 0;
+    this.aspiroDirY = (AppComponent.robot.position.y - AppComponent.robotAtLastPosition.position.y) === 1 ? 50 :
+      (AppComponent.robot.position.y - AppComponent.robotAtLastPosition.position.y) === -1 ? -50 : 0;
+
+    this.aspiroX += this.aspiroDirX;
+    console.log(this.aspiroX);
+    this.aspiroY += this.aspiroDirY;
+    console.log(this.aspiroY);
+
+    this.moveTrigger++;
   }
 
   static log(message: string) {
