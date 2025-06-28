@@ -1,21 +1,21 @@
 import { CommonModule, NgFor, NgIf } from '@angular/common';
-import { Component, ViewChild, ViewEncapsulation, ElementRef } from '@angular/core';
+import { Component, ViewEncapsulation } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { trigger, transition, state, style, animate } from '@angular/animations';
-import { interval, Observable, Subscription } from "rxjs";
+import { Observable, Subscription } from "rxjs";
 import { TableModule } from 'primeng/table';
 
 import { MessageService } from '../services/message.service';
 
 import { Position } from '../classes/position';
-import { RobotAspirator } from '../classes/robotaspirator';
 import { Cell } from '../classes/cell';
 import { CellElement } from '../classes/cellElement';
 import { MessagesComponent } from "../messages/messages.component";
+import { RobotAspiratorComponent } from './robot-aspirator/robot-aspirator.component';
 
 @Component({
   selector: 'app-root',
-  imports: [CommonModule, NgFor, NgIf, FormsModule, TableModule, MessagesComponent],
+  imports: [CommonModule, NgFor, NgIf, FormsModule, TableModule, RobotAspiratorComponent, MessagesComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
   encapsulation: ViewEncapsulation.None,
@@ -39,7 +39,7 @@ import { MessagesComponent } from "../messages/messages.component";
 export class AppComponent {
   title = 'my-aspirator-robot';
 
-// test du déplacement au clic
+  // test du déplacement au clic
   toggleAnimation() {
     console.log("toogle anim");
     this.aspiroDirX = 50;
@@ -79,9 +79,9 @@ export class AppComponent {
     return AppComponent.maison;
   }
   static basePosition: Position = { x: 0, y: 0 };
-  // static robot: RobotAspirator;
+  // static robot: RobotAspiratorComponent;
   // static isRobotStarted: boolean = false;
-  // static robotAtLastPosition: RobotAspirator;
+  // static robotAtLastPosition: RobotAspiratorComponent;
   static messageService: MessageService;
 
   constructor(messageService: MessageService) {
@@ -89,8 +89,8 @@ export class AppComponent {
 
     AppComponent.initMaisonConfig();
 
-    RobotAspirator.robot = new RobotAspirator(this);
-    RobotAspirator.robotAtLastPosition = new RobotAspirator(this);
+    RobotAspiratorComponent.robot = new RobotAspiratorComponent(this);
+    RobotAspiratorComponent.robotAtLastPosition = new RobotAspiratorComponent(this);
   }
 
 
@@ -168,8 +168,8 @@ export class AppComponent {
 
     // Créer et démarrer le robot
     // rafraîchissement de l'affichage de la maison avec le robot à sa nouvelle position
-    RobotAspirator.robot = new RobotAspirator(this);
-    RobotAspirator.robotAtLastPosition = new RobotAspirator(this);
+    RobotAspiratorComponent.robot = new RobotAspiratorComponent(this);
+    RobotAspiratorComponent.robotAtLastPosition = new RobotAspiratorComponent(this);
 
     setTimeout(() => {
       // remplace un élément du tableau par le robot et l'affiche
@@ -178,15 +178,15 @@ export class AppComponent {
   }
 
   startRobot(): void {
-    if (RobotAspirator.isRobotStarted === true) {
+    if (RobotAspiratorComponent.isRobotStarted === true) {
       return;
     }
 
     // si l'on préfère afficher le robot seulement après clic sur start:
     AppComponent.log("Début du nettoyage");
-    RobotAspirator.isRobotStarted = true;
+    RobotAspiratorComponent.isRobotStarted = true;
     // algo principal de nettoyage de la maison
-    this.updateSubscriptionNettoyer = RobotAspirator.robot.nettoyer().subscribe({
+    this.updateSubscriptionNettoyer = RobotAspiratorComponent.robot.nettoyer().subscribe({
       next: () => {
         AppComponent.log('next nettoyer...');
       },
@@ -196,14 +196,14 @@ export class AppComponent {
       complete: () => {
         AppComponent.log('complete nettoyer: Nettoyage ok !');
         // Retourner à la base de charge
-        AppComponent.log(`Batterie: ${RobotAspirator.robot.batterie}%. Retour à la base.`);
+        AppComponent.log(`Batterie: ${RobotAspiratorComponent.robot.batterie}%. Retour à la base.`);
 
         // puis on souscrit à retournerALaBase
-        this.updateSubscriptionRetourABase = RobotAspirator.robot.retournerALaBase().subscribe({
+        this.updateSubscriptionRetourABase = RobotAspiratorComponent.robot.retournerALaBase().subscribe({
           next: (robot) => {
             AppComponent.log('next retournerALaBase...');
-            AppComponent.log(RobotAspirator.robotAtLastPosition.position.x.toString());
-            AppComponent.log(RobotAspirator.robotAtLastPosition.position.y.toString());
+            AppComponent.log(RobotAspiratorComponent.robotAtLastPosition.position.x.toString());
+            AppComponent.log(RobotAspiratorComponent.robotAtLastPosition.position.y.toString());
             AppComponent.log(robot.position.x.toString());
             AppComponent.log(robot.position.y.toString());
           },
@@ -212,7 +212,7 @@ export class AppComponent {
           },
           complete: () => {
             AppComponent.log('complete retournerALaBase: ok !');
-            RobotAspirator.isRobotStarted = false;
+            RobotAspiratorComponent.isRobotStarted = false;
             this.startIntro();
           }
         });
@@ -223,7 +223,7 @@ export class AppComponent {
   pauseRobot(): void {
     if (this.updateSubscriptionNettoyer) {
       this.updateSubscriptionNettoyer.unsubscribe();
-      RobotAspirator.isRobotStarted = false;
+      RobotAspiratorComponent.isRobotStarted = false;
     }
   }
 
@@ -249,10 +249,10 @@ export class AppComponent {
 
   private setAspiroDirection() {
 
-    this.aspiroDirX = (RobotAspirator.robot.position.x - RobotAspirator.robotAtLastPosition.position.x) === 1 ? 50 :
-      (RobotAspirator.robot.position.x - RobotAspirator.robotAtLastPosition.position.x) === -1 ? -50 : 0;
-    this.aspiroDirY = (RobotAspirator.robot.position.y - RobotAspirator.robotAtLastPosition.position.y) === 1 ? 50 :
-      (RobotAspirator.robot.position.y - RobotAspirator.robotAtLastPosition.position.y) === -1 ? -50 : 0;
+    this.aspiroDirX = (RobotAspiratorComponent.robot.position.x - RobotAspiratorComponent.robotAtLastPosition.position.x) === 1 ? 50 :
+      (RobotAspiratorComponent.robot.position.x - RobotAspiratorComponent.robotAtLastPosition.position.x) === -1 ? -50 : 0;
+    this.aspiroDirY = (RobotAspiratorComponent.robot.position.y - RobotAspiratorComponent.robotAtLastPosition.position.y) === 1 ? 50 :
+      (RobotAspiratorComponent.robot.position.y - RobotAspiratorComponent.robotAtLastPosition.position.y) === -1 ? -50 : 0;
 
     this.aspiroX += this.aspiroDirX;
     console.log(this.aspiroX);
