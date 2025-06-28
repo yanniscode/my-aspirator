@@ -1,5 +1,5 @@
 import { Observable, Subscription } from "rxjs";
-import { AppComponent } from "../app.component";
+import { AppComponent } from "../components/app.component";
 
 import { Cell } from "./cell";
 import { Position } from "./position";
@@ -12,6 +12,10 @@ export class RobotAspirator {
   private updateSubscriptionMaisonWithRobot!: Subscription;
   private updateSouscriptionNettoyer!: Subscription;
   private updateSubscriptionSuivreCheminVersBase!: Subscription;
+
+  static robot: RobotAspirator;
+  static isRobotStarted: boolean = false;
+  static robotAtLastPosition: RobotAspirator;
 
   // Position actuelle
   public position: Position;
@@ -38,7 +42,7 @@ export class RobotAspirator {
       const intervalId = setInterval(() => {
         // rafraîchissement de l'affichage de la maison avec le robot à sa nouvelle position
         // si la batterie est HS
-        if (AppComponent.robot.batterie <= AppComponent.robot.energieNecessairePourRetour()) {
+        if (RobotAspirator.robot.batterie <= RobotAspirator.robot.energieNecessairePourRetour()) {
           observer.complete();
         }
         // si toutes les cellules accessibles sont visitées, on logge simplement
@@ -46,20 +50,20 @@ export class RobotAspirator {
           AppComponent.log("Toutes les zones accessibles sont nettoyées");
         }
         // // Chercher la prochaine cellule non visitée et s'y diriger
-        const prochaineCellule = AppComponent.robot.trouverProchaineDestination();
+        const prochaineCellule = RobotAspirator.robot.trouverProchaineDestination();
 
         if (prochaineCellule) {
-          this.updateSouscriptionNettoyer = AppComponent.robot.seDeplacerVers(prochaineCellule).subscribe({
-            next: (pos) => {
-              if(AppComponent.robot.position.x !== pos.x || AppComponent.robot.position.y !== pos.y) {
+          this.updateSouscriptionNettoyer = RobotAspirator.robot.seDeplacerVers(prochaineCellule).subscribe({
+            next: (pos: Position) => {
+              if(RobotAspirator.robot.position.x !== pos.x || RobotAspirator.robot.position.y !== pos.y) {
                 // marquer la cellule comme visitée + opérer le déplacement:
                 this.deplacer(pos);
                 AppComponent.log("seDeplacerVers");
-                AppComponent.log("robotAtLastPosition : X =" + AppComponent.robotAtLastPosition.position.x + "/ Y = " + AppComponent.robotAtLastPosition.position.y);
-                AppComponent.log("robot : X =" + AppComponent.robot.position.x + "/ Y = " + AppComponent.robot.position.y);
+                AppComponent.log("robotAtLastPosition : X =" + RobotAspirator.robotAtLastPosition.position.x + "/ Y = " + RobotAspirator.robotAtLastPosition.position.y);
+                AppComponent.log("robot : X =" + RobotAspirator.robot.position.x + "/ Y = " + RobotAspirator.robot.position.y);
               }
             },
-            error: (err) => {
+            error: (err: string) => {
               AppComponent.log('Erreur seDeplacerVers: ' + err);
             },
             complete: () => {
@@ -163,7 +167,7 @@ export class RobotAspirator {
 
       let index = 0;
       const intervalId = setInterval(() => {
-        AppComponent.robotAtLastPosition.position = { ...AppComponent.robot.position };
+        RobotAspirator.robotAtLastPosition.position = { ...RobotAspirator.robot.position };
         // Suivre le chemin
         if (index < chemin.length) {
           observer.next(chemin[index]);
@@ -352,8 +356,8 @@ export class RobotAspirator {
           AppComponent.log('next suivreLeCheminVersLaBase...');
           this.deplacer(pos);
           AppComponent.log("retour à la base");
-          AppComponent.log("robot : X =" + AppComponent.robot.position.x + "/ Y = " + AppComponent.robot.position.y);
-          observer.next(AppComponent.robot);
+          AppComponent.log("robot : X =" + RobotAspirator.robot.position.x + "/ Y = " + RobotAspirator.robot.position.y);
+          observer.next(RobotAspirator.robot);
         },
         error: (err) => {
           AppComponent.log('Erreur suivreLeCheminVersLaBase: ' + err);
@@ -373,7 +377,7 @@ export class RobotAspirator {
 
       const intervalId = setInterval(() => {
         // rafraîchissement de l'affichage de la maison avec le robot à sa nouvelle position
-        AppComponent.robotAtLastPosition.position = { ...AppComponent.robot.position };
+        RobotAspirator.robotAtLastPosition.position = { ...RobotAspirator.robot.position };
         // Vérifier si nous avons assez de batterie
         if (this.batterie <= 0) {
           AppComponent.log("Batterie épuisée avant d'atteindre la base!");
@@ -397,13 +401,13 @@ export class RobotAspirator {
   // Déplacer le robot à une position spécifique
   private deplacer(position: Position): void {
     // Mettre à jour la position
-    AppComponent.robot.position = { ...position };
+    RobotAspirator.robot.position = { ...position };
     // Réduire la batterie
-    AppComponent.robot.batterie -= this.consommationParMouvement;
+    RobotAspirator.robot.batterie -= this.consommationParMouvement;
 
-    console.log(`Déplacement vers (${position.x}, ${position.y}). Batterie: ${AppComponent.robot.batterie.toFixed(1)}%`);
+    console.log(`Déplacement vers (${position.x}, ${position.y}). Batterie: ${RobotAspirator.robot.batterie.toFixed(1)}%`);
 
-    AppComponent.log(`Déplacement vers (${position.x}, ${position.y}). Batterie: ${AppComponent.robot.batterie.toFixed(1)}%`);
+    AppComponent.log(`Déplacement vers (${position.x}, ${position.y}). Batterie: ${RobotAspirator.robot.batterie.toFixed(1)}%`);
     this.updateSubscriptionMaisonWithRobot = this.appComponent.updateMaisonWithRobot().subscribe();
 
     // Marquer la cellule comme visitée
