@@ -435,8 +435,6 @@ export class RobotAspiratorComponent {
     this.aspiroY += aspiroDirY;
     console.log(this.aspiroY);
 
-    // TODO: à voir si nécessaire
-    // this.moveTrigger++;
     return { x: this.aspiroX, y: this.aspiroY };
   }
 
