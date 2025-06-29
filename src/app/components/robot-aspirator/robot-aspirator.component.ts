@@ -13,17 +13,18 @@ import { Cell } from '../../classes/cell';
 export class RobotAspiratorComponent {
   private appComponent: AppComponent;
 
-  // nécessaire pour l'animation (écoute d'observables avec rxjs)
-  private updateSubscriptionMaisonWithRobot!: Subscription;
-  private updateSouscriptionNettoyer!: Subscription;
-  private updateSubscriptionSuivreCheminVersBase!: Subscription;
-
   static robot: RobotAspiratorComponent;
   static isRobotStarted: boolean = false;
   static robotAtLastPosition: RobotAspiratorComponent;
 
   // Position actuelle
   public position: Position;
+
+  // Position
+  aspiroX: number = 0;
+  // ajout d'un décalage du robot au départ  Y += 32px:
+  aspiroY: number = 0 + 32;
+
   // Niveau de batterie (en pourcentage)
   public batterie: number;
   // Combien d'énergie est consommée par mouvement
@@ -58,7 +59,7 @@ export class RobotAspiratorComponent {
         const prochaineCellule = RobotAspiratorComponent.robot.trouverProchaineDestination();
 
         if (prochaineCellule) {
-          this.updateSouscriptionNettoyer = RobotAspiratorComponent.robot.seDeplacerVers(prochaineCellule).subscribe({
+          RobotAspiratorComponent.robot.seDeplacerVers(prochaineCellule).subscribe({
             next: (pos: Position) => {
               if (RobotAspiratorComponent.robot.position.x !== pos.x || RobotAspiratorComponent.robot.position.y !== pos.y) {
                 // marquer la cellule comme visitée + opérer le déplacement:
@@ -356,7 +357,7 @@ export class RobotAspiratorComponent {
       }
 
       // Suivre le chemin
-      this.updateSubscriptionSuivreCheminVersBase = this.suivreLeCheminVersLaBase(chemin).subscribe({
+      this.suivreLeCheminVersLaBase(chemin).subscribe({
         next: (pos) => {
           AppComponent.log('next suivreLeCheminVersLaBase...');
           this.deplacer(pos);
@@ -413,7 +414,7 @@ export class RobotAspiratorComponent {
     console.log(`Déplacement vers (${position.x}, ${position.y}). Batterie: ${RobotAspiratorComponent.robot.batterie.toFixed(1)}%`);
 
     AppComponent.log(`Déplacement vers (${position.x}, ${position.y}). Batterie: ${RobotAspiratorComponent.robot.batterie.toFixed(1)}%`);
-    this.updateSubscriptionMaisonWithRobot = this.appComponent.updateMaisonWithRobot().subscribe();
+    this.appComponent.updateMaisonWithRobot();
 
     // Marquer la cellule comme visitée
     setTimeout(() => {
@@ -421,4 +422,22 @@ export class RobotAspiratorComponent {
       AppComponent.maison[position.y][position.x].cellStack[0].type = '_';
     }, 250);
   }
+
+  updateAspiroDirection(): Position {
+
+    const aspiroDirX = (RobotAspiratorComponent.robot.position.x - RobotAspiratorComponent.robotAtLastPosition.position.x) === 1 ? 50 :
+      (RobotAspiratorComponent.robot.position.x - RobotAspiratorComponent.robotAtLastPosition.position.x) === -1 ? -50 : 0;
+    const aspiroDirY = (RobotAspiratorComponent.robot.position.y - RobotAspiratorComponent.robotAtLastPosition.position.y) === 1 ? 50 :
+      (RobotAspiratorComponent.robot.position.y - RobotAspiratorComponent.robotAtLastPosition.position.y) === -1 ? -50 : 0;
+
+    this.aspiroX += aspiroDirX;
+    console.log(this.aspiroX);
+    this.aspiroY += aspiroDirY;
+    console.log(this.aspiroY);
+
+    // TODO: à voir si nécessaire
+    // this.moveTrigger++;
+    return { x: this.aspiroX, y: this.aspiroY };
+  }
+
 }
