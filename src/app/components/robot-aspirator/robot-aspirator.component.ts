@@ -193,10 +193,10 @@ export class RobotAspiratorComponent implements OnDestroy {
       const newX = position.x + dir.dx;
       const newY = position.y + dir.dy;
 
-      // Vérifier si la nouvelle position est dans les limites de la maison
-      // TODO: VÉRIFIER SI C'EST UN MUR, AUSSI ?
+      // Vérifier si la nouvelle position est dans les limites de la maison et si c'est un bloc de type mur
       if (newX >= 0 && newX < AppComponent.maison[0].length &&
-        newY >= 0 && newY < AppComponent.maison.length
+        newY >= 0 && newY < AppComponent.maison.length &&
+        "X" != AppComponent.maison[newY][newX].cellStack[0].type
       ) {
         cellules.push(AppComponent.maison[newY][newX]);
       }
