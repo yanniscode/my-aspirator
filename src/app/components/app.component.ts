@@ -2,7 +2,7 @@ import { CommonModule, NgFor, NgIf } from '@angular/common';
 import { Component, ViewEncapsulation } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { trigger, transition, state, style, animate } from '@angular/animations';
-import { Observable, Subscription } from "rxjs";
+import { Subscription } from "rxjs";
 import { TableModule } from 'primeng/table';
 
 import { MessageService } from '../services/message.service';
@@ -52,43 +52,38 @@ export class AppComponent {
   //   this.moveTrigger++;
   // }
 
-  // pour mettre à jour l'animation du déplacement du robot
-  moveTrigger: number = 0;
-
-  // Position
-  aspiroX: number = 0;
-  // ajout d'un décalage du robot au départ  Y += 32px:
-  aspiroY: number = 0 + 32;
-
   // nécessaire pour l'animation (écoute d'observable avec rxjs)
-  private subscription !: Subscription;
   private updateSubscriptionNettoyer!: Subscription;
   private updateSubscriptionRetourABase!: Subscription;
-  private updateDrawEverything!: Subscription;
 
+  static messageService: MessageService;
+
+  static maison: Cell[][] = [[]];
   static largeurMaison: number = 10;
   static hauteurMaison: number = 8;
   static obstacles: Position[] = [];
-  static maison: Cell[][] = [[]];
   get MaisonView() {
     return AppComponent.maison;
   }
   static basePosition: Position = { x: 0, y: 0 };
-  static messageService: MessageService;
+
+  robot: RobotAspiratorComponent;
+  // Position
+  aspiroX: number = 0;
+  // ajout d'un décalage du robot au départ  Y += 32px:
+  aspiroY: number = 0 + 32;
+  // pour mettre à jour l'animation du déplacement du robot
+  moveTrigger: number = 0;
 
   constructor(messageService: MessageService) {
     AppComponent.messageService = messageService;
-
     AppComponent.initMaisonConfig();
-
-    RobotAspiratorComponent.robot = new RobotAspiratorComponent(this);
-    RobotAspiratorComponent.robotAtLastPosition = new RobotAspiratorComponent(this);
+    this.robot = new RobotAspiratorComponent(this);
   }
 
 
   ngOnInit(): void {
-    console.log("ngOnInit");
-    const newPosition: Position = RobotAspiratorComponent.robot.updateAspiroDirection();
+    const newPosition: Position = this.updateAspiroPosition();
     this.aspiroX = newPosition.x;
     this.aspiroY = newPosition.y;
     this.moveTrigger++;
@@ -101,17 +96,13 @@ export class AppComponent {
     this.moveTrigger = 0;
 
     // Se désabonner pour éviter les fuites de mémoire
-    if (this.subscription) {
-      this.subscription.unsubscribe();
-    }
     if (this.updateSubscriptionNettoyer) {
       this.updateSubscriptionNettoyer.unsubscribe();
+      this.robot.onPause();
     }
     if (this.updateSubscriptionRetourABase) {
       this.updateSubscriptionRetourABase.unsubscribe();
-    }
-    if (this.updateDrawEverything) {
-      this.updateDrawEverything.unsubscribe();
+      this.robot.onPause();
     }
   }
 
@@ -134,7 +125,6 @@ export class AppComponent {
     for (let y = 0; y < AppComponent.hauteurMaison; y++) {
       AppComponent.maison[y] = [];
       for (let x = 0; x < AppComponent.largeurMaison; x++) {
-
         let cellElement: CellElement = {
           position: { x, y },
           type: 'O',
@@ -161,12 +151,6 @@ export class AppComponent {
   private startIntro(): void {
     // Création de la maison
     AppComponent.initMaisonConfig();
-
-    // Créer et démarrer le robot
-    // rafraîchissement de l'affichage de la maison avec le robot à sa nouvelle position
-    RobotAspiratorComponent.robot = new RobotAspiratorComponent(this);
-    RobotAspiratorComponent.robotAtLastPosition = new RobotAspiratorComponent(this);
-
     setTimeout(() => {
       // remplace un élément du tableau par le robot et l'affiche
       this.updateMaisonWithRobot();
@@ -174,41 +158,46 @@ export class AppComponent {
   }
 
   startRobot(): void {
-    if (RobotAspiratorComponent.isRobotStarted === true) {
+    if (this.robot.isRobotStarted) {
       return;
     }
 
     // si l'on préfère afficher le robot seulement après clic sur start:
     AppComponent.log("Début du nettoyage");
-    RobotAspiratorComponent.isRobotStarted = true;
+    this.robot.isRobotStarted = true;
     // algo principal de nettoyage de la maison
-    this.updateSubscriptionNettoyer = RobotAspiratorComponent.robot.nettoyer().subscribe({
+    this.updateSubscriptionNettoyer = this.robot.nettoyer().subscribe({
       next: () => {
-        AppComponent.log('next nettoyer...');
+        AppComponent.log(this.robot.lastPosition.x.toString());
+        AppComponent.log(this.robot.lastPosition.y.toString());
+        AppComponent.log(this.robot.position.x.toString());
+        AppComponent.log(this.robot.position.y.toString());
+        this.updateMaisonWithRobot();
       },
-      error: (err) => {
+      error: (err: string) => {
         AppComponent.log('Erreur nettoyer: ' + err);
       },
       complete: () => {
         AppComponent.log('complete nettoyer: Nettoyage ok !');
         // Retourner à la base de charge
-        AppComponent.log(`Batterie: ${RobotAspiratorComponent.robot.batterie}%. Retour à la base.`);
+        AppComponent.log(`Batterie: ${this.robot.batterie}%. Retour à la base.`);
 
         // puis on souscrit à retournerALaBase
-        this.updateSubscriptionRetourABase = RobotAspiratorComponent.robot.retournerALaBase().subscribe({
-          next: (robot) => {
+        this.updateSubscriptionRetourABase = this.robot.retournerALaBase().subscribe({
+          next: () => {
             AppComponent.log('next retournerALaBase...');
-            AppComponent.log(RobotAspiratorComponent.robotAtLastPosition.position.x.toString());
-            AppComponent.log(RobotAspiratorComponent.robotAtLastPosition.position.y.toString());
-            AppComponent.log(robot.position.x.toString());
-            AppComponent.log(robot.position.y.toString());
+            AppComponent.log(this.robot.lastPosition.x.toString());
+            AppComponent.log(this.robot.lastPosition.y.toString());
+            AppComponent.log(this.robot.position.x.toString());
+            AppComponent.log(this.robot.position.y.toString());
+            this.updateMaisonWithRobot();
           },
-          error: (err) => {
+          error: (err: string) => {
             AppComponent.log('Erreur retournerALaBase: ' + err);
           },
           complete: () => {
             AppComponent.log('complete retournerALaBase: ok !');
-            RobotAspiratorComponent.isRobotStarted = false;
+            this.robot.isRobotStarted = false;
             this.startIntro();
           }
         });
@@ -219,8 +208,36 @@ export class AppComponent {
   pauseRobot(): void {
     if (this.updateSubscriptionNettoyer) {
       this.updateSubscriptionNettoyer.unsubscribe();
-      RobotAspiratorComponent.isRobotStarted = false;
+      this.robot.onPause();
     }
+    if (this.updateSubscriptionRetourABase) {
+      this.updateSubscriptionRetourABase.unsubscribe();
+      this.robot.onPause();
+    }
+    this.robot.isRobotStarted = false;
+  }
+
+  public updateMaisonWithRobot(): void {
+    const newPosition: Position = this.updateAspiroPosition();
+    this.aspiroX = newPosition.x;
+    this.aspiroY = newPosition.y;
+      // nécessaire pour la fluidité de l'animation
+      this.moveTrigger++;
+      console.log(this.moveTrigger);
+  }
+
+  private updateAspiroPosition(): Position {
+    const aspiroDirX = (this.robot.position.x - this.robot.lastPosition.x) === 1 ? 50 :
+      (this.robot.position.x - this.robot.lastPosition.x) === -1 ? -50 : 0;
+    const aspiroDirY = (this.robot.position.y - this.robot.lastPosition.y) === 1 ? 50 :
+      (this.robot.position.y - this.robot.lastPosition.y) === -1 ? -50 : 0;
+
+    this.aspiroX += aspiroDirX;
+    console.log(this.aspiroX);
+    this.aspiroY += aspiroDirY;
+    console.log(this.aspiroY);
+
+    return { x: this.aspiroX, y: this.aspiroY };
   }
 
   // Vérifier si toutes les cellules accessibles ont été visitées
@@ -234,14 +251,6 @@ export class AppComponent {
       }
     }
     return true;
-  }
-
-  public updateMaisonWithRobot(): void {
-    console.log("updateMaisonWithRobot");
-    const newPosition: Position = RobotAspiratorComponent.robot.updateAspiroDirection();
-    this.aspiroX = newPosition.x;
-    this.aspiroY = newPosition.y;
-    this.moveTrigger++;
   }
 
   static log(message: string) {
