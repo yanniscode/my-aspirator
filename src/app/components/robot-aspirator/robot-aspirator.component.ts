@@ -70,35 +70,39 @@ export class RobotAspiratorComponent implements OnDestroy {
 
           // Utiliser A* ou un autre algorithme de recherche de chemin pour trouver le chemin optimal
           const chemin = this.trouverChemin(prochaineCellule.cellStack[0].position);
-          if (chemin.length === 0) {
+          console.log(chemin.length === 0);
+          if (chemin === undefined) {
             console.log("Impossible de trouver un chemin vers la destination");
             observer.complete();
           }
 
-          this.updateSubscriptionSeDeplacerVers = this.seDeplacerVers(chemin).subscribe({
-            next: (pos: Position) => {
-              if (this.position.x !== pos.x || this.position.y !== pos.y) {
-                // marquer la cellule comme visitée + opérer le déplacement:
+          const pos: Position = chemin[0];
+        //   this.updateSubscriptionSeDeplacerVers = this.seDeplacerVers(chemin).subscribe({
+        //     next: (pos: Position) => {
+              // if (this.position.x !== pos.x || this.position.y !== pos.y) {
+        //         // marquer la cellule comme visitée + opérer le déplacement:
                 this.deplacer(pos);
-                console.log("seDeplacerVers");
-                console.log("lastPosition : X =" + this.lastPosition.x + "/ Y = " + this.lastPosition.y);
-                console.log("robot : X =" + this.position.x + "/ Y = " + this.position.y);
-              }
-            },
-            error: (err: string) => {
-              console.log('Erreur seDeplacerVers: ' + err);
-            },
-            complete: () => {
-              console.log('complete seDeplacerVers: ok !');
-            }
-          });
+
+                observer.next();
+        //         console.log("seDeplacerVers");
+        //         console.log("lastPosition : X =" + this.lastPosition.x + "/ Y = " + this.lastPosition.y);
+        //         console.log("robot : X =" + this.position.x + "/ Y = " + this.position.y);
+              // }
+        //     },
+        //     error: (err: string) => {
+        //       console.log('Erreur seDeplacerVers: ' + err);
+        //     },
+        //     complete: () => {
+        //       console.log('complete seDeplacerVers: ok !');
+        //     }
+        //   });
         } else {
           // Si aucune cellule n'est trouvée, retourner à la base
           console.log("Aucune cellule accessible non visitée trouvée");
           // force ici la fin de l'observable
           observer.complete();
         }
-      }, 280); // Émet une nouvelle valeur toutes les 280ms
+      }, 500); // Émet une nouvelle valeur toutes les 280ms
 
       // Gestion de l'annulation de l'intervalle si l'observable est désabonné
       return () => {
@@ -110,31 +114,50 @@ export class RobotAspiratorComponent implements OnDestroy {
   // Retourner à la base de charge
   public retournerALaBase(): Observable<void> {
     return new Observable((observer) => {
+      const intervalId = setInterval(() => {
+
       AppComponent.log("Retour à la base de charge");
 
       // Trouver le chemin vers la base
       const chemin = this.trouverChemin(AppComponent.basePosition);
+      console.log(chemin);
       if (chemin.length === 0) {
         AppComponent.log("Impossible de trouver un chemin vers la base de charge!");
       }
 
+      const pos = chemin[0];
+
+      if(pos === undefined) {
+        observer.complete();
+      } else {
+
       // Suivre le chemin
-      this.updateSubscriptionSeDeplacerVers = this.seDeplacerVers(chemin).subscribe({
-        next: (pos) => {
-          AppComponent.log('next suivreLeCheminVersLaBase...');
+      // this.updateSubscriptionSeDeplacerVers = this.seDeplacerVers(chemin).subscribe({
+      //   next: (pos) => {
+      //     AppComponent.log('next suivreLeCheminVersLaBase...');
           this.deplacer(pos);
-          AppComponent.log("retour à la base");
-          AppComponent.log("robot : X =" + this.position.x + "/ Y = " + this.position.y);
-        },
-        error: (err) => {
-          AppComponent.log('Erreur suivreLeCheminVersLaBase: ' + err);
-        },
-        complete: () => {
-          AppComponent.log('complete suivreLeCheminVersLaBase');
-          observer.complete();
-          AppComponent.log("Arrivé à la base de charge avec une batterie de " + this.batterie.toFixed(1) + "%");
-        }
-      });
+          observer.next();
+      //     AppComponent.log("retour à la base");
+      //     AppComponent.log("robot : X =" + this.position.x + "/ Y = " + this.position.y);
+      //   },
+      //   error: (err) => {
+      //     AppComponent.log('Erreur suivreLeCheminVersLaBase: ' + err);
+      //   },
+      //   complete: () => {
+      //     AppComponent.log('complete suivreLeCheminVersLaBase');
+      //     observer.complete();
+      //     AppComponent.log("Arrivé à la base de charge avec une batterie de " + this.batterie.toFixed(1) + "%");
+      //   }
+      // });
+
+      }
+
+    }, 500); // Émet une nouvelle valeur toutes les 280ms
+
+    // Gestion de l'annulation de l'intervalle si l'observable est désabonné
+    return () => {
+      clearInterval(intervalId);
+    };
     });
   }
 
@@ -205,32 +228,32 @@ export class RobotAspiratorComponent implements OnDestroy {
   }
 
   // Se déplacer vers une cellule spécifique
-  private seDeplacerVers(chemin: Position[]): Observable<Position> {
-    return new Observable((observer) => {
-      let index = 0;
+  // private seDeplacerVers(chemin: Position[]): Observable<Position> {
+  //   return new Observable((observer) => {
+  //     let index = 0;
 
-      const intervalId = setInterval(() => {
-        this.lastPosition = { ...this.position };
-        // Vérifier si nous avons assez de batterie
-        if (this.batterie <= this.energieNecessairePourRetour()) {
-          AppComponent.log("Batterie faible, interruption du déplacement");
-          observer.complete();
-        }
-        // Suivre le chemin
-        else if (index < chemin.length) {
-          observer.next(chemin[index]);
-          index++;
-        } else {
-          observer.complete(); // Termine l'observable après avoir émis tous les nombres
-        }
-      }, 500);
+  //     // const intervalId = setInterval(() => {
+  //       this.lastPosition = { ...this.position };
+  //       // Vérifier si nous avons assez de batterie
+  //       if (this.batterie <= this.energieNecessairePourRetour()) {
+  //         AppComponent.log("Batterie faible, interruption du déplacement");
+  //         observer.complete();
+  //       }
+  //       // Suivre le chemin
+  //       // else if (index < chemin.length) {
+  //         observer.next(chemin[index]);
+  //       //   index++;
+  //       // } else {
+  //         observer.complete(); // Termine l'observable après avoir émis tous les nombres
+  //       // }
+  //     // }, 500);
 
-      // Gestion de l'annulation de l'intervalle si l'observable est désabonnée
-      return () => {
-        clearInterval(intervalId);
-      };
-    });
-  }
+  //     // Gestion de l'annulation de l'intervalle si l'observable est désabonnée
+  //     // return () => {
+  //     //   clearInterval(intervalId);
+  //     // };
+  //   });
+  // }
 
   // Algorithme A* pour trouver le chemin optimal
   private trouverChemin(fin: Position): Position[] {
@@ -383,13 +406,16 @@ export class RobotAspiratorComponent implements OnDestroy {
 
   // Déplacer le robot à une position spécifique
   private deplacer(position: Position): void {
+    console.log(position);
     // nécessaire vérification de isRobotStarted dans la fonction synchrone appelée par une observable,
     // pour éviter de nouveaux tours de boucle à cause de la présence de setInterval() dans la fonction nettoyer()
     if (this.isRobotStarted === false) {
       return;
     }
     // Mettre à jour la position
+    this.lastPosition = { ...this.position };
     this.position = { ...position };
+
     // Réduire la batterie
     this.batterie -= this.consommationParMouvement;
 
@@ -400,12 +426,12 @@ export class RobotAspiratorComponent implements OnDestroy {
     this.appComponent.updateMaisonWithRobot();
 
     // Marquer la cellule comme visitée
-    const delayed$ = timer(280);
-    delayed$.subscribe(() => {
-      console.log("position.x = "+ position.x);
-      console.log("position.y = "+ position.y);
-      AppComponent.maison[position.y][position.x].cellStack[0].visited = true;
-      AppComponent.maison[position.y][position.x].cellStack[0].type = '_';
-    });
+    // const delayed$ = timer(280);
+    // delayed$.subscribe(() => {
+    //   console.log("position.x = "+ position.x);
+    //   console.log("position.y = "+ position.y);
+    //   AppComponent.maison[position.y][position.x].cellStack[0].visited = true;
+    //   AppComponent.maison[position.y][position.x].cellStack[0].type = '_';
+    // });
   }
 }

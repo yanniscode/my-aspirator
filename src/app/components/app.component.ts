@@ -2,7 +2,7 @@ import { CommonModule, NgFor, NgIf } from '@angular/common';
 import { Component, ViewEncapsulation } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { trigger, transition, state, style, animate } from '@angular/animations';
-import { Subscription } from "rxjs";
+import { Subscription, timer } from "rxjs";
 import { TableModule } from 'primeng/table';
 
 import { MessageService } from '../services/message.service';
@@ -151,10 +151,10 @@ export class AppComponent {
   private startIntro(): void {
     // Création de la maison
     AppComponent.initMaisonConfig();
-    setTimeout(() => {
-      // remplace un élément du tableau par le robot et l'affiche
-      this.updateMaisonWithRobot();
-    }, 1000);
+    // setTimeout(() => {
+    //   // remplace un élément du tableau par le robot et l'affiche
+    //   this.updateMaisonWithRobot();
+    // }, 1000);
   }
 
   startRobot(): void {
@@ -168,11 +168,12 @@ export class AppComponent {
     // algo principal de nettoyage de la maison
     this.updateSubscriptionNettoyer = this.robot.nettoyer().subscribe({
       next: () => {
+        console.log("updateSubscriptionNettoyer next()");
         AppComponent.log(this.robot.lastPosition.x.toString());
         AppComponent.log(this.robot.lastPosition.y.toString());
         AppComponent.log(this.robot.position.x.toString());
         AppComponent.log(this.robot.position.y.toString());
-        this.updateMaisonWithRobot();
+        // this.updateMaisonWithRobot();
       },
       error: (err: string) => {
         AppComponent.log('Erreur nettoyer: ' + err);
@@ -190,7 +191,7 @@ export class AppComponent {
             AppComponent.log(this.robot.lastPosition.y.toString());
             AppComponent.log(this.robot.position.x.toString());
             AppComponent.log(this.robot.position.y.toString());
-            this.updateMaisonWithRobot();
+            // this.updateMaisonWithRobot();
           },
           error: (err: string) => {
             AppComponent.log('Erreur retournerALaBase: ' + err);
@@ -219,14 +220,25 @@ export class AppComponent {
 
   public updateMaisonWithRobot(): void {
     const newPosition: Position = this.updateAspiroPosition();
+    console.log(newPosition);
+
     this.aspiroX = newPosition.x;
     this.aspiroY = newPosition.y;
-      // nécessaire pour la fluidité de l'animation
-      this.moveTrigger++;
-      console.log(this.moveTrigger);
+
+    const delayed$ = timer(250);
+    delayed$.subscribe(() => {
+      AppComponent.maison[this.robot.lastPosition.y][this.robot.lastPosition.x].cellStack[0].visited = true;
+      AppComponent.maison[this.robot.lastPosition.y][this.robot.lastPosition.x].cellStack[0].type = '_';
+    });
+
+    // nécessaire pour la fluidité de l'animation
+    this.moveTrigger++;
+    console.log(this.moveTrigger);
   }
 
   private updateAspiroPosition(): Position {
+    console.log(this.robot.lastPosition);
+    console.log(this.robot.position);
     const aspiroDirX = (this.robot.position.x - this.robot.lastPosition.x) === 1 ? 50 :
       (this.robot.position.x - this.robot.lastPosition.x) === -1 ? -50 : 0;
     const aspiroDirY = (this.robot.position.y - this.robot.lastPosition.y) === 1 ? 50 :
