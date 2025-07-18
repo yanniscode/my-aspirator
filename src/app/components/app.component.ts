@@ -54,14 +54,11 @@ export class AppComponent implements OnDestroy, OnInit {
   // }
 
   // nécessaire pour l'animation (écoute d'observable avec rxjs)
-
-  // TODO: revoir
-  private subscription = new Subscription();
-
-  static messageService: MessageService;
+  private subscription: Subscription;
 
   robotAspiratorService: RobotAspiratorService;
 
+  static messageService: MessageService;
   static maison: Cell[][] = [[]];
   static largeurMaison: number = 10;
   static hauteurMaison: number = 8;
@@ -80,6 +77,7 @@ export class AppComponent implements OnDestroy, OnInit {
   moveTrigger: number = 0;
 
   constructor(messageService: MessageService) {
+    this.subscription = new Subscription();
     AppComponent.messageService = messageService;
     this.robotAspiratorService = new RobotAspiratorService(this);
 
@@ -111,26 +109,12 @@ export class AppComponent implements OnDestroy, OnInit {
   }
 
   public startIntro(): void {
-    // TODO: réinit de la position du robot après un second tour: à tester
-    // this.robot.position = { ...AppComponent.basePosition };
-    // ou réinit du robot si besoin:
-    // this.robot = new RobotAspiratorComponent(this);
-
     // Création de la maison
     AppComponent.initMaisonConfig();
     AppComponent.creerMaison();
 
     setTimeout(() => {
       this.robot = new RobotAspiratorComponent(this);
-      // // S'abonner aux mises à jour pour mettre à jour la vue
-      // this.subscription.add(
-      //   this.robot.robotAspiratorService.robotPosition$.subscribe(update => {
-      //     this.updateMaisonViewWithRobot(update.last, update.current);
-      //   })
-      // );
-
-      // remplace un élément du tableau par le robot et l'affiche
-      // this.updateMaisonViewWithRobot(this.robot.position, this.robot.lastPosition);
     }, 1000);
   }
 
@@ -182,7 +166,6 @@ export class AppComponent implements OnDestroy, OnInit {
   startRobot(): void {
     this.subscription.add(
       this.robot.onStartNettoyer().subscribe({
-      // this.updateSubscriptionOnStartNettoyer = this.robot.onStartNettoyer().subscribe({
         next: ([lastPosition, position]: Position[]) => {
           console.log('next startRobot...');
           console.log(lastPosition.x.toString());

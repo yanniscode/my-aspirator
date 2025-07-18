@@ -124,7 +124,7 @@ export class CheminOptimalService {
     return [];
   }
 
-    // Trouver la prochaine cellule accessible non visitée la plus proche
+  // Trouver la prochaine cellule accessible non visitée la plus proche
   public trouverProchaineDestination(position: Position): Cell | null {
     // Utiliser un algorithme de recherche en largeur (BFS) pour trouver la cellule non visitée la plus proche
     const queue: { cell: Cell; distance: number }[] = [];
