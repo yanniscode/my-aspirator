@@ -26,11 +26,9 @@ export class RobotAspiratorComponent implements OnDestroy {
   // Combien d'énergie est consommée par mouvement
   consommationParMouvement: number;
 
-  constructor(private appComponent: AppComponent) {
+  constructor() {
     this.subscription = new Subscription();
-    this.robotAspiratorService = new RobotAspiratorService(this.appComponent);
-
-    this.appComponent = appComponent;
+    this.robotAspiratorService = new RobotAspiratorService();
 
     this.position = { ...AppComponent.basePosition };
     this.lastPosition = { ...AppComponent.basePosition };
@@ -60,9 +58,9 @@ export class RobotAspiratorComponent implements OnDestroy {
     return new Observable<Position[]>((observer) => {
 
       this.subscription = new Subscription();
-      this.robotAspiratorService = new RobotAspiratorService(this.appComponent);
+      this.robotAspiratorService = new RobotAspiratorService();
 
-      this.robotAspiratorService = new RobotAspiratorService(this.appComponent);
+      this.robotAspiratorService = new RobotAspiratorService();
 
       this.subscription.add(
         this.robotAspiratorService.robotPosition$.subscribe(update => {
@@ -91,9 +89,9 @@ export class RobotAspiratorComponent implements OnDestroy {
           this.consommationParMouvement
         ).subscribe({
           next: (positionResult: PositionResult) => {
-
             console.log("onStartNettoyer next nettoyer...");
-            console.log(positionResult);
+            // console.log(positionResult);
+            // TODO: revoir null pointer ici:
             this.lastPosition = { x: positionResult?.positions[0].x, y: positionResult?.positions[0].y };
             this.position = { x: positionResult?.positions[1].x, y: positionResult?.positions[1].y };
 
@@ -138,7 +136,6 @@ export class RobotAspiratorComponent implements OnDestroy {
                 complete: () => {
                   AppComponent.log('complete retournerALaBase: ok !');
                   this.isRobotStarted = false;
-                  this.appComponent.startIntro();
                   observer.complete();
                 }
               })

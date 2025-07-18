@@ -35,12 +35,10 @@ export class RobotAspiratorService {
 
   cheminOptimalService: CheminOptimalService;
 
-  // todo: supprimer appel à appComponent ici
-  constructor(private appComponent: AppComponent) {
+  constructor() {
     this.robotPositionSubject = new Subject<PositionResult>();
     this.robotPosition$ = this.robotPositionSubject.asObservable();
 
-    this.appComponent = appComponent;
     this.cheminOptimalService = new CheminOptimalService();
   }
 
@@ -101,11 +99,11 @@ export class RobotAspiratorService {
 
     if (prochaineCellule) {
       const chemin = this.cheminOptimalService.trouverChemin(this.position, prochaineCellule.cellStack[0].position);
-      console.log(chemin);
+      // console.log(chemin);
       this.cheminRestant = chemin.map(pos => ({ ...pos }));
-      console.log(this.cheminRestant);
+      // console.log(this.cheminRestant);
 
-      console.log("Nouveau chemin calculé vers:", prochaineCellule.cellStack[0].position);
+      // console.log("Nouveau chemin calculé vers:", prochaineCellule.cellStack[0].position);
     } else {
       console.log("Aucune cellule accessible non visitée trouvée");
       this.isNettoyageComplete = true;
@@ -211,9 +209,9 @@ export class RobotAspiratorService {
 
       const intervalId = setInterval(() => {
         // maj de la position actuelle, qui devient l'ancienne
-        console.log(chemin);
-        console.log(this.lastPosition);
-        console.log(this.position);
+        // console.log(chemin);
+        // console.log(this.lastPosition);
+        // console.log(this.position);
         this.lastPosition = { ...this.position };
         // Vérifier si nous avons assez de batterie
         if (this.batterie <= this.cheminOptimalService.energieNecessairePourRetour(this.position, this.consommationParMouvement)) {

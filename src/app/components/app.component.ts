@@ -79,20 +79,19 @@ export class AppComponent implements OnDestroy, OnInit {
   constructor(messageService: MessageService) {
     this.subscription = new Subscription();
     AppComponent.messageService = messageService;
-    this.robotAspiratorService = new RobotAspiratorService(this);
+    this.robotAspiratorService = new RobotAspiratorService();
 
     // nécessaire instantiation du robot:
-    this.robot = new RobotAspiratorComponent(this);
+    this.robot = new RobotAspiratorComponent();
   }
 
   ngOnInit(): void {
-    // TODO: revoir
     // S'abonner aux mises à jour pour mettre à jour la vue
     this.subscription.add(
       this.robotAspiratorService.robotPosition$.subscribe(result => {
         const [lastPos, currentPos] = result.positions;
-        console.log('From:', lastPos);
-        console.log('To:', currentPos);
+        // console.log('From:', lastPos);
+        // console.log('To:', currentPos);
         this.updateMaisonViewWithRobot(lastPos, currentPos);
       })
     );
@@ -114,7 +113,7 @@ export class AppComponent implements OnDestroy, OnInit {
     AppComponent.creerMaison();
 
     setTimeout(() => {
-      this.robot = new RobotAspiratorComponent(this);
+      this.robot = new RobotAspiratorComponent();
     }, 1000);
   }
 
@@ -132,7 +131,7 @@ export class AppComponent implements OnDestroy, OnInit {
   }
 
   private static creerMaison(): void {
-    console.log("créer maison");
+    // console.log("créer maison");
     for (let y = 0; y < AppComponent.hauteurMaison; y++) {
       AppComponent.maison[y] = [];
       for (let x = 0; x < AppComponent.largeurMaison; x++) {
@@ -163,15 +162,16 @@ export class AppComponent implements OnDestroy, OnInit {
     this.robot.pauseRobot();
   }
 
+  // TODO: pb si plusieurs clics rapide sur start
   startRobot(): void {
     this.subscription.add(
       this.robot.onStartNettoyer().subscribe({
         next: ([lastPosition, position]: Position[]) => {
           console.log('next startRobot...');
-          console.log(lastPosition.x.toString());
-          console.log(lastPosition.y.toString());
-          console.log(position.x.toString());
-          console.log(position.y.toString());
+          // console.log(lastPosition.x.toString());
+          // console.log(lastPosition.y.toString());
+          // console.log(position.x.toString());
+          // console.log(position.y.toString());
           this.updateMaisonViewWithRobot(lastPosition, position);
         },
         error: (err: string) => {
@@ -179,6 +179,7 @@ export class AppComponent implements OnDestroy, OnInit {
         },
         complete: () => {
           AppComponent.log('complete onStartNettoyer: ok !');
+          this.startIntro();
         }
       })
     );
@@ -188,7 +189,6 @@ export class AppComponent implements OnDestroy, OnInit {
 
     this.updateRobotView(lastPosition, position);
 
-    // // TODO: bug vue (robot décallé de sa position)
     const delayed$ = timer(500);
     delayed$.subscribe(() => {
       // console.log("position.x = "+ position.x);
@@ -199,18 +199,16 @@ export class AppComponent implements OnDestroy, OnInit {
 
     // nécessaire pour la fluidité de l'animation
     this.moveTrigger++;
-    console.log(this.moveTrigger);
+    // console.log(this.moveTrigger);
   }
 
-  // TODO: a revoir: nécessaire retour de données ?
   private updateRobotView(lastPosition: Position, position: Position): void {
 
+    // TODO: instantiation à revoir car pas utilisée?
     // console.log(lastPosition);
     // console.log(position);
     // console.log(this.robot.position);
     // console.log(this.robot.position);
-
-    // TODO: instantiation à revoir car pas utilisée?
     this.robot.lastPosition = lastPosition;
     this.robot.position = position;
 
