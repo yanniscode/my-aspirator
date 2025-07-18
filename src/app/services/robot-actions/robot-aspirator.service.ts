@@ -46,17 +46,21 @@ export class RobotAspiratorService {
     if (this.updateSubscriptionSeDeplacerVers) {
       this.updateSubscriptionSeDeplacerVers.unsubscribe();
     }
-    // ajout:
-    this.robotPositionSubject.unsubscribe();
+
+    if (this.robotPositionSubject) {
+      this.robotPositionSubject.unsubscribe();
+    }
   }
 
   public onPause(): void {
+    this.isRobotStarted = false;
+
     if (this.updateSubscriptionSeDeplacerVers) {
       this.updateSubscriptionSeDeplacerVers.unsubscribe();
     }
-    this.robotPositionSubject.unsubscribe();
-
-    this.isRobotStarted = false;
+    if (this.robotPositionSubject) {
+      this.robotPositionSubject.unsubscribe();
+    }
   }
 
   // *************
@@ -69,8 +73,11 @@ export class RobotAspiratorService {
     consommationParMouvement: number,
     intervalMs: number = 500
   ): Observable<PositionResult> {
-    this.robotPositionSubject = new Subject<PositionResult>();
-    this.robotPosition$ = this.robotPositionSubject.asObservable();
+
+    if (this.robotPositionSubject.closed) {
+      this.robotPositionSubject = new Subject<PositionResult>();
+      this.robotPosition$ = this.robotPositionSubject.asObservable();
+    }
 
     this.position = { ...position };
     this.lastPosition = { ...lastPosition };

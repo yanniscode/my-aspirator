@@ -41,37 +41,47 @@ export class RobotAspiratorComponent implements OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.subscription.unsubscribe();
+    if (this.subscription) {
+      this.subscription.unsubscribe();
+    }
   }
 
   public pauseRobot(): void {
-    this.subscription.unsubscribe();
+    this.isRobotStarted = false;
+
+    if (this.subscription) {
+      this.subscription.unsubscribe();
+    }
 
     this.robotAspiratorService.onPause();
-
-    this.isRobotStarted = false;
   }
 
   // Fonction principale pour nettoyer la maison
   public onStartNettoyer(): Observable<Position[]> {
 
     return new Observable<Position[]>((observer) => {
+      console.log(this.subscription);
+      if (this.subscription.closed) {
+        console.log("onStartNettoyer new subscription !")
+        this.subscription = new Subscription();
 
-      this.subscription = new Subscription();
-      this.robotAspiratorService = new RobotAspiratorService();
+        this.robotAspiratorService = new RobotAspiratorService();
 
-      this.robotAspiratorService = new RobotAspiratorService();
+        this.subscription.add(
+          this.robotAspiratorService.robotPosition$.subscribe(update => {
+            // console.log('Robot moved:', update.current, 'from:', update.last);
+            // Mettre à jour l'affichage du robot si nécessaire
+          })
+        );
+      }
 
-      this.subscription.add(
-        this.robotAspiratorService.robotPosition$.subscribe(update => {
-          // console.log('Robot moved:', update.current, 'from:', update.last);
-          // Mettre à jour l'affichage du robot si nécessaire
-        })
-      );
+
+      this.isRobotStarted = true;
+
 
       // en cas de mise en pause
       // TODO: revoir pour la pause:
-      if (this.isRobotStarted) {
+      if (!this.isRobotStarted) {
         observer.complete();
         return;
       }

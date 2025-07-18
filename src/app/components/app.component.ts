@@ -104,7 +104,9 @@ export class AppComponent implements OnDestroy, OnInit {
     this.moveTrigger = 0;
 
     // Se désabonner pour éviter les fuites de mémoire
-    this.subscription.unsubscribe();
+    if (this.subscription) {
+      this.subscription.unsubscribe();
+    }
   }
 
   public startIntro(): void {
@@ -159,11 +161,27 @@ export class AppComponent implements OnDestroy, OnInit {
   }
 
   pauseRobot(): void {
+    if (this.subscription) {
+      this.subscription.unsubscribe();
+    }
     this.robot.pauseRobot();
   }
 
   // TODO: pb si plusieurs clics rapide sur start
   startRobot(): void {
+    if (this.subscription.closed) {
+      this.subscription = new Subscription();
+
+      this.subscription.add(
+        this.robotAspiratorService.robotPosition$.subscribe(result => {
+          const [lastPos, currentPos] = result.positions;
+          // console.log('From:', lastPos);
+          // console.log('To:', currentPos);
+          this.updateMaisonViewWithRobot(lastPos, currentPos);
+        })
+      );
+    }
+
     this.subscription.add(
       this.robot.onStartNettoyer().subscribe({
         next: ([lastPosition, position]: Position[]) => {
