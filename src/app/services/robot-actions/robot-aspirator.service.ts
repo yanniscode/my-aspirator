@@ -14,26 +14,28 @@ export class RobotAspiratorService {
   // 3. Subject pour émettre les mises à jour de position
   private robotPositionSubject: Subject<PositionResult>;
   public robotPosition$: Observable<PositionResult>;
+
   // TODO: supprimer après modif de retour à la base:
   private updateSubscriptionSeDeplacerVers?: Subscription;
 
-  isRobotStarted: boolean = false;
+  // TODO: supprimer var si non-utilisées
+  private isRobotStarted: boolean = false;
   // Position actuelle
-  position: Position = { x: 0, y: 0 };
-  lastPosition: Position = { x: 0, y: 0 };
+  private position: Position = { x: 0, y: 0 };
+  private lastPosition: Position = { x: 0, y: 0 };
   // Niveau de batterie (en pourcentage)
-  public batterie: number = 0;
+  private batterie: number = 0;
 
   private cheminRestant: Position[] = [];
   private isNettoyageComplete: boolean = false;
 
   // Combien d'énergie est consommée par mouvement
-  consommationParMouvement: number = 0;
+  private consommationParMouvement: number = 0;
   // Combien d'énergie est nécessaire pour retourner à la base
   // TODO: utiliser ??
   // private energieRetourBase: number;
 
-  cheminOptimalService: CheminOptimalService;
+  private cheminOptimalService: CheminOptimalService;
 
   constructor() {
     this.robotPositionSubject = new Subject<PositionResult>();

@@ -18,13 +18,13 @@ export class RobotAspiratorComponent implements OnDestroy {
   private robotAspiratorService: RobotAspiratorService;
 
   // Position actuelle
-  position: Position;
-  lastPosition: Position;
-  isRobotStarted: boolean;
+  private position: Position;
+  private lastPosition: Position;
+  private isRobotStarted: boolean;
   // Niveau de batterie (en pourcentage)
-  public batterie: number;
+  private batterie: number;
   // Combien d'énergie est consommée par mouvement
-  consommationParMouvement: number;
+  private consommationParMouvement: number;
 
   constructor() {
     this.subscription = new Subscription();

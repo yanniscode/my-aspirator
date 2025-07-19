@@ -38,7 +38,8 @@ import { RobotAspiratorService } from '../services/robot-actions/robot-aspirator
   ]
 })
 export class AppComponent implements OnDestroy, OnInit {
-  title = 'my-aspirator-robot';
+  // TODO: garder ?
+  private title = 'my-aspirator-robot';
 
   // test du déplacement au clic
   // toggleAnimation() {
@@ -56,7 +57,7 @@ export class AppComponent implements OnDestroy, OnInit {
   // nécessaire pour l'animation (écoute d'observable avec rxjs)
   private subscription: Subscription;
 
-  robotAspiratorService: RobotAspiratorService;
+  private robotAspiratorService: RobotAspiratorService;
 
   static messageService: MessageService;
   static maison: Cell[][] = [[]];
@@ -66,26 +67,26 @@ export class AppComponent implements OnDestroy, OnInit {
   get MaisonView() {
     return AppComponent.maison;
   }
+  // Position de la base de charge
   static basePosition: Position = { x: 0, y: 0 };
 
-  robot: RobotAspiratorComponent;
+  // le robot peut être initialisé ou non
+  private robot?: RobotAspiratorComponent;
+
+  // Variables pour la mise  à jour de la Vue:
   // Position
-  aspiroX: number = 0;
+  public aspiroX: number = 0;
   // ajout d'un décalage du robot au départ  Y += 32px:
-  aspiroY: number = 0 + 32;
+  public aspiroY: number = 0 + 32;
   // pour mettre à jour l'animation du déplacement du robot
-  moveTrigger: number = 0;
+  public moveTrigger: number = 0;
 
   constructor(messageService: MessageService) {
-    this.subscription = new Subscription();
     AppComponent.messageService = messageService;
+
+    this.subscription = new Subscription();
     this.robotAspiratorService = new RobotAspiratorService();
 
-    // nécessaire instantiation du robot:
-    this.robot = new RobotAspiratorComponent();
-  }
-
-  ngOnInit(): void {
     // S'abonner aux mises à jour pour mettre à jour la vue
     this.subscription.add(
       this.robotAspiratorService.robotPosition$.subscribe(result => {
@@ -95,7 +96,9 @@ export class AppComponent implements OnDestroy, OnInit {
         this.updateMaisonViewWithRobot(lastPos, currentPos);
       })
     );
+  }
 
+  ngOnInit(): void {
     this.startIntro();
   }
 
@@ -115,6 +118,7 @@ export class AppComponent implements OnDestroy, OnInit {
     AppComponent.creerMaison();
 
     setTimeout(() => {
+      // instanciation du robot
       this.robot = new RobotAspiratorComponent();
     }, 1000);
   }
@@ -164,13 +168,16 @@ export class AppComponent implements OnDestroy, OnInit {
     if (this.subscription) {
       this.subscription.unsubscribe();
     }
-    this.robot.pauseRobot();
+    this.robot?.pauseRobot();
   }
 
   // TODO: pb si plusieurs clics rapide sur start
   startRobot(): void {
+
     if (this.subscription.closed) {
       this.subscription = new Subscription();
+
+      this.robotAspiratorService = new RobotAspiratorService();
 
       this.subscription.add(
         this.robotAspiratorService.robotPosition$.subscribe(result => {
@@ -183,7 +190,7 @@ export class AppComponent implements OnDestroy, OnInit {
     }
 
     this.subscription.add(
-      this.robot.onStartNettoyer().subscribe({
+      this.robot?.onStartNettoyer().subscribe({
         next: ([lastPosition, position]: Position[]) => {
           console.log('next startRobot...');
           // console.log(lastPosition.x.toString());
@@ -210,7 +217,6 @@ export class AppComponent implements OnDestroy, OnInit {
     const delayed$ = timer(500);
     delayed$.subscribe(() => {
       // console.log("position.x = "+ position.x);
-      // console.log("position.y = "+ position.y);
       AppComponent.maison[position.y][position.x].cellStack[0].visited = true;
       AppComponent.maison[position.y][position.x].cellStack[0].type = '_';
     });
@@ -227,8 +233,6 @@ export class AppComponent implements OnDestroy, OnInit {
     // console.log(position);
     // console.log(this.robot.position);
     // console.log(this.robot.position);
-    this.robot.lastPosition = lastPosition;
-    this.robot.position = position;
 
     const aspiroDirX = (position.x - lastPosition.x) === 1 ? 50 :
       (position.x - lastPosition.x) === -1 ? -50 : 0;
