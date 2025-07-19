@@ -93,6 +93,7 @@ export class RobotAspiratorComponent implements OnDestroy {
 
       this.subscription!.add(
         this.robotAspiratorService.nettoyerAvecControle(
+          false,  // isRetourAlaBase = false
           this.position,
           this.lastPosition,
           this.batterie,
@@ -102,17 +103,17 @@ export class RobotAspiratorComponent implements OnDestroy {
           next: (robotServiceData: RobotServiceData) => {
             console.log("onStartNettoyer next nettoyer...");
             // console.log(robotServiceData);
+
             if (robotServiceData!.isNettoyageComplete === true) {
               AppComponent.log('Nettoyage terminé !');
               
               return;
             } else {
-              // TODO: récupérer le niveau de batterie ici
               this.batterie = robotServiceData!.batterie;
               this.lastPosition = { x: robotServiceData!.positions[0].x, y: robotServiceData!.positions[0].y };
               this.position = { x: robotServiceData!.positions[1].x, y: robotServiceData!.positions[1].y };
 
-              AppComponent.log("this.batterie = " + this.batterie);
+              AppComponent.log("this.batterie = " + this.batterie.toString());
               AppComponent.log("this.lastPosition.x = " + this.lastPosition.x.toString());
               AppComponent.log("this.lastPosition.y  =" + this.lastPosition.y.toString());
               AppComponent.log("this.position.x = " + this.position.x.toString());
@@ -131,15 +132,27 @@ export class RobotAspiratorComponent implements OnDestroy {
 
             // puis on souscrit à retournerALaBase
             this.subscription!.add(
-              this.robotAspiratorService.retournerALaBase(
+              this.robotAspiratorService.nettoyerAvecControle(
+                true, // isRetourAlaBase = true
                 this.position,
                 this.lastPosition,
                 this.batterie,
                 this.isRobotStarted,
                 this.consommationParMouvement
               ).subscribe({
-                next: () => {
+                next: (robotServiceData: RobotServiceData) => {
                   AppComponent.log('next retournerALaBase...');
+
+                  if (robotServiceData.positions.length === 0) {
+                    AppComponent.log('Chemin de retour vide');
+                    return;
+                  }
+
+                  this.batterie = robotServiceData!.batterie;
+                  this.lastPosition = { x: robotServiceData!.positions[0].x, y: robotServiceData!.positions[0].y };
+                  this.position = { x: robotServiceData!.positions[1].x, y: robotServiceData!.positions[1].y };
+                  
+                  AppComponent.log("this.batterie = " + this.batterie.toString());
                   AppComponent.log(this.lastPosition.x.toString());
                   AppComponent.log(this.lastPosition.y.toString());
                   AppComponent.log(this.position.x.toString());

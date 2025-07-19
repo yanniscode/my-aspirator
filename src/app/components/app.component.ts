@@ -198,8 +198,11 @@ export class AppComponent implements OnDestroy, OnInit {
     const delayed$ = timer(500);
     delayed$.subscribe(() => {
       // console.log("position.x = "+ position.x);
-      AppComponent.maison[position.y][position.x].cellStack[0].visited = true;
-      AppComponent.maison[position.y][position.x].cellStack[0].type = '_';
+      // on ne veut pas que la case de la base soit modifiée:
+      if (AppComponent.maison[position.y][position.x].cellStack[0].type !== 'B') {
+        AppComponent.maison[position.y][position.x].cellStack[0].visited = true;
+        AppComponent.maison[position.y][position.x].cellStack[0].type = '_';
+      }
     });
 
     // nécessaire pour la fluidité de l'animation

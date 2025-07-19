@@ -69,6 +69,7 @@ export class RobotAspiratorService {
 
   // TODO: à simplifier ?
   public nettoyerAvecControle(
+    isRetourAlaBase: boolean,
     position: Position,
     lastPosition: Position,
     batterie: number,
@@ -91,7 +92,7 @@ export class RobotAspiratorService {
     this.isNettoyageComplete = false;
 
     // Calculer le chemin initial
-    this.calculateNextPath();
+    this.calculateNextPath(isRetourAlaBase);
 
     // Utiliser un timer régulier pour l'animation
     return timer(0, intervalMs).pipe(
@@ -106,12 +107,18 @@ export class RobotAspiratorService {
     );
   }
 
-  private calculateNextPath(): void {
+  private calculateNextPath(isRetourAlaBase: boolean): void {
     const prochaineCellule = this.cheminOptimalService.trouverProchaineDestination(this.position);
+    // console.log(prochaineCellule);
 
-    if (prochaineCellule) {
-      const chemin = this.cheminOptimalService.trouverChemin(this.position, prochaineCellule.cellStack[0].position);
+    // isRetourAlaBase n'est vrai ici que si prochaineCellule est null ou undefined 
+    if (prochaineCellule || isRetourAlaBase) {
+
+      let finChemin: Position = !isRetourAlaBase ? { ...prochaineCellule!.cellStack[0]!.position } : { ...AppComponent.basePosition };
+
+      const chemin = this.cheminOptimalService.trouverChemin(this.position, finChemin);
       // console.log(chemin);
+
       this.cheminRestant = chemin.map(pos => ({ ...pos }));
       // console.log(this.cheminRestant);
 
@@ -144,8 +151,9 @@ export class RobotAspiratorService {
     }
 
     // Si le chemin actuel est terminé, chercher la prochaine destination
+    // Cette action est valable seulement si isRetourAlaBase = false; 
     if (this.cheminRestant.length === 0) {
-      this.calculateNextPath();
+      this.calculateNextPath(false);
 
       // Après calcul du nouveau chemin, actualisant this.cheminRestant, si aucune nouvelle destination n'est trouvée
       if (this.cheminRestant.length === 0) {
@@ -170,88 +178,4 @@ export class RobotAspiratorService {
 
     return robotServiceData;
   }
-
-  // TODO: modifier toute la méthode comme nettoyerAvecControle
-  // TODO: Depréciée  -À SUPPRIMER
-  // Retourner à la base de charge
-  public retournerALaBase(
-    position: Position,
-    lastPosition: Position,
-    batterie: number,
-    isRobotStarted: boolean,
-    consommationParMouvement: number
-  ): Observable<void> {
-    return new Observable((observer) => {
-      AppComponent.log("Retour à la base de charge");
-
-      this.position = position;
-      this.lastPosition = lastPosition;
-      this.batterie = batterie;
-      this.isRobotStarted = isRobotStarted;
-      this.consommationParMouvement = consommationParMouvement; // Valeur arbitraire
-      // this.energieRetourBase = 0; // Sera calculée dynamiquement
-
-      // Trouver le chemin vers la base
-      const chemin: Position[] = this.cheminOptimalService.trouverChemin(this.position, AppComponent.basePosition);
-      if (chemin.length === 0) {
-        AppComponent.log("Impossible de trouver un chemin vers la base de charge!");
-      }
-
-      // Suivre le chemin
-      this.updateSubscriptionSeDeplacerVers = this.seDeplacerVers(chemin).subscribe({
-        next: (pos) => {
-          AppComponent.log('next suivreLeCheminVersLaBase...');
-
-          // Mettre à jour la position
-          this.position = { ...pos };
-          // Réduire la batterie
-          this.batterie -= this.consommationParMouvement;
-
-          AppComponent.log(`Déplacement vers (${this.position.x}, ${this.position.y}). Batterie: ${this.batterie.toFixed(1)}%`);
-        },
-        error: (err) => {
-          AppComponent.log('Erreur suivreLeCheminVersLaBase: ' + err);
-        },
-        complete: () => {
-          AppComponent.log('complete suivreLeCheminVersLaBase');
-          observer.complete();
-          AppComponent.log("Arrivé à la base de charge avec une batterie de " + this.batterie.toFixed(1) + "%");
-        }
-      });
-    });
-  }
-
-  // TODO: Depréciée  -À SUPPRIMER
-  // Se déplacer vers une cellule spécifique
-  private seDeplacerVers(chemin: Position[]): Observable<Position> {
-    return new Observable((observer) => {
-      let index = 0;
-
-      const intervalId = setInterval(() => {
-        // maj de la position actuelle, qui devient l'ancienne
-        // console.log(chemin);
-        // console.log(this.lastPosition);
-        // console.log(this.position);
-        this.lastPosition = { ...this.position };
-        // Vérifier si nous avons assez de batterie
-        if (this.batterie <= this.cheminOptimalService.energieNecessairePourRetour(this.position, this.consommationParMouvement)) {
-          AppComponent.log("Batterie faible, interruption du déplacement");
-          observer.complete();
-        }
-        // Suivre le chemin
-        else if (index < chemin.length) {
-          observer.next(chemin[index]);
-          index++;
-        } else {
-          observer.complete(); // Termine l'observable après avoir émis tous les nombres
-        }
-      }, 500);
-
-      // Gestion de l'annulation de l'intervalle si l'observable est désabonnée
-      return () => {
-        clearInterval(intervalId);
-      };
-    });
-  }
-
 }
