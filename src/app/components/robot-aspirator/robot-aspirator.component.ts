@@ -14,7 +14,7 @@ import { PositionResult } from '../../classes/positionResult';
 export class RobotAspiratorComponent implements OnDestroy {
 
   // nécessaire pour l'animation (écoute d'observable avec rxjs)
-  private subscription: Subscription;
+  private subscription?: Subscription;
   private robotAspiratorService: RobotAspiratorService;
 
   // Position actuelle
@@ -27,7 +27,7 @@ export class RobotAspiratorComponent implements OnDestroy {
   private consommationParMouvement: number;
 
   constructor() {
-    this.subscription = new Subscription();
+    // this.subscription = new Subscription();
     this.robotAspiratorService = new RobotAspiratorService();
 
     this.position = { ...AppComponent.basePosition };
@@ -60,14 +60,13 @@ export class RobotAspiratorComponent implements OnDestroy {
   public onStartNettoyer(): Observable<Position[]> {
 
     return new Observable<Position[]>((observer) => {
-      console.log(this.subscription);
-      if (this.subscription.closed) {
+      if (!this.subscription || this.subscription.closed) {
         console.log("onStartNettoyer new subscription !")
         this.subscription = new Subscription();
 
         this.robotAspiratorService = new RobotAspiratorService();
 
-        this.subscription.add(
+        this.subscription!.add(
           this.robotAspiratorService.robotPosition$.subscribe(update => {
             // console.log('Robot moved:', update.current, 'from:', update.last);
             // Mettre à jour l'affichage du robot si nécessaire
@@ -90,7 +89,7 @@ export class RobotAspiratorComponent implements OnDestroy {
       AppComponent.log("Début du nettoyage");
       this.isRobotStarted = true;
       // algo principal de nettoyage de la maison
-      this.subscription.add(
+      this.subscription!.add(
         this.robotAspiratorService.nettoyerAvecControle(
           this.position,
           this.lastPosition,
@@ -124,7 +123,7 @@ export class RobotAspiratorComponent implements OnDestroy {
             AppComponent.log(`Batterie: ${this.batterie}%. Retour à la base.`);
 
             // puis on souscrit à retournerALaBase
-            this.subscription.add(
+            this.subscription!.add(
               this.robotAspiratorService.retournerALaBase(
                 this.position,
                 this.lastPosition,

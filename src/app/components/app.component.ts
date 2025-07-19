@@ -12,7 +12,6 @@ import { Cell } from '../classes/cell';
 import { CellElement } from '../classes/cellElement';
 import { MessagesComponent } from "../messages/messages.component";
 import { RobotAspiratorComponent } from './robot-aspirator/robot-aspirator.component';
-import { RobotAspiratorService } from '../services/robot-actions/robot-aspirator.service';
 
 @Component({
   selector: 'app-root',
@@ -55,9 +54,7 @@ export class AppComponent implements OnDestroy, OnInit {
   // }
 
   // nécessaire pour l'animation (écoute d'observable avec rxjs)
-  private subscription: Subscription;
-
-  private robotAspiratorService: RobotAspiratorService;
+  private subscription?: Subscription;
 
   static messageService: MessageService;
   static maison: Cell[][] = [[]];
@@ -83,19 +80,6 @@ export class AppComponent implements OnDestroy, OnInit {
 
   constructor(messageService: MessageService) {
     AppComponent.messageService = messageService;
-
-    this.subscription = new Subscription();
-    this.robotAspiratorService = new RobotAspiratorService();
-
-    // S'abonner aux mises à jour pour mettre à jour la vue
-    this.subscription.add(
-      this.robotAspiratorService.robotPosition$.subscribe(result => {
-        const [lastPos, currentPos] = result.positions;
-        // console.log('From:', lastPos);
-        // console.log('To:', currentPos);
-        this.updateMaisonViewWithRobot(lastPos, currentPos);
-      })
-    );
   }
 
   ngOnInit(): void {
@@ -173,41 +157,36 @@ export class AppComponent implements OnDestroy, OnInit {
 
   // TODO: pb si plusieurs clics rapide sur start
   startRobot(): void {
+    // A l'intro, pas de souscription, donc on l'initialise ici
+    // si on clique plusieurs fois sur start, la souscription existe, et est ouverte, donc on ne resouscrit pas
+    // si on restart après mise en pause, la souscription existe à l'état closed, on la réinitialise ici
+    if (!this.subscription || this.subscription.closed) {
 
-    if (this.subscription.closed) {
       this.subscription = new Subscription();
 
-      this.robotAspiratorService = new RobotAspiratorService();
-
-      this.subscription.add(
-        this.robotAspiratorService.robotPosition$.subscribe(result => {
-          const [lastPos, currentPos] = result.positions;
-          // console.log('From:', lastPos);
-          // console.log('To:', currentPos);
-          this.updateMaisonViewWithRobot(lastPos, currentPos);
+      this.subscription!.add(
+        this.robot?.onStartNettoyer().subscribe({
+          next: ([lastPosition, position]: Position[]) => {
+            console.log('next startRobot...');
+            // console.log(lastPosition.x.toString());
+            // console.log(lastPosition.y.toString());
+            // console.log(position.x.toString());
+            // console.log(position.y.toString());
+            this.updateMaisonViewWithRobot(lastPosition, position);
+          },
+          error: (err: string) => {
+            AppComponent.log('Erreur onStartNettoyer: ' + err);
+          },
+          complete: () => {
+            AppComponent.log('complete onStartNettoyer: ok !');
+            this.startIntro();
+            this.subscription!.unsubscribe();
+          }
         })
       );
+
     }
 
-    this.subscription.add(
-      this.robot?.onStartNettoyer().subscribe({
-        next: ([lastPosition, position]: Position[]) => {
-          console.log('next startRobot...');
-          // console.log(lastPosition.x.toString());
-          // console.log(lastPosition.y.toString());
-          // console.log(position.x.toString());
-          // console.log(position.y.toString());
-          this.updateMaisonViewWithRobot(lastPosition, position);
-        },
-        error: (err: string) => {
-          AppComponent.log('Erreur onStartNettoyer: ' + err);
-        },
-        complete: () => {
-          AppComponent.log('complete onStartNettoyer: ok !');
-          this.startIntro();
-        }
-      })
-    );
   }
 
   public updateMaisonViewWithRobot(lastPosition: Position, position: Position): void {
