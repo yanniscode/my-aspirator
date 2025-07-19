@@ -79,7 +79,6 @@ export class RobotAspiratorComponent implements OnDestroy {
 
 
       // en cas de mise en pause
-      // TODO: revoir pour la pause:
       if (!this.isRobotStarted) {
         observer.complete();
         return;

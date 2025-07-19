@@ -155,7 +155,6 @@ export class AppComponent implements OnDestroy, OnInit {
     this.robot?.pauseRobot();
   }
 
-  // TODO: pb si plusieurs clics rapide sur start
   startRobot(): void {
     // A l'intro, pas de souscription, donc on l'initialise ici
     // si on clique plusieurs fois sur start, la souscription existe, et est ouverte, donc on ne resouscrit pas
@@ -207,7 +206,6 @@ export class AppComponent implements OnDestroy, OnInit {
 
   private updateRobotView(lastPosition: Position, position: Position): void {
 
-    // TODO: instantiation à revoir car pas utilisée?
     // console.log(lastPosition);
     // console.log(position);
     // console.log(this.robot.position);

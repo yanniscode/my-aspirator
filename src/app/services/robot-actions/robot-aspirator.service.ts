@@ -32,7 +32,7 @@ export class RobotAspiratorService {
   // Combien d'énergie est consommée par mouvement
   private consommationParMouvement: number = 0;
   // Combien d'énergie est nécessaire pour retourner à la base
-  // TODO: utiliser ??
+  // TODO fonctionnel: utiliser ??
   // private energieRetourBase: number;
 
   private cheminOptimalService: CheminOptimalService;
