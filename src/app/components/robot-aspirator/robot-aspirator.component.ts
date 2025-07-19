@@ -1,6 +1,6 @@
 import { Component, OnDestroy } from '@angular/core';
 import { AppComponent } from '../app.component';
-import { Observable, Subscription } from 'rxjs';
+import { Observable, Subscriber, Subscription } from 'rxjs';
 import { Position } from '../../classes/position';
 import { RobotAspiratorService } from '../../services/robot-actions/robot-aspirator.service';
 import { RobotServiceData } from '../../classes/RobotServiceData';
@@ -75,9 +75,7 @@ export class RobotAspiratorComponent implements OnDestroy {
         );
       }
 
-
       this.isRobotStarted = true;
-
 
       // en cas de mise en pause
       if (!this.isRobotStarted) {
@@ -85,94 +83,104 @@ export class RobotAspiratorComponent implements OnDestroy {
         return;
       }
 
-      // si l'on préfère afficher le robot seulement après clic sur start:
-      AppComponent.log("Début du nettoyage");
+      // Méthode principale de nettoyage de la maison
       this.isRobotStarted = true;
-      // algo principal de nettoyage de la maison
-      AppComponent.log(`Batterie: ${this.batterie}%. Retour à la base.`);
-
-      this.subscription!.add(
-        this.robotAspiratorService.nettoyerAvecControle(
-          false,  // isRetourAlaBase = false
-          this.position,
-          this.lastPosition,
-          this.batterie,
-          this.isRobotStarted,
-          this.consommationParMouvement
-        ).subscribe({
-          next: (robotServiceData: RobotServiceData) => {
-            console.log("onStartNettoyer next nettoyer...");
-            // console.log(robotServiceData);
-
-            if (robotServiceData!.isNettoyageComplete === true) {
-              AppComponent.log('Nettoyage terminé !');
-              
-              return;
-            } else {
-              this.batterie = robotServiceData!.batterie;
-              this.lastPosition = { x: robotServiceData!.positions[0].x, y: robotServiceData!.positions[0].y };
-              this.position = { x: robotServiceData!.positions[1].x, y: robotServiceData!.positions[1].y };
-
-              AppComponent.log("this.batterie = " + this.batterie.toString());
-              AppComponent.log("this.lastPosition.x = " + this.lastPosition.x.toString());
-              AppComponent.log("this.lastPosition.y  =" + this.lastPosition.y.toString());
-              AppComponent.log("this.position.x = " + this.position.x.toString());
-              AppComponent.log("this.position.y = " + this.position.y.toString());
-              
-              observer.next([this.lastPosition, this.position]);
-            }
-          },
-          error: (err: string) => {
-            AppComponent.log('Erreur nettoyer: ' + err);
-          },
-          complete: () => {
-            AppComponent.log('complete nettoyer: Nettoyage ok !');
-            // Retourner à la base de charge
-            AppComponent.log(`Batterie: ${this.batterie}%. Retour à la base.`);
-
-            // puis on souscrit à retournerALaBase
-            this.subscription!.add(
-              this.robotAspiratorService.nettoyerAvecControle(
-                true, // isRetourAlaBase = true
-                this.position,
-                this.lastPosition,
-                this.batterie,
-                this.isRobotStarted,
-                this.consommationParMouvement
-              ).subscribe({
-                next: (robotServiceData: RobotServiceData) => {
-                  AppComponent.log('next retournerALaBase...');
-
-                  if (robotServiceData.positions.length === 0) {
-                    AppComponent.log('Chemin de retour vide');
-                    return;
-                  }
-
-                  this.batterie = robotServiceData!.batterie;
-                  this.lastPosition = { x: robotServiceData!.positions[0].x, y: robotServiceData!.positions[0].y };
-                  this.position = { x: robotServiceData!.positions[1].x, y: robotServiceData!.positions[1].y };
-                  
-                  AppComponent.log("this.batterie = " + this.batterie.toString());
-                  AppComponent.log(this.lastPosition.x.toString());
-                  AppComponent.log(this.lastPosition.y.toString());
-                  AppComponent.log(this.position.x.toString());
-                  AppComponent.log(this.position.y.toString());
-                  observer.next([this.lastPosition, this.position]);
-                },
-                error: (err: string) => {
-                  AppComponent.log('Erreur retournerALaBase: ' + err);
-                },
-                complete: () => {
-                  AppComponent.log('complete retournerALaBase: ok !');
-                  this.isRobotStarted = false;
-                  observer.complete();
-                }
-              })
-            );
-          }
-        })
-      );
+      this.nettoyerAvecControleSouscription(observer);
     });
+  }
+
+  private nettoyerAvecControleSouscription(observer: Subscriber<Position[]>): void {
+    AppComponent.log("Début du nettoyage");
+    AppComponent.log(`Batterie: ${this.batterie}%.`);
+
+    this.subscription!.add(
+      this.robotAspiratorService.nettoyerAvecControle(
+        false,  // isRetourAlaBase = false
+        this.position,
+        this.lastPosition,
+        this.batterie,
+        this.isRobotStarted,
+        this.consommationParMouvement
+      ).subscribe({
+        next: (robotServiceData: RobotServiceData) => {
+          console.log("onStartNettoyer next nettoyer...");
+          // console.log(robotServiceData);
+
+          if (robotServiceData!.isNettoyageComplete === true) {
+            AppComponent.log('Nettoyage terminé !');
+            
+            return;
+          } else {
+            this.batterie = robotServiceData!.batterie;
+            this.lastPosition = { x: robotServiceData!.positions[0].x, y: robotServiceData!.positions[0].y };
+            this.position = { x: robotServiceData!.positions[1].x, y: robotServiceData!.positions[1].y };
+
+            AppComponent.log("this.batterie = " + this.batterie.toString());
+            AppComponent.log("this.lastPosition.x = " + this.lastPosition.x.toString());
+            AppComponent.log("this.lastPosition.y  =" + this.lastPosition.y.toString());
+            AppComponent.log("this.position.x = " + this.position.x.toString());
+            AppComponent.log("this.position.y = " + this.position.y.toString());
+            
+            observer.next([this.lastPosition, this.position]);
+          }
+        },
+        error: (err: string) => {
+          AppComponent.log('Erreur nettoyer: ' + err);
+        },
+        complete: () => {
+          AppComponent.log('complete nettoyer: Nettoyage ok !');
+          // Retourner à la base de charge
+          AppComponent.log(`Batterie: ${this.batterie}%. Retour à la base.`);
+
+          // puis on souscrit à retournerALaBase
+          this.retournerALaBaseSouscription(observer);
+        }
+      })
+    );
+  }
+
+  private retournerALaBaseSouscription(observer: Subscriber<Position[]>): void {
+    AppComponent.log("Fin du nettoyage. Retour à la base");
+    AppComponent.log(`Batterie: ${this.batterie}%. Retour à la base.`);
+
+    this.subscription!.add(
+      this.robotAspiratorService.nettoyerAvecControle(
+        true, // isRetourAlaBase = true
+        this.position,
+        this.lastPosition,
+        this.batterie,
+        this.isRobotStarted,
+        this.consommationParMouvement
+      ).subscribe({
+        next: (robotServiceData: RobotServiceData) => {
+          AppComponent.log('next retournerALaBase...');
+
+          if (robotServiceData.positions.length === 0) {
+            AppComponent.log('Chemin de retour vide');
+            return;
+          }
+
+          this.batterie = robotServiceData!.batterie;
+          this.lastPosition = { x: robotServiceData!.positions[0].x, y: robotServiceData!.positions[0].y };
+          this.position = { x: robotServiceData!.positions[1].x, y: robotServiceData!.positions[1].y };
+          
+          AppComponent.log("this.batterie = " + this.batterie.toString());
+          AppComponent.log(this.lastPosition.x.toString());
+          AppComponent.log(this.lastPosition.y.toString());
+          AppComponent.log(this.position.x.toString());
+          AppComponent.log(this.position.y.toString());
+          observer.next([this.lastPosition, this.position]);
+        },
+        error: (err: string) => {
+          AppComponent.log('Erreur retournerALaBase: ' + err);
+        },
+        complete: () => {
+          AppComponent.log('complete retournerALaBase: ok !');
+          this.isRobotStarted = false;
+          observer.complete();
+        }
+      })
+    );
   }
 
 }
