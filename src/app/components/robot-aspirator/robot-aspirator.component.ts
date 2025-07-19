@@ -3,7 +3,7 @@ import { AppComponent } from '../app.component';
 import { Observable, Subscription } from 'rxjs';
 import { Position } from '../../classes/position';
 import { RobotAspiratorService } from '../../services/robot-actions/robot-aspirator.service';
-import { PositionResult } from '../../classes/positionResult';
+import { RobotServiceData } from '../../classes/RobotServiceData';
 
 @Component({
   selector: 'app-robot-aspirator',
@@ -30,6 +30,7 @@ export class RobotAspiratorComponent implements OnDestroy {
     // this.subscription = new Subscription();
     this.robotAspiratorService = new RobotAspiratorService();
 
+    // TODO: basePosition à modifier en non static, si plusieurs robots présents 
     this.position = { ...AppComponent.basePosition };
     this.lastPosition = { ...AppComponent.basePosition };
     this.batterie = 100;
@@ -88,6 +89,8 @@ export class RobotAspiratorComponent implements OnDestroy {
       AppComponent.log("Début du nettoyage");
       this.isRobotStarted = true;
       // algo principal de nettoyage de la maison
+      AppComponent.log(`Batterie: ${this.batterie}%. Retour à la base.`);
+
       this.subscription!.add(
         this.robotAspiratorService.nettoyerAvecControle(
           this.position,
@@ -96,17 +99,20 @@ export class RobotAspiratorComponent implements OnDestroy {
           this.isRobotStarted,
           this.consommationParMouvement
         ).subscribe({
-          next: (positionResult: PositionResult) => {
+          next: (robotServiceData: RobotServiceData) => {
             console.log("onStartNettoyer next nettoyer...");
-            // console.log(positionResult);
-            if (positionResult!.isNettoyageComplete === true) {
+            // console.log(robotServiceData);
+            if (robotServiceData!.isNettoyageComplete === true) {
               AppComponent.log('Nettoyage terminé !');
               
               return;
             } else {
-              this.lastPosition = { x: positionResult!.positions[0].x, y: positionResult!.positions[0].y };
-              this.position = { x: positionResult!.positions[1].x, y: positionResult!.positions[1].y };
+              // TODO: récupérer le niveau de batterie ici
+              this.batterie = robotServiceData!.batterie;
+              this.lastPosition = { x: robotServiceData!.positions[0].x, y: robotServiceData!.positions[0].y };
+              this.position = { x: robotServiceData!.positions[1].x, y: robotServiceData!.positions[1].y };
 
+              AppComponent.log("this.batterie = " + this.batterie);
               AppComponent.log("this.lastPosition.x = " + this.lastPosition.x.toString());
               AppComponent.log("this.lastPosition.y  =" + this.lastPosition.y.toString());
               AppComponent.log("this.position.x = " + this.position.x.toString());

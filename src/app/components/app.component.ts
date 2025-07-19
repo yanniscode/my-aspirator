@@ -103,7 +103,10 @@ export class AppComponent implements OnDestroy, OnInit {
 
     setTimeout(() => {
       // instanciation du robot
-      this.robot = new RobotAspiratorComponent();
+      console.log(this.robot);
+      if (!this.robot) {
+        this.robot = new RobotAspiratorComponent();
+      }
     }, 1000);
   }
 

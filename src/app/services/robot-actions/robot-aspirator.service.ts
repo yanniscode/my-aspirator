@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Position } from '../../classes/position';
-import { PositionResult } from '../../classes/positionResult';
+import { RobotServiceData } from '../../classes/RobotServiceData';
 
 import { AppComponent } from '../../components/app.component';
 import { map, Observable, Subject, Subscription, takeWhile, tap, timer } from 'rxjs';
@@ -12,8 +12,8 @@ import { CheminOptimalService } from '../algo-services/chemin-optimal.service';
 export class RobotAspiratorService {
 
   // 3. Subject pour émettre les mises à jour de position
-  private robotPositionSubject: Subject<PositionResult>;
-  public robotPosition$: Observable<PositionResult>;
+  private robotPositionSubject: Subject<RobotServiceData>;
+  public robotPosition$: Observable<RobotServiceData>;
 
   // TODO: supprimer après modif de retour à la base:
   private updateSubscriptionSeDeplacerVers?: Subscription;
@@ -38,7 +38,7 @@ export class RobotAspiratorService {
   private cheminOptimalService: CheminOptimalService;
 
   constructor() {
-    this.robotPositionSubject = new Subject<PositionResult>();
+    this.robotPositionSubject = new Subject<RobotServiceData>();
     this.robotPosition$ = this.robotPositionSubject.asObservable();
 
     this.cheminOptimalService = new CheminOptimalService();
@@ -67,6 +67,7 @@ export class RobotAspiratorService {
 
   // *************
 
+  // TODO: à simplifier ?
   public nettoyerAvecControle(
     position: Position,
     lastPosition: Position,
@@ -74,16 +75,18 @@ export class RobotAspiratorService {
     isRobotStarted: boolean,
     consommationParMouvement: number,
     intervalMs: number = 500
-  ): Observable<PositionResult> {
+  ): Observable<RobotServiceData> {
 
     if (this.robotPositionSubject.closed) {
-      this.robotPositionSubject = new Subject<PositionResult>();
+      this.robotPositionSubject = new Subject<RobotServiceData>();
       this.robotPosition$ = this.robotPositionSubject.asObservable();
     }
 
     this.position = { ...position };
     this.lastPosition = { ...lastPosition };
     this.batterie = batterie;
+    this.isRobotStarted = isRobotStarted;
+    this.consommationParMouvement = consommationParMouvement;
     this.cheminRestant = [];
     this.isNettoyageComplete = false;
 
@@ -92,7 +95,7 @@ export class RobotAspiratorService {
 
     // Utiliser un timer régulier pour l'animation
     return timer(0, intervalMs).pipe(
-      map(() => this.processNextMove(isRobotStarted, consommationParMouvement)),
+      map(() => this.processNextMove()),
       takeWhile(result => !result.isNettoyageComplete && this.batterie > 0, true),
       tap(result => {
         // Émettre la mise à jour de position
@@ -121,31 +124,34 @@ export class RobotAspiratorService {
   }
 
 
-  private processNextMove(
-    isRobotStarted: boolean,
-    consommationParMouvement: number
-  ): PositionResult {
+  private processNextMove(): RobotServiceData {
+
+    let robotServiceData: RobotServiceData = {
+      // on actualise ici le niveau de batterie
+      batterie: this.batterie,
+      isNettoyageComplete: false,
+      positions: []
+    };
+    // console.log(robotServiceData);
+
     // Vérifier les conditions d'arrêt
-    if (!isRobotStarted
-      || this.batterie <= 0
+    if (!this.isRobotStarted
       || this.batterie <= this.cheminOptimalService.energieNecessairePourRetour(this.position, this.consommationParMouvement)
       || this.isNettoyageComplete) {
-      return {
-        positions: [],
-        isNettoyageComplete: true
-      };
+
+      robotServiceData.isNettoyageComplete = true;
+      return robotServiceData;
     }
 
     // Si le chemin actuel est terminé, chercher la prochaine destination
     if (this.cheminRestant.length === 0) {
       this.calculateNextPath();
 
-      // Si aucune nouvelle destination n'est trouvée
+      // Après calcul du nouveau chemin, actualisant this.cheminRestant, si aucune nouvelle destination n'est trouvée
       if (this.cheminRestant.length === 0) {
-        return {
-          positions: [],
-          isNettoyageComplete: true
-        };
+
+        robotServiceData.isNettoyageComplete = true;
+        return robotServiceData;
       }
     }
 
@@ -155,14 +161,18 @@ export class RobotAspiratorService {
 
     // Mettre à jour la position
     this.position = { ...nextPosition };
-    this.batterie -= consommationParMouvement;
+    this.batterie -= this.consommationParMouvement;
 
-    return {
-      positions: [lastPos, this.position],
-      isNettoyageComplete: false
-    };
+    AppComponent.log(`Déplacement vers (${this.position.x}, ${this.position.y}). Batterie: ${this.batterie.toFixed(1)}%`);
+
+    robotServiceData.positions = [lastPos, this.position];
+    robotServiceData.isNettoyageComplete = false;
+
+    return robotServiceData;
   }
 
+  // TODO: modifier toute la méthode comme nettoyerAvecControle
+  // TODO: Depréciée  -À SUPPRIMER
   // Retourner à la base de charge
   public retournerALaBase(
     position: Position,
@@ -211,6 +221,7 @@ export class RobotAspiratorService {
     });
   }
 
+  // TODO: Depréciée  -À SUPPRIMER
   // Se déplacer vers une cellule spécifique
   private seDeplacerVers(chemin: Position[]): Observable<Position> {
     return new Observable((observer) => {
