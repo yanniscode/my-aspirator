@@ -99,19 +99,21 @@ export class RobotAspiratorComponent implements OnDestroy {
           next: (positionResult: PositionResult) => {
             console.log("onStartNettoyer next nettoyer...");
             // console.log(positionResult);
-            // TODO: revoir null pointer ici:
-            this.lastPosition = { x: positionResult?.positions[0].x, y: positionResult?.positions[0].y };
-            this.position = { x: positionResult?.positions[1].x, y: positionResult?.positions[1].y };
-
-            AppComponent.log("this.lastPosition.x = " + this.lastPosition.x.toString());
-            AppComponent.log("this.lastPosition.y  =" + this.lastPosition.y.toString());
-            AppComponent.log("this.position.x = " + this.position.x.toString());
-            AppComponent.log("this.position.y = " + this.position.y.toString());
-
-            if (positionResult.isNettoyageComplete === true) {
+            if (positionResult!.isNettoyageComplete === true) {
               AppComponent.log('Nettoyage terminé !');
+              
+              return;
+            } else {
+              this.lastPosition = { x: positionResult!.positions[0].x, y: positionResult!.positions[0].y };
+              this.position = { x: positionResult!.positions[1].x, y: positionResult!.positions[1].y };
+
+              AppComponent.log("this.lastPosition.x = " + this.lastPosition.x.toString());
+              AppComponent.log("this.lastPosition.y  =" + this.lastPosition.y.toString());
+              AppComponent.log("this.position.x = " + this.position.x.toString());
+              AppComponent.log("this.position.y = " + this.position.y.toString());
+              
+              observer.next([this.lastPosition, this.position]);
             }
-            observer.next([this.lastPosition, this.position]);
           },
           error: (err: string) => {
             AppComponent.log('Erreur nettoyer: ' + err);

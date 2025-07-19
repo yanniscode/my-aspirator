@@ -108,7 +108,7 @@ export class AppComponent implements OnDestroy, OnInit {
   }
 
   private static initMaisonConfig(): void {
-    AppComponent.log("initMaisonConfig");
+    AppComponent.log("*** initMaisonConfig ***");
     // Création de la maison
     AppComponent.largeurMaison = 10;
     AppComponent.hauteurMaison = 8;
