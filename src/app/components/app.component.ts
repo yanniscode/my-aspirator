@@ -55,8 +55,7 @@ export class AppComponent implements OnDestroy, OnInit {
 
   // nécessaire pour l'animation (écoute d'observable avec rxjs)
   private subscription?: Subscription;
-
-  static messageService: MessageService;
+  
   static maison: Cell[][] = [[]];
   static largeurMaison: number = 10;
   static hauteurMaison: number = 8;
@@ -78,8 +77,7 @@ export class AppComponent implements OnDestroy, OnInit {
   // pour mettre à jour l'animation du déplacement du robot
   public moveTrigger: number = 0;
 
-  constructor(messageService: MessageService) {
-    AppComponent.messageService = messageService;
+  constructor(private messageService: MessageService) {
   }
 
   ngOnInit(): void {
@@ -96,22 +94,26 @@ export class AppComponent implements OnDestroy, OnInit {
     }
   }
 
+  private log(message: string) {
+    this.messageService.add(`AppComponent: ${message}`);
+  }
+
   public startIntro(): void {
     // Création de la maison
-    AppComponent.initMaisonConfig();
+    this.initMaisonConfig();
     AppComponent.creerMaison();
 
     setTimeout(() => {
       // instanciation du robot
       console.log(this.robot);
       if (!this.robot) {
-        this.robot = new RobotAspiratorComponent();
+        this.robot = new RobotAspiratorComponent(this.messageService);
       }
     }, 1000);
   }
 
-  private static initMaisonConfig(): void {
-    AppComponent.log("*** initMaisonConfig ***");
+  private initMaisonConfig(): void {
+    this.log("*** initMaisonConfig ***");
     // Création de la maison
     AppComponent.largeurMaison = 10;
     AppComponent.hauteurMaison = 8;
@@ -169,24 +171,25 @@ export class AppComponent implements OnDestroy, OnInit {
       this.subscription!.add(
         this.robot?.onStartNettoyer().subscribe({
           next: ([lastPosition, position]: Position[]) => {
-            AppComponent.log('AppComponent next startRobot...');
+            this.log('next startRobot...');
             console.log(lastPosition.x.toString());
             console.log(lastPosition.y.toString());
             console.log(position.x.toString());
             console.log(position.y.toString());
+
             this.updateMaisonViewWithRobot(lastPosition, position);
 
             if (position.x === AppComponent.basePosition.x && position.y === AppComponent.basePosition.y) {
-              AppComponent.log("AppComponent - arrivée à la base > unsubscribe");
+              this.log("arrivée à la base > unsubscribe");
               this.pauseRobot();
               // this.robot?.setBatterie(100);
             }
           },
           error: (err: string) => {
-            AppComponent.log('AppComponent Erreur onStartNettoyer: ' + err);
+            this.log('Erreur onStartNettoyer: ' + err);
           },
           complete: () => {
-            AppComponent.log('AppComponent complete onStartNettoyer: ok !');
+            this.log('complete onStartNettoyer: ok !');
             this.startIntro();
             this.subscription!.unsubscribe();
           }
@@ -249,7 +252,4 @@ export class AppComponent implements OnDestroy, OnInit {
     return true;
   }
 
-  static log(message: string) {
-    AppComponent.messageService.add(`AppComponent: ${message}`);
-  }
 }

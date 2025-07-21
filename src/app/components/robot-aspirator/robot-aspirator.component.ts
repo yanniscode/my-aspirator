@@ -4,10 +4,10 @@ import { finalize, Observable, Subject, Subscriber, Subscription, takeUntil, tap
 import { Position } from '../../classes/position';
 import { RobotAspiratorService } from '../../services/robot-actions/robot-aspirator.service';
 import { RobotServiceData } from '../../classes/RobotServiceData';
+import { MessageService } from '../../services/message.service';
 
 @Component({
   selector: 'app-robot-aspirator',
-  imports: [],
   templateUrl: './robot-aspirator.component.html',
   styleUrl: './robot-aspirator.component.css'
 })
@@ -15,6 +15,9 @@ export class RobotAspiratorComponent implements OnDestroy {
 
   // nécessaire pour l'animation (écoute d'observable avec rxjs)
   private subscription?: Subscription;
+
+  private messageService: MessageService;
+
   private robotAspiratorService: RobotAspiratorService;
 
   // Position actuelle
@@ -34,14 +37,16 @@ export class RobotAspiratorComponent implements OnDestroy {
   // Combien d'énergie est consommée par mouvement
   public consommationParMouvement: number;
 
-  constructor() {
+  constructor(messageService: MessageService) {
     // this.subscription = new Subscription();
-    this.robotAspiratorService = new RobotAspiratorService();
+    this.messageService = messageService;
+
+    this.robotAspiratorService = new RobotAspiratorService(this.messageService);
 
     // TODO: basePosition à modifier en non static, si plusieurs robots présents
     this.position = { ...AppComponent.basePosition };
     this.lastPosition = { ...AppComponent.basePosition };
-    this.batterie = 50;
+    this.batterie = 5;
 
     this.isRobotStarted = false;
     // this.energieRetourBase = 0; // Sera calculée dynamiquement
@@ -53,6 +58,10 @@ export class RobotAspiratorComponent implements OnDestroy {
     if (this.subscription) {
       this.subscription.unsubscribe();
     }
+  }
+
+  private log(message: string) {
+    this.messageService.add(`RobotAspiratorComponent: ${message}`);
   }
 
   public pauseRobot(): void {
@@ -70,10 +79,10 @@ export class RobotAspiratorComponent implements OnDestroy {
 
     return new Observable<Position[]>((observer) => {
       if (!this.subscription || this.subscription.closed) {
-        console.log("RobotAspiratorComponent onStartNettoyer new subscription !")
+        this.log("onStartNettoyer new subscription !")
         this.subscription = new Subscription();
 
-        this.robotAspiratorService = new RobotAspiratorService();
+        this.robotAspiratorService = new RobotAspiratorService(this.messageService);
 
         this.subscription!.add(
           this.robotAspiratorService.robotPosition$.subscribe(update => {
@@ -98,8 +107,8 @@ export class RobotAspiratorComponent implements OnDestroy {
   }
 
   private nettoyerAvecControleSouscription(observer: Subscriber<Position[]>): void {
-    AppComponent.log("Début du nettoyage");
-    AppComponent.log(`Batterie: ${this.batterie}%.`);
+    this.log("Début du nettoyage");
+    this.log(`Batterie: ${this.batterie}%.`);
 
     const stopNettoyer$ = new Subject<void>();
 
@@ -114,45 +123,45 @@ export class RobotAspiratorComponent implements OnDestroy {
       ).pipe(
         takeUntil(stopNettoyer$),
         tap((robotServiceData: RobotServiceData) => {
-          AppComponent.log('*** RobotAspiratorComponent next nettoyerAvecControleSouscription...');
+          this.log('*** next nettoyerAvecControleSouscription...');
           console.log(robotServiceData);
           this.batterie = robotServiceData!.batterie;
 
           if (robotServiceData!.isNettoyageComplete === true) {
-            AppComponent.log('RobotAspiratorComponent Nettoyage terminé !');
+            this.log('Nettoyage terminé !');
             stopNettoyer$.next(); // Déclenche l'arrêt
             return;
           } else if (this.batterie <= this.robotAspiratorService.energieNecessairePourRetour(this.position, this.consommationParMouvement)) {
-            AppComponent.log("RobotAspiratorComponent Batterie insuffisante : retour à la base de charge nécessaire...");
+            this.log("Batterie insuffisante : retour à la base de charge nécessaire...");
             stopNettoyer$.next(); // Déclenche l'arrêt
             return;
           } else {
             // Continuer le nettoyage
             this.lastPosition = { x: robotServiceData!.positions[0].x, y: robotServiceData!.positions[0].y };
             this.position = { x: robotServiceData!.positions[1].x, y: robotServiceData!.positions[1].y };
-            AppComponent.log("RobotAspiratorComponent this.batterie = " + this.batterie.toString());
-            AppComponent.log("this.lastPosition.x = " + this.lastPosition.x.toString());
-            AppComponent.log("this.lastPosition.y =" + this.lastPosition.y.toString());
-            AppComponent.log("this.position.x = " + this.position.x.toString());
-            AppComponent.log("this.position.y = " + this.position.y.toString());
+            this.log("this.batterie = " + this.batterie.toString());
+            this.log("this.lastPosition.x = " + this.lastPosition.x.toString());
+            this.log("this.lastPosition.y =" + this.lastPosition.y.toString());
+            this.log("this.position.x = " + this.position.x.toString());
+            this.log("this.position.y = " + this.position.y.toString());
 
             try {
               observer.next([this.lastPosition, this.position]);
             } catch (error) {
-              console.error("RobotAspiratorComponent Erreur lors de l'émission de la position:", error);
+              console.error("Erreur lors de l'émission de la position:", error);
             }
           }
         }),
         finalize(() => {
           // Ce bloc s'exécute UNE SEULE FOIS à la fin
-          AppComponent.log("*********");
-          AppComponent.log('RobotAspiratorComponent complete nettoyer: Nettoyage ok ou batterie insuffisante !');
+          this.log("*********");
+          this.log('complete nettoyer: Nettoyage ok ou batterie insuffisante !');
           this.retournerALaBaseSouscription(observer);
           stopNettoyer$.complete(); // Nettoyer le Subject
         })
       ).subscribe({
         error: (err: string) => {
-          AppComponent.log('RobotAspiratorComponent Erreur nettoyer: ' + err);
+          this.log('Erreur nettoyer: ' + err);
           stopNettoyer$.complete(); // Nettoyer le Subject même en cas d'erreur
         }
       })
@@ -160,8 +169,8 @@ export class RobotAspiratorComponent implements OnDestroy {
   }
 
   private retournerALaBaseSouscription(observer: Subscriber<Position[]>): void {
-    AppComponent.log("Retour à la base");
-    AppComponent.log(`Batterie: ${this.batterie}%. Retour à la base.`);
+    this.log("Retour à la base");
+    this.log(`Batterie: ${this.batterie}%. Retour à la base.`);
 
     this.subscription!.add(
       this.robotAspiratorService.nettoyerAvecControle(
@@ -173,20 +182,20 @@ export class RobotAspiratorComponent implements OnDestroy {
         this.consommationParMouvement
       ).subscribe({
         next: (robotServiceData: RobotServiceData) => {
-          AppComponent.log('RobotAspiratorComponent - next retournerALaBaseSouscription...');
+          this.log('next retournerALaBaseSouscription...');
 
           console.log(robotServiceData);
 
           this.batterie = robotServiceData!.batterie;
           if(this.batterie <= 0) {
-            AppComponent.log('Batterie à plat ! Robot en panne...');
+            this.log('Batterie à plat ! Robot en panne...');
             this.subscription!.unsubscribe();
             observer.complete();
             return;
           }
 
           if (robotServiceData.positions.length === 0) {
-            AppComponent.log('Chemin de retour vide');
+            this.log('Chemin de retour vide');
             this.subscription!.unsubscribe();
             observer.complete();
             return;
@@ -195,11 +204,11 @@ export class RobotAspiratorComponent implements OnDestroy {
           this.lastPosition = { x: robotServiceData!.positions[0].x, y: robotServiceData!.positions[0].y };
           this.position = { x: robotServiceData!.positions[1].x, y: robotServiceData!.positions[1].y };
 
-          AppComponent.log("RobotAspiratorComponent this.batterie = " + this.batterie.toString());
-          AppComponent.log(this.lastPosition.x.toString());
-          AppComponent.log(this.lastPosition.y.toString());
-          AppComponent.log(this.position.x.toString());
-          AppComponent.log(this.position.y.toString());
+          this.log("this.batterie = " + this.batterie.toString());
+          this.log(this.lastPosition.x.toString());
+          this.log(this.lastPosition.y.toString());
+          this.log(this.position.x.toString());
+          this.log(this.position.y.toString());
 
 
           // // TODO: À REVOIR
@@ -219,10 +228,10 @@ export class RobotAspiratorComponent implements OnDestroy {
           observer.next([this.lastPosition, this.position]);
         },
         error: (err: string) => {
-          AppComponent.log('RobotAspiratorComponentErreur retournerALaBase: ' + err);
+          this.log('Erreur retournerALaBase: ' + err);
         },
         complete: () => {
-          AppComponent.log('RobotAspiratorComponent complete retournerALaBase: ok !');
+          this.log('complete retournerALaBase: ok !');
           this.isRobotStarted = false;
           observer.complete();
         }
