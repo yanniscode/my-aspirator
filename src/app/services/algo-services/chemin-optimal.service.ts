@@ -185,6 +185,11 @@ export class CheminOptimalService {
     return chemin;
   }
 
+  // Calculer la distance entre deux positions (heuristique pour A*)
+  public distance(a: Position, b: Position): number {
+    return Math.abs(a.x - b.x) + Math.abs(a.y - b.y); // Distance de Manhattan
+  }
+
   // Obtenir les cellules adjacentes à une position
   private obtenirCellulesAdjacentes(position: Position): Cell[] {
     const directions = [
@@ -211,16 +216,4 @@ export class CheminOptimalService {
     return cellules;
   }
 
-  // Estimer l'énergie nécessaire pour retourner à la base
-  public energieNecessairePourRetour(position: Position, consommationParMouvement: number): number {
-    // Estimer la distance jusqu'à la base
-    const distance = this.distance(position, AppComponent.basePosition);
-    // Ajouter une marge de sécurité
-    return (distance * consommationParMouvement) * 1.2;
-  }
-
-  // Calculer la distance entre deux positions (heuristique pour A*)
-  private distance(a: Position, b: Position): number {
-    return Math.abs(a.x - b.x) + Math.abs(a.y - b.y); // Distance de Manhattan
-  }
 }

@@ -96,7 +96,7 @@ export class RobotAspiratorService {
 
     // Utiliser un timer régulier pour l'animation
     return timer(0, intervalMs).pipe(
-      map(() => this.processNextMove()),
+      map(() => this.processNextMove(isRetourAlaBase)),
       takeWhile(result => !result.isNettoyageComplete && this.batterie > 0, true),
       tap(result => {
         // Émettre la mise à jour de position
@@ -109,29 +109,30 @@ export class RobotAspiratorService {
 
   private calculateNextPath(isRetourAlaBase: boolean): void {
     const prochaineCellule = this.cheminOptimalService.trouverProchaineDestination(this.position);
-    // console.log(prochaineCellule);
+    console.log(prochaineCellule);
 
-    // isRetourAlaBase n'est vrai ici que si prochaineCellule est null ou undefined 
+    // isRetourAlaBase n'est vrai ici que si prochaineCellule est null ou undefined
     if (prochaineCellule || isRetourAlaBase) {
 
       let finChemin: Position = !isRetourAlaBase ? { ...prochaineCellule!.cellStack[0]!.position } : { ...AppComponent.basePosition };
 
       const chemin = this.cheminOptimalService.trouverChemin(this.position, finChemin);
-      // console.log(chemin);
+      console.log(chemin);
 
       this.cheminRestant = chemin.map(pos => ({ ...pos }));
-      // console.log(this.cheminRestant);
+      console.log(this.cheminRestant);
 
       // console.log("Nouveau chemin calculé vers:", prochaineCellule.cellStack[0].position);
     } else {
-      console.log("Aucune cellule accessible non visitée trouvée");
+      console.log("RobotAspiratorService - Aucune cellule accessible non visitée trouvée");
       this.isNettoyageComplete = true;
       this.cheminRestant = [];
     }
   }
 
+  private processNextMove(isRetourAlaBase: boolean): RobotServiceData {
 
-  private processNextMove(): RobotServiceData {
+    console.log("########## processNextMove");
 
     let robotServiceData: RobotServiceData = {
       // on actualise ici le niveau de batterie
@@ -139,43 +140,58 @@ export class RobotAspiratorService {
       isNettoyageComplete: false,
       positions: []
     };
+
+    // TODO: pb de batterie ici si = 0.5 au départ, par ex:
+    console.log(this.batterie);
+
+    this.batterie -= this.consommationParMouvement;
+
+    console.log(this.batterie);
+
     // console.log(robotServiceData);
 
     // Vérifier les conditions d'arrêt
-    if (!this.isRobotStarted
-      || this.batterie <= this.cheminOptimalService.energieNecessairePourRetour(this.position, this.consommationParMouvement)
-      || this.isNettoyageComplete) {
+    if (!this.isRobotStarted || this.isNettoyageComplete) {
 
       robotServiceData.isNettoyageComplete = true;
       return robotServiceData;
     }
 
     // Si le chemin actuel est terminé, chercher la prochaine destination
-    // Cette action est valable seulement si isRetourAlaBase = false; 
-    if (this.cheminRestant.length === 0) {
+    // Cette action est valable seulement si isRetourAlaBase = false;
+    if (this.cheminRestant.length === 0 && isRetourAlaBase === false) {
       this.calculateNextPath(false);
 
       // Après calcul du nouveau chemin, actualisant this.cheminRestant, si aucune nouvelle destination n'est trouvée
       if (this.cheminRestant.length === 0) {
-
         robotServiceData.isNettoyageComplete = true;
         return robotServiceData;
       }
+
     }
 
-    // Prendre la prochaine position du chemin actuel
-    const nextPosition = this.cheminRestant.shift()!;
-    const lastPos = { ...this.position };
+    if (this.cheminRestant.length !== 0) {
+      // Prendre la prochaine position du chemin actuel
+      const nextPosition = this.cheminRestant.shift()!;
+      const lastPos = { ...this.position };
 
-    // Mettre à jour la position
-    this.position = { ...nextPosition };
-    this.batterie -= this.consommationParMouvement;
+      // Mettre à jour la position
+      this.position = { ...nextPosition };
 
-    AppComponent.log(`Déplacement vers (${this.position.x}, ${this.position.y}). Batterie: ${this.batterie.toFixed(1)}%`);
+      AppComponent.log(`Déplacement vers (${this.position.x}, ${this.position.y}). Batterie: ${this.batterie.toFixed(1)}%`);
 
-    robotServiceData.positions = [lastPos, this.position];
-    robotServiceData.isNettoyageComplete = false;
+      robotServiceData.positions = [lastPos, this.position];
+      robotServiceData.isNettoyageComplete = false;
+    }
 
     return robotServiceData;
+  }
+
+  // Estimer l'énergie nécessaire pour retourner à la base
+  public energieNecessairePourRetour(position: Position, consommationParMouvement: number): number {
+    // Estimer la distance jusqu'à la base
+    const distance = this.cheminOptimalService.distance(position, AppComponent.basePosition);
+    // Ajouter une marge de sécurité
+    return (distance * consommationParMouvement) * 1.2;
   }
 }

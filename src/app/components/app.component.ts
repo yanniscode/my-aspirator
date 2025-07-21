@@ -169,18 +169,24 @@ export class AppComponent implements OnDestroy, OnInit {
       this.subscription!.add(
         this.robot?.onStartNettoyer().subscribe({
           next: ([lastPosition, position]: Position[]) => {
-            console.log('next startRobot...');
-            // console.log(lastPosition.x.toString());
-            // console.log(lastPosition.y.toString());
-            // console.log(position.x.toString());
-            // console.log(position.y.toString());
+            AppComponent.log('AppComponent next startRobot...');
+            console.log(lastPosition.x.toString());
+            console.log(lastPosition.y.toString());
+            console.log(position.x.toString());
+            console.log(position.y.toString());
             this.updateMaisonViewWithRobot(lastPosition, position);
+
+            if (position.x === AppComponent.basePosition.x && position.y === AppComponent.basePosition.y) {
+              AppComponent.log("AppComponent - arrivée à la base > unsubscribe");
+              this.pauseRobot();
+              // this.robot?.setBatterie(100);
+            }
           },
           error: (err: string) => {
-            AppComponent.log('Erreur onStartNettoyer: ' + err);
+            AppComponent.log('AppComponent Erreur onStartNettoyer: ' + err);
           },
           complete: () => {
-            AppComponent.log('complete onStartNettoyer: ok !');
+            AppComponent.log('AppComponent complete onStartNettoyer: ok !');
             this.startIntro();
             this.subscription!.unsubscribe();
           }
