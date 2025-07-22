@@ -23,15 +23,16 @@ export class RobotAspiratorComponent implements OnDestroy {
   private isRobotStarted: boolean;
 
   // Niveau de batterie (en pourcentage)
-  private batterie: number;
-  public getBatterie() {
-    return this.batterie;
-  }
-  public setBatterie(batterie : number) {
-    return this.batterie = batterie;
-  }
+  public batterie: number;
+  // TODO : voir si on garde:
+  // public getBatterie() {
+  //   return this.batterie;
+  // }
+  // public setBatterie(batterie : number) {
+  //   return this.batterie = batterie;
+  // }
   // Combien d'énergie est consommée par mouvement
-  private consommationParMouvement: number;
+  public consommationParMouvement: number;
 
   constructor() {
     // this.subscription = new Subscription();

@@ -143,7 +143,7 @@ export class RobotAspiratorService {
 
     // TODO: pb de batterie ici si = 0.5 au départ, par ex:
     console.log(this.batterie);
-
+    // TODO : doublon avec AppComponent où il faut passer la modif de batterie: à supprimer ici:
     this.batterie -= this.consommationParMouvement;
 
     console.log(this.batterie);

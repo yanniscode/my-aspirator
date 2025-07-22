@@ -214,6 +214,8 @@ export class AppComponent implements OnDestroy, OnInit {
     // nécessaire pour la fluidité de l'animation
     this.moveTrigger++;
     // console.log(this.moveTrigger);
+    // TODO : doublon avec Robot Service : à suppr dans le service qd maj bien gérée:
+    this.robot!.batterie -= this.robot!.consommationParMouvement;
   }
 
   private updateRobotView(lastPosition: Position, position: Position): void {
