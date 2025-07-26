@@ -1,4 +1,4 @@
-import { Component, OnDestroy } from '@angular/core';
+import { Component, Input, OnDestroy } from '@angular/core';
 import { AppComponent } from '../app.component';
 import { finalize, Observable, Subject, Subscriber, Subscription, takeUntil, tap } from 'rxjs';
 import { Position } from '../../classes/position';
@@ -21,19 +21,13 @@ export class RobotAspiratorComponent implements OnDestroy {
   private robotAspiratorService: RobotAspiratorService;
 
   // Position actuelle
-  private position: Position;
-  private lastPosition: Position;
+  @Input() lastPosition: Position;
+  @Input() position: Position;
+  // Niveau de batterie (en pourcentage)
+  @Input() batterie: number;
+
   private isRobotStarted: boolean;
 
-  // Niveau de batterie (en pourcentage)
-  public batterie: number;
-  // TODO : voir si on garde:
-  // public getBatterie() {
-  //   return this.batterie;
-  // }
-  // public setBatterie(batterie : number) {
-  //   return this.batterie = batterie;
-  // }
   // Combien d'énergie est consommée par mouvement
   public consommationParMouvement: number;
 
@@ -44,9 +38,10 @@ export class RobotAspiratorComponent implements OnDestroy {
     this.robotAspiratorService = new RobotAspiratorService(this.messageService);
 
     // TODO: basePosition à modifier en non static, si plusieurs robots présents
-    this.position = { ...AppComponent.basePosition };
-    this.lastPosition = { ...AppComponent.basePosition };
-    this.batterie = 50;
+    // valeurs par défaut pour l'init du robot:
+    this.lastPosition = { x: -2, y: -2 };
+    this.position = { x: -1, y: -1 };
+    this.batterie = -1;
 
     this.isRobotStarted = false;
     // this.energieRetourBase = 0; // Sera calculée dynamiquement

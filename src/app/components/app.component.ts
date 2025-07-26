@@ -37,8 +37,6 @@ import { RobotAspiratorComponent } from './robot-aspirator/robot-aspirator.compo
   ]
 })
 export class AppComponent implements OnDestroy, OnInit {
-  // TODO: garder ?
-  private title = 'my-aspirator-robot';
 
   // test du déplacement au clic
   // toggleAnimation() {
@@ -63,13 +61,27 @@ export class AppComponent implements OnDestroy, OnInit {
   get MaisonView() {
     return AppComponent.maison;
   }
-  // Position de la base de charge
-  static basePosition: Position = { x: 0, y: 0 };
 
   // le robot peut être initialisé ou non
   private robot?: RobotAspiratorComponent;
+  // Position de la base de charge
+  static basePosition: Position = { x: 0, y: 0 };
 
-  // Variables pour la mise  à jour de la Vue:
+  private lastPosition: Position;
+  private position: Position;
+  private batterie: number;
+  // méthodes pour l'envoi au composant enfant RobotAspiratorComponent
+  public currentRobotLastPosition() {
+    return this.lastPosition;
+  }
+  public currentRobotPosition() {
+    return this.position;
+  }
+  public currentRobotBatterie() {
+    return this.batterie;
+  }
+
+  // Variables pour la mise à jour de la Vue (public car appelées par le template)
   // Position
   public aspiroX: number = 0;
   // ajout d'un décalage du robot au départ  Y += 32px:
@@ -78,6 +90,10 @@ export class AppComponent implements OnDestroy, OnInit {
   public moveTrigger: number = 0;
 
   constructor(private messageService: MessageService) {
+     // valeurs par défaut pour l'initialisation du robot:
+     this.lastPosition = { x: -2, y: -2 };
+     this.position = { x: -1, y: -1 };
+     this.batterie = -1;
   }
 
   ngOnInit(): void {
@@ -107,7 +123,16 @@ export class AppComponent implements OnDestroy, OnInit {
       // instanciation du robot
       console.log(this.robot);
       if (!this.robot) {
+        // initialisation du robot et de ses caractéristiques
+        this.lastPosition = {...AppComponent.basePosition };
+        this.position = {...AppComponent.basePosition };
+        this.batterie = 50;
+
+        // TODO: revoir injection service:
         this.robot = new RobotAspiratorComponent(this.messageService);
+        this.robot.lastPosition = { ...this.lastPosition };
+        this.robot.position = { ...this.position };
+        this.robot.batterie = this.batterie;
       }
     }, 1000);
   }
@@ -150,7 +175,7 @@ export class AppComponent implements OnDestroy, OnInit {
     });
     // Position de la base de charge
     AppComponent.maison[AppComponent.basePosition.y][AppComponent.basePosition.x].cellStack[0].type = 'B';
-    AppComponent.maison[AppComponent.basePosition.y][AppComponent.basePosition.x].cellStack[0].visited = true;
+    // AppComponent.maison[AppComponent.basePosition.y][AppComponent.basePosition.x].cellStack[0].visited = true;
   }
 
   pauseRobot(): void {
@@ -203,22 +228,6 @@ export class AppComponent implements OnDestroy, OnInit {
 
   }
 
-  public updateMaisonViewWithRobot(lastPosition: Position): void {
-
-    this.log("updateMaisonViewWithRobot");
-    this.log("lastPosition.x = "+ lastPosition.x);
-    this.log("lastPosition.x = "+ lastPosition.y);
-
-    // on ne veut pas que la case de la base soit modifiée:
-    if (AppComponent.maison[lastPosition.y][lastPosition.x].cellStack[0].type !== 'B') {
-      AppComponent.maison[lastPosition.y][lastPosition.x].cellStack[0].visited = true;
-      AppComponent.maison[lastPosition.y][lastPosition.x].cellStack[0].type = '_';
-    }
-
-    // nécessaire pour la fluidité de l'animation
-    this.moveTrigger++;
-  }
-
   private updateRobotView(lastPosition: Position, position: Position): void {
 
     // console.log(lastPosition);
@@ -235,6 +244,22 @@ export class AppComponent implements OnDestroy, OnInit {
     // console.log(this.aspiroX);
     this.aspiroY += aspiroDirY;
     // console.log(this.aspiroY);
+  }
+
+  public updateMaisonViewWithRobot(lastPosition: Position): void {
+
+    this.log("updateMaisonViewWithRobot");
+    this.log("lastPosition.x = " + lastPosition.x);
+    this.log("lastPosition.x = " + lastPosition.y);
+
+    // on ne veut pas que la case de la base soit modifiée:
+    if (AppComponent.maison[lastPosition.y][lastPosition.x].cellStack[0].type !== 'B') {
+      AppComponent.maison[lastPosition.y][lastPosition.x].cellStack[0].visited = true;
+      AppComponent.maison[lastPosition.y][lastPosition.x].cellStack[0].type = '_';
+    }
+
+    // nécessaire pour la fluidité de l'animation
+    this.moveTrigger++;
   }
 
   // Vérifier si toutes les cellules accessibles ont été visitées
