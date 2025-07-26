@@ -2,7 +2,7 @@ import { CommonModule, NgFor, NgIf } from '@angular/common';
 import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { trigger, transition, state, style, animate } from '@angular/animations';
-import { Subscription, timer } from "rxjs";
+import { Subscription } from "rxjs";
 import { TableModule } from 'primeng/table';
 
 import { MessageService } from '../services/message.service';
@@ -90,10 +90,10 @@ export class AppComponent implements OnDestroy, OnInit {
   public moveTrigger: number = 0;
 
   constructor(private messageService: MessageService) {
-     // valeurs par défaut pour l'initialisation du robot:
-     this.lastPosition = { x: -2, y: -2 };
-     this.position = { x: -1, y: -1 };
-     this.batterie = -1;
+    // valeurs par défaut pour l'initialisation du robot:
+    this.lastPosition = { x: -2, y: -2 };
+    this.position = { x: -1, y: -1 };
+    this.batterie = -1;
   }
 
   ngOnInit(): void {
@@ -124,8 +124,8 @@ export class AppComponent implements OnDestroy, OnInit {
       console.log(this.robot);
       if (!this.robot) {
         // initialisation du robot et de ses caractéristiques
-        this.lastPosition = {...AppComponent.basePosition };
-        this.position = {...AppComponent.basePosition };
+        this.lastPosition = { ...AppComponent.basePosition };
+        this.position = { ...AppComponent.basePosition };
         this.batterie = 50;
 
         // TODO: revoir injection service:
@@ -190,42 +190,42 @@ export class AppComponent implements OnDestroy, OnInit {
     // si on clique plusieurs fois sur start, la souscription existe, et est ouverte, donc on ne resouscrit pas
     // si on restart après mise en pause, la souscription existe à l'état closed, on la réinitialise ici
     if (!this.subscription || this.subscription.closed) {
-
       this.subscription = new Subscription();
-
-      this.subscription!.add(
-        this.robot?.onStartNettoyer().subscribe({
-          next: ([lastPosition, position]: Position[]) => {
-            console.log('next startRobot...');
-            this.log('next startRobot...');
-            this.log(lastPosition.x.toString());
-            this.log(lastPosition.y.toString());
-            this.log(position.x.toString());
-            this.log(position.y.toString());
-
-            this.updateRobotView(lastPosition, position);
-
-            this.updateMaisonViewWithRobot(lastPosition);
-
-            if (position.x === AppComponent.basePosition.x && position.y === AppComponent.basePosition.y) {
-              this.log("arrivée à la base > unsubscribe");
-              this.pauseRobot();
-              // this.robot?.setBatterie(100);
-            }
-          },
-          error: (err: string) => {
-            this.log('Erreur onStartNettoyer: ' + err);
-          },
-          complete: () => {
-            this.log('complete onStartNettoyer: ok !');
-            // this.startIntro();
-            this.subscription!.unsubscribe();
-          }
-        })
-      );
-
+      this.addRobotToSubscription(this.robot!);
     }
 
+  }
+
+  private addRobotToSubscription(robot: RobotAspiratorComponent): void {
+    this.subscription!.add(
+      robot?.onStartNettoyer().subscribe({
+        next: ([lastPosition, position]: Position[]) => {
+          console.log('next startRobot...');
+          this.log('next startRobot...');
+          this.log(lastPosition.x.toString());
+          this.log(lastPosition.y.toString());
+          this.log(position.x.toString());
+          this.log(position.y.toString());
+
+          this.updateRobotView(lastPosition, position);
+
+          this.updateMaisonViewWithRobot(lastPosition);
+
+          if (position.x === AppComponent.basePosition.x && position.y === AppComponent.basePosition.y) {
+            this.log("arrivée à la base > unsubscribe");
+            this.pauseRobot();
+          }
+        },
+        error: (err: string) => {
+          this.log('Erreur onStartNettoyer: ' + err);
+        },
+        complete: () => {
+          this.log('complete onStartNettoyer: ok !');
+          // this.startIntro();
+          this.subscription!.unsubscribe();
+        }
+      })
+    );
   }
 
   private updateRobotView(lastPosition: Position, position: Position): void {

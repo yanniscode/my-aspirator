@@ -1,5 +1,4 @@
 import { Component, Input, OnDestroy } from '@angular/core';
-import { AppComponent } from '../app.component';
 import { finalize, Observable, Subject, Subscriber, Subscription, takeUntil, tap } from 'rxjs';
 import { Position } from '../../classes/position';
 import { RobotAspiratorService } from '../../services/robot-actions/robot-aspirator.service';
