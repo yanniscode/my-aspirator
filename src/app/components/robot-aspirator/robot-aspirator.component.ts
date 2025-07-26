@@ -116,7 +116,6 @@ export class RobotAspiratorComponent implements OnDestroy {
       this.robotAspiratorService.nettoyerAvecControle(
         false,  // isRetourAlaBase = false
         this.position,
-        this.lastPosition,
         this.batterie,
         this.isRobotStarted,
         this.consommationParMouvement
@@ -185,7 +184,6 @@ export class RobotAspiratorComponent implements OnDestroy {
       this.robotAspiratorService.nettoyerAvecControle(
         true, // isRetourAlaBase = true
         this.position,
-        this.lastPosition,
         this.batterie,
         this.isRobotStarted,
         this.consommationParMouvement
