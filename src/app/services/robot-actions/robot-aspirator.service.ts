@@ -27,7 +27,7 @@ export class RobotAspiratorService {
   private position: Position = { x: 0, y: 0 };
   private lastPosition: Position = { x: 0, y: 0 };
   // Niveau de batterie (en pourcentage)
-  // private batterie: number = 0;
+  private batterie: number = 0;
 
   private cheminRestant: Position[] = [];
   private isNettoyageComplete: boolean = false;
@@ -94,6 +94,7 @@ export class RobotAspiratorService {
 
     this.position = { ...position };
     this.lastPosition = { ...lastPosition };
+    this.batterie = batterie;
     this.isRobotStarted = isRobotStarted;
     this.consommationParMouvement = consommationParMouvement;
     this.cheminRestant = [];
@@ -104,8 +105,8 @@ export class RobotAspiratorService {
 
     // Utiliser un timer régulier pour l'animation
     return timer(0, intervalMs).pipe(
-      map(() => this.processNextMove(batterie, isRetourAlaBase)),
-      takeWhile(result => !result.isNettoyageComplete && batterie > 0, true),
+      map(() => this.processNextMove(isRetourAlaBase)),
+      takeWhile(result => !result.isNettoyageComplete && this.batterie > 0, true),
       tap(result => {
         // Émettre la mise à jour de position
         if (result.positions.length > 0) {
@@ -138,23 +139,22 @@ export class RobotAspiratorService {
     }
   }
 
-  private processNextMove(batterie: number, isRetourAlaBase: boolean): RobotServiceData {
+  private processNextMove(isRetourAlaBase: boolean): RobotServiceData {
 
-    console.log("########## processNextMove");
+    this.log("########## processNextMove");
 
     let robotServiceData: RobotServiceData = {
       // on actualise ici le niveau de batterie
-      batterie: batterie,
+      batterie: this.batterie,
       isNettoyageComplete: false,
       positions: []
     };
 
     // TODO: pb de batterie ici si = 0.5 au départ, par ex:
-    console.log(batterie);
+    this.log(this.batterie.toString());
     // TODO : doublon avec AppComponent où il faut passer la modif de batterie: à supprimer ici:
-    batterie -= this.consommationParMouvement;
-
-    console.log(batterie);
+    this.batterie -= this.consommationParMouvement;
+    robotServiceData.batterie = this.batterie;
 
     // console.log(robotServiceData);
 
@@ -186,7 +186,7 @@ export class RobotAspiratorService {
       // Mettre à jour la position
       this.position = { ...nextPosition };
 
-      this.log(`Déplacement vers (${this.position.x}, ${this.position.y}). Batterie: ${batterie.toFixed(1)}%`);
+      this.log(`Déplacement vers (${this.position.x}, ${this.position.y}). Batterie: ${this.batterie.toFixed(1)}%`);
 
       robotServiceData.positions = [lastPos, this.position];
       robotServiceData.isNettoyageComplete = false;
@@ -199,6 +199,7 @@ export class RobotAspiratorService {
   public energieNecessairePourRetour(position: Position, consommationParMouvement: number): number {
     // Estimer la distance jusqu'à la base
     const distance = this.cheminOptimalService.distance(position, AppComponent.basePosition);
+    this.log("distance minimale de la base = "+ distance);
     // Ajouter une marge de sécurité
     return (distance * consommationParMouvement) * 1.2;
   }

@@ -31,7 +31,7 @@ import { RobotAspiratorComponent } from './robot-aspirator/robot-aspirator.compo
         transform: 'translate({{ x }}px, {{ y }}px)'
       }), { params: { x: 0, y: 0 + 32 } }), // décalage de Y de 32 pour le robot
       transition('* <=> *', [
-        animate('500ms ease-in-out')
+        animate('400ms ease-in-out') // 400 = moins que l'interval au nuveau service pour anim plus régulière
       ])
     ])
   ]
@@ -55,7 +55,7 @@ export class AppComponent implements OnDestroy, OnInit {
 
   // nécessaire pour l'animation (écoute d'observable avec rxjs)
   private subscription?: Subscription;
-  
+
   static maison: Cell[][] = [[]];
   static largeurMaison: number = 10;
   static hauteurMaison: number = 8;
@@ -171,13 +171,16 @@ export class AppComponent implements OnDestroy, OnInit {
       this.subscription!.add(
         this.robot?.onStartNettoyer().subscribe({
           next: ([lastPosition, position]: Position[]) => {
+            console.log('next startRobot...');
             this.log('next startRobot...');
-            console.log(lastPosition.x.toString());
-            console.log(lastPosition.y.toString());
-            console.log(position.x.toString());
-            console.log(position.y.toString());
+            this.log(lastPosition.x.toString());
+            this.log(lastPosition.y.toString());
+            this.log(position.x.toString());
+            this.log(position.y.toString());
 
-            this.updateMaisonViewWithRobot(lastPosition, position);
+            this.updateRobotView(lastPosition, position);
+
+            this.updateMaisonViewWithRobot(lastPosition);
 
             if (position.x === AppComponent.basePosition.x && position.y === AppComponent.basePosition.y) {
               this.log("arrivée à la base > unsubscribe");
@@ -190,7 +193,7 @@ export class AppComponent implements OnDestroy, OnInit {
           },
           complete: () => {
             this.log('complete onStartNettoyer: ok !');
-            this.startIntro();
+            // this.startIntro();
             this.subscription!.unsubscribe();
           }
         })
@@ -200,25 +203,20 @@ export class AppComponent implements OnDestroy, OnInit {
 
   }
 
-  public updateMaisonViewWithRobot(lastPosition: Position, position: Position): void {
+  public updateMaisonViewWithRobot(lastPosition: Position): void {
 
-    this.updateRobotView(lastPosition, position);
+    this.log("updateMaisonViewWithRobot");
+    this.log("lastPosition.x = "+ lastPosition.x);
+    this.log("lastPosition.x = "+ lastPosition.y);
 
-    const delayed$ = timer(500);
-    delayed$.subscribe(() => {
-      // console.log("position.x = "+ position.x);
-      // on ne veut pas que la case de la base soit modifiée:
-      if (AppComponent.maison[position.y][position.x].cellStack[0].type !== 'B') {
-        AppComponent.maison[position.y][position.x].cellStack[0].visited = true;
-        AppComponent.maison[position.y][position.x].cellStack[0].type = '_';
-      }
-    });
+    // on ne veut pas que la case de la base soit modifiée:
+    if (AppComponent.maison[lastPosition.y][lastPosition.x].cellStack[0].type !== 'B') {
+      AppComponent.maison[lastPosition.y][lastPosition.x].cellStack[0].visited = true;
+      AppComponent.maison[lastPosition.y][lastPosition.x].cellStack[0].type = '_';
+    }
 
     // nécessaire pour la fluidité de l'animation
     this.moveTrigger++;
-    // console.log(this.moveTrigger);
-    // TODO : doublon avec Robot Service : à suppr dans le service qd maj bien gérée:
-    this.robot!.batterie -= this.robot!.consommationParMouvement;
   }
 
   private updateRobotView(lastPosition: Position, position: Position): void {
