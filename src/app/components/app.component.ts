@@ -26,13 +26,21 @@ import { RobotAspiratorComponent } from './robot-aspirator/robot-aspirator.compo
         animate('1500ms ease-out', style({ opacity: 1 }))
       ])
     ]),
-    trigger('moveRobot', [
+    trigger('moveRobot1', [
       state('*', style({
         transform: 'translate({{ x }}px, {{ y }}px)'
       }), { params: { x: 0, y: 0 + 32 } }), // décalage de Y de 32 pour le robot
       transition('* <=> *', [
-        animate('400ms ease-in-out') // 400 = moins que l'interval au nuveau service pour anim plus régulière
-      ])
+        animate('200ms ease-in-out') // 400 = moins que l'interval au nuveau service pour anim plus régulière
+      ]),
+    ]),
+    trigger('moveRobot2', [
+      state('*', style({
+        transform: 'translate({{ x }}px, {{ y }}px)'
+      }), { params: { x: 450, y: 0 + 32 } }), // décalage de Y de 32 pour le robot
+      transition('* <=> *', [
+        animate('200ms ease-in-out') // 400 = moins que l'interval au nuveau service pour anim plus régulière
+      ]),
     ])
   ]
 })
@@ -63,9 +71,12 @@ export class AppComponent implements OnDestroy, OnInit {
   }
 
   // le robot peut être initialisé ou non
-  private robot?: RobotAspiratorComponent;
+  private robot1?: RobotAspiratorComponent;
+  private robot2?: RobotAspiratorComponent;
+
   // Position de la base de charge
-  static basePosition: Position = { x: 0, y: 0 };
+  static basePosition1: Position;
+  static basePosition2: Position;
 
   private lastPosition: Position;
   private position: Position;
@@ -82,18 +93,35 @@ export class AppComponent implements OnDestroy, OnInit {
   }
 
   // Variables pour la mise à jour de la Vue (public car appelées par le template)
-  // Position
-  public aspiroX: number = 0;
+  // Position robot 1
+  public aspiroX1: number;
   // ajout d'un décalage du robot au départ  Y += 32px:
-  public aspiroY: number = 0 + 32;
+  public aspiroY1: number;
   // pour mettre à jour l'animation du déplacement du robot
-  public moveTrigger: number = 0;
+  public moveTrigger1: number;
+
+  // Position robot 2
+  public aspiroX2: number = 0;
+  // ajout d'un décalage du robot au départ  Y += 32px:
+  public aspiroY2: number = 0 + 32;
+  // pour mettre à jour l'animation du déplacement du robot
+  public moveTrigger2: number;
 
   constructor(private messageService: MessageService) {
+    AppComponent.basePosition1 = { x: 0, y: 0 };
+    AppComponent.basePosition2 = { x: 0, y: 0 };
     // valeurs par défaut pour l'initialisation du robot:
     this.lastPosition = { x: -2, y: -2 };
     this.position = { x: -1, y: -1 };
     this.batterie = -1;
+
+    this.aspiroX1 = 0;
+    this.aspiroY1 = 0 + 32;
+    this.moveTrigger1 = 0;
+
+    this.aspiroX2 = 450;
+    this.aspiroY2 = 0 + 32;
+    this.moveTrigger2 = 0;
   }
 
   ngOnInit(): void {
@@ -102,8 +130,8 @@ export class AppComponent implements OnDestroy, OnInit {
 
   ngOnDestroy(): void {
     // réinitialisation du déplacement du robot
-    this.moveTrigger = 0;
-
+    this.moveTrigger1 = 0;
+    this.moveTrigger2 = 0;
     // Se désabonner pour éviter les fuites de mémoire
     if (this.subscription) {
       this.subscription.unsubscribe();
@@ -121,18 +149,40 @@ export class AppComponent implements OnDestroy, OnInit {
 
     setTimeout(() => {
       // instanciation du robot
-      console.log(this.robot);
-      if (!this.robot) {
+      // console.log(this.robot1);
+      if (!this.robot1) {
         // initialisation du robot et de ses caractéristiques
-        this.lastPosition = { ...AppComponent.basePosition };
-        this.position = { ...AppComponent.basePosition };
+        this.lastPosition = { ...AppComponent.basePosition1 };
+        this.position = { ...AppComponent.basePosition1 };
         this.batterie = 50;
 
         // TODO: revoir injection service:
-        this.robot = new RobotAspiratorComponent(this.messageService);
-        this.robot.lastPosition = { ...this.lastPosition };
-        this.robot.position = { ...this.position };
-        this.robot.batterie = this.batterie;
+        this.robot1 = new RobotAspiratorComponent(this.messageService);
+        this.robot1.lastPosition = { ...this.lastPosition };
+        this.robot1.position = { ...this.position };
+        this.robot1.batterie = this.batterie;
+
+        this.aspiroX1 = 0;
+        this.aspiroY1 = 0 + 32;
+        this.moveTrigger1 = 0
+      }
+
+      // console.log(this.robot2);
+      if (!this.robot2) {
+        // initialisation du robot et de ses caractéristiques
+        this.lastPosition = { ...AppComponent.basePosition2 };
+        this.position = { ...AppComponent.basePosition2 };
+        this.batterie = 50;
+
+        // TODO: revoir injection service:
+        this.robot2 = new RobotAspiratorComponent(this.messageService);
+        this.robot2.lastPosition = { ...this.lastPosition };
+        this.robot2.position = { ...this.position };
+        this.robot2.batterie = this.batterie;
+
+        this.aspiroX2 = 450;
+        this.aspiroY2 = 0 + 32;
+        this.moveTrigger2 = 0;
       }
     }, 1000);
   }
@@ -147,7 +197,8 @@ export class AppComponent implements OnDestroy, OnInit {
       { x: 7, y: 1 }, { x: 7, y: 2 }, { x: 7, y: 3 },
       { x: 4, y: 6 }, { x: 5, y: 6 }, { x: 6, y: 6 }
     ];
-    AppComponent.basePosition = { x: 0, y: 0 };
+    AppComponent.basePosition1 = { x: 0, y: 0 };
+    AppComponent.basePosition2 = { x: 9, y: 0 };
   }
 
   private static creerMaison(): void {
@@ -174,15 +225,19 @@ export class AppComponent implements OnDestroy, OnInit {
       }
     });
     // Position de la base de charge
-    AppComponent.maison[AppComponent.basePosition.y][AppComponent.basePosition.x].cellStack[0].type = 'B';
+    AppComponent.maison[AppComponent.basePosition1.y][AppComponent.basePosition1.x].cellStack[0].type = 'B';
     // AppComponent.maison[AppComponent.basePosition.y][AppComponent.basePosition.x].cellStack[0].visited = true;
+
+    AppComponent.maison[AppComponent.basePosition2.y][AppComponent.basePosition2.x].cellStack[0].type = 'B';
+
   }
 
   pauseRobot(): void {
     if (this.subscription) {
       this.subscription.unsubscribe();
     }
-    this.robot?.pauseRobot();
+    this.robot1?.pauseRobot();
+    this.robot2?.pauseRobot();
   }
 
   startRobot(): void {
@@ -191,12 +246,13 @@ export class AppComponent implements OnDestroy, OnInit {
     // si on restart après mise en pause, la souscription existe à l'état closed, on la réinitialise ici
     if (!this.subscription || this.subscription.closed) {
       this.subscription = new Subscription();
-      this.addRobotToSubscription(this.robot!);
+      this.addRobotToSubscription(this.robot1!, "robot1");
+      this.addRobotToSubscription(this.robot2!, "robot2");
     }
 
   }
 
-  private addRobotToSubscription(robot: RobotAspiratorComponent): void {
+  private addRobotToSubscription(robot: RobotAspiratorComponent, robotName: string): void {
     this.subscription!.add(
       robot?.onStartNettoyer().subscribe({
         next: ([lastPosition, position]: Position[]) => {
@@ -207,11 +263,11 @@ export class AppComponent implements OnDestroy, OnInit {
           this.log(position.x.toString());
           this.log(position.y.toString());
 
-          this.updateRobotView(lastPosition, position);
+          this.updateRobotView(robotName, lastPosition, position);
 
           this.updateMaisonViewWithRobot(lastPosition);
 
-          if (position.x === AppComponent.basePosition.x && position.y === AppComponent.basePosition.y) {
+          if (position.x === AppComponent.basePosition1.x && position.y === AppComponent.basePosition1.y) {
             this.log("arrivée à la base > unsubscribe");
             this.pauseRobot();
           }
@@ -228,7 +284,7 @@ export class AppComponent implements OnDestroy, OnInit {
     );
   }
 
-  private updateRobotView(lastPosition: Position, position: Position): void {
+  private updateRobotView(robotName: string, lastPosition: Position, position: Position): void {
 
     // console.log(lastPosition);
     // console.log(position);
@@ -240,10 +296,16 @@ export class AppComponent implements OnDestroy, OnInit {
     const aspiroDirY = (position.y - lastPosition.y) === 1 ? 50 :
       (position.y - lastPosition.y) === -1 ? -50 : 0;
 
-    this.aspiroX += aspiroDirX;
-    // console.log(this.aspiroX);
-    this.aspiroY += aspiroDirY;
-    // console.log(this.aspiroY);
+    if (robotName ==="robot1") {
+      this.aspiroX1 += aspiroDirX;
+      // console.log(this.aspiroX);
+      this.aspiroY1 += aspiroDirY;
+      // console.log(this.aspiroY);
+      // TODO: améliorer
+    } else if (robotName ==="robot2") {
+      this.aspiroX2 += aspiroDirX;
+      this.aspiroY2 += aspiroDirY;
+    }
   }
 
   public updateMaisonViewWithRobot(lastPosition: Position): void {
@@ -259,7 +321,8 @@ export class AppComponent implements OnDestroy, OnInit {
     }
 
     // nécessaire pour la fluidité de l'animation
-    this.moveTrigger++;
+    this.moveTrigger1++;
+    this.moveTrigger2++;
   }
 
   // Vérifier si toutes les cellules accessibles ont été visitées

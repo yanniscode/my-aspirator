@@ -113,7 +113,7 @@ export class RobotAspiratorService {
     // isRetourAlaBase n'est vrai ici que si prochaineCellule est null ou undefined
     if (prochaineCellule || isRetourAlaBase) {
 
-      let finChemin: Position = !isRetourAlaBase ? { ...prochaineCellule!.cellStack[0]!.position } : { ...AppComponent.basePosition };
+      let finChemin: Position = !isRetourAlaBase ? { ...prochaineCellule!.cellStack[0]!.position } : { ...AppComponent.basePosition1 };
 
       const chemin = this.cheminOptimalService.trouverChemin(this.position, finChemin);
       console.log(chemin);
@@ -188,7 +188,7 @@ export class RobotAspiratorService {
   // Estimer l'énergie nécessaire pour retourner à la base
   public energieNecessairePourRetour(position: Position, consommationParMouvement: number): number {
     // Estimer la distance jusqu'à la base
-    const distance = this.cheminOptimalService.distance(position, AppComponent.basePosition);
+    const distance = this.cheminOptimalService.distance(position, AppComponent.basePosition1);
     this.log("distance minimale de la base = "+ distance);
     // Ajouter une marge de sécurité
     return (distance * consommationParMouvement) * 1.2;
