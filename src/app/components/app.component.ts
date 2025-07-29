@@ -154,7 +154,7 @@ export class AppComponent implements OnDestroy, OnInit {
         // initialisation du robot et de ses caractéristiques
         this.lastPosition = { ...AppComponent.basePosition1 };
         this.position = { ...AppComponent.basePosition1 };
-        this.batterie = 50;
+        this.batterie = 12.5;
 
         // TODO: revoir injection service:
         this.robot1 = new RobotAspiratorComponent(this.messageService);
@@ -174,7 +174,6 @@ export class AppComponent implements OnDestroy, OnInit {
         this.position = { ...AppComponent.basePosition2 };
         this.batterie = 50;
 
-        // TODO: revoir injection service:
         this.robot2 = new RobotAspiratorComponent(this.messageService);
         this.robot2.lastPosition = { ...this.lastPosition };
         this.robot2.position = { ...this.position };
@@ -256,8 +255,8 @@ export class AppComponent implements OnDestroy, OnInit {
     this.subscription!.add(
       robot?.onStartNettoyer().subscribe({
         next: ([lastPosition, position]: Position[]) => {
-          console.log('next startRobot...');
-          this.log('next startRobot...');
+          console.log('next startRobot...'+ robotName);
+          this.log('next startRobot...'+ robotName);
           this.log(lastPosition.x.toString());
           this.log(lastPosition.y.toString());
           this.log(position.x.toString());
@@ -269,7 +268,7 @@ export class AppComponent implements OnDestroy, OnInit {
 
           if (position.x === AppComponent.basePosition1.x && position.y === AppComponent.basePosition1.y) {
             this.log("arrivée à la base > unsubscribe");
-            this.pauseRobot();
+            // this.pauseRobot();
           }
         },
         error: (err: string) => {
@@ -278,7 +277,8 @@ export class AppComponent implements OnDestroy, OnInit {
         complete: () => {
           this.log('complete onStartNettoyer: ok !');
           // this.startIntro();
-          this.subscription!.unsubscribe();
+          // TODO: en test - SUPPRIMÉ car bug: si un robot est en panne, l'autre est à l'arrêt à l'ihm, mais le composant continue bien les appels de service:
+          // this.subscription!.unsubscribe();
         }
       })
     );

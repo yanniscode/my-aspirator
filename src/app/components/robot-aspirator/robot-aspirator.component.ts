@@ -36,7 +36,6 @@ export class RobotAspiratorComponent implements OnDestroy {
 
     this.robotAspiratorService = new RobotAspiratorService(this.messageService);
 
-    // TODO: basePosition à modifier en non static, si plusieurs robots présents
     // valeurs par défaut pour l'init du robot:
     this.lastPosition = { x: -2, y: -2 };
     this.position = { x: -1, y: -1 };

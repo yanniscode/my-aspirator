@@ -113,6 +113,7 @@ export class RobotAspiratorService {
     // isRetourAlaBase n'est vrai ici que si prochaineCellule est null ou undefined
     if (prochaineCellule || isRetourAlaBase) {
 
+      // TODO: AppComponent.basePosition = variable selon le robot (ajouter variable basePosition à la classe RobotAspiratorComponent)
       let finChemin: Position = !isRetourAlaBase ? { ...prochaineCellule!.cellStack[0]!.position } : { ...AppComponent.basePosition1 };
 
       const chemin = this.cheminOptimalService.trouverChemin(this.position, finChemin);
@@ -140,9 +141,7 @@ export class RobotAspiratorService {
       positions: []
     };
 
-    // TODO: pb de batterie ici si = 0.5 au départ, par ex:
     this.log(this.batterie.toString());
-    // TODO : doublon avec AppComponent où il faut passer la modif de batterie: à supprimer ici:
     this.batterie -= consommationParMouvement;
     robotServiceData.batterie = this.batterie;
 
