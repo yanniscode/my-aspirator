@@ -2,10 +2,10 @@ import { Injectable } from '@angular/core';
 import { Position } from '../../classes/position';
 import { RobotServiceData } from '../../classes/RobotServiceData';
 
-import { AppComponent } from '../../components/app.component';
 import { map, Observable, Subject, Subscription, takeWhile, tap, timer } from 'rxjs';
 import { CheminOptimalService } from '../algo-services/chemin-optimal.service';
 import { MessageService } from '../message.service';
+import { Cell } from '../../classes/cell';
 
 @Injectable({
   providedIn: 'root'
@@ -72,11 +72,13 @@ export class RobotAspiratorService {
   // TODO: à simplifier ?
   public nettoyerAvecControle(
     isRetourAlaBase: boolean,
+    maison: Cell[][],
+    basePosition: Position,
     position: Position,
     batterie: number,
     isRobotStarted: boolean,
     consommationParMouvement: number,
-    intervalMs: number = 500
+    intervalMs: number = 600
   ): Observable<RobotServiceData> {
 
     if (this.robotPositionSubject.closed) {
@@ -91,11 +93,11 @@ export class RobotAspiratorService {
     this.isNettoyageComplete = false;
 
     // Calculer le chemin initial
-    this.calculateNextPath(isRetourAlaBase);
+    this.calculateNextPath(isRetourAlaBase, maison, basePosition);
 
     // Utiliser un timer régulier pour l'animation
     return timer(0, intervalMs).pipe(
-      map(() => this.processNextMove(consommationParMouvement, isRetourAlaBase)),
+      map(() => this.processNextMove(maison, consommationParMouvement, isRetourAlaBase, basePosition)),
       takeWhile(result => !result.isNettoyageComplete && this.batterie > 0, true),
       tap(result => {
         // Émettre la mise à jour de position
@@ -106,17 +108,17 @@ export class RobotAspiratorService {
     );
   }
 
-  private calculateNextPath(isRetourAlaBase: boolean): void {
-    const prochaineCellule = this.cheminOptimalService.trouverProchaineDestination(this.position);
+  private calculateNextPath(isRetourAlaBase: boolean, maison: Cell[][], basePosition: Position): void {
+    const prochaineCellule = this.cheminOptimalService.trouverProchaineDestination(maison, this.position);
     console.log(prochaineCellule);
 
     // isRetourAlaBase n'est vrai ici que si prochaineCellule est null ou undefined
     if (prochaineCellule || isRetourAlaBase) {
 
       // TODO: AppComponent.basePosition = variable selon le robot (ajouter variable basePosition à la classe RobotAspiratorComponent)
-      let finChemin: Position = !isRetourAlaBase ? { ...prochaineCellule!.cellStack[0]!.position } : { ...AppComponent.basePosition1 };
+      let finChemin: Position = !isRetourAlaBase ? { ...prochaineCellule!.cellStack[0]!.position } : { ...basePosition };
 
-      const chemin = this.cheminOptimalService.trouverChemin(this.position, finChemin);
+      const chemin = this.cheminOptimalService.trouverChemin(maison, this.position, finChemin);
       console.log(chemin);
 
       this.cheminRestant = chemin.map(pos => ({ ...pos }));
@@ -130,7 +132,7 @@ export class RobotAspiratorService {
     }
   }
 
-  private processNextMove(consommationParMouvement: number, isRetourAlaBase: boolean): RobotServiceData {
+  private processNextMove(maison: Cell[][], consommationParMouvement: number, isRetourAlaBase: boolean, basePosition: Position): RobotServiceData {
 
     this.log("########## processNextMove");
 
@@ -157,7 +159,7 @@ export class RobotAspiratorService {
     // Si le chemin actuel est terminé, chercher la prochaine destination
     // Cette action est valable seulement si isRetourAlaBase = false;
     if (this.cheminRestant.length === 0 && isRetourAlaBase === false) {
-      this.calculateNextPath(false);
+      this.calculateNextPath(false, maison, basePosition);
 
       // Après calcul du nouveau chemin, actualisant this.cheminRestant, si aucune nouvelle destination n'est trouvée
       if (this.cheminRestant.length === 0) {
@@ -185,9 +187,9 @@ export class RobotAspiratorService {
   }
 
   // Estimer l'énergie nécessaire pour retourner à la base
-  public energieNecessairePourRetour(position: Position, consommationParMouvement: number): number {
+  public energieNecessairePourRetour(basePosition: Position, position: Position, consommationParMouvement: number): number {
     // Estimer la distance jusqu'à la base
-    const distance = this.cheminOptimalService.distance(position, AppComponent.basePosition1);
+    const distance = this.cheminOptimalService.distance(position, basePosition);
     this.log("distance minimale de la base = "+ distance);
     // Ajouter une marge de sécurité
     return (distance * consommationParMouvement) * 1.2;

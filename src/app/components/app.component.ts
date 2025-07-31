@@ -31,7 +31,7 @@ import { RobotAspiratorComponent } from './robot-aspirator/robot-aspirator.compo
         transform: 'translate({{ x }}px, {{ y }}px)'
       }), { params: { x: 0, y: 0 + 32 } }), // décalage de Y de 32 pour le robot
       transition('* <=> *', [
-        animate('200ms ease-in-out') // 400 = moins que l'interval au nuveau service pour anim plus régulière
+        animate('300ms ease-in-out') // 400 = moins que l'interval au nuveau service pour anim plus régulière
       ]),
     ]),
     trigger('moveRobot2', [
@@ -39,7 +39,7 @@ import { RobotAspiratorComponent } from './robot-aspirator/robot-aspirator.compo
         transform: 'translate({{ x }}px, {{ y }}px)'
       }), { params: { x: 450, y: 0 + 32 } }), // décalage de Y de 32 pour le robot
       transition('* <=> *', [
-        animate('200ms ease-in-out') // 400 = moins que l'interval au nuveau service pour anim plus régulière
+        animate('300ms ease-in-out') // 400 = moins que l'interval au nuveau service pour anim plus régulière
       ]),
     ])
   ]
@@ -62,21 +62,18 @@ export class AppComponent implements OnDestroy, OnInit {
   // nécessaire pour l'animation (écoute d'observable avec rxjs)
   private subscription?: Subscription;
 
-  static maison: Cell[][] = [[]];
+  public maison: Cell[][] = [[]];
+  // TODO: garder ?
+  get MaisonView() {
+    return this.maison;
+  }
   static largeurMaison: number = 10;
   static hauteurMaison: number = 8;
   static obstacles: Position[] = [];
-  get MaisonView() {
-    return AppComponent.maison;
-  }
 
   // le robot peut être initialisé ou non
   private robot1?: RobotAspiratorComponent;
   private robot2?: RobotAspiratorComponent;
-
-  // Position de la base de charge
-  static basePosition1: Position;
-  static basePosition2: Position;
 
   private lastPosition: Position;
   private position: Position;
@@ -108,8 +105,6 @@ export class AppComponent implements OnDestroy, OnInit {
   public moveTrigger2: number;
 
   constructor(private messageService: MessageService) {
-    AppComponent.basePosition1 = { x: 0, y: 0 };
-    AppComponent.basePosition2 = { x: 0, y: 0 };
     // valeurs par défaut pour l'initialisation du robot:
     this.lastPosition = { x: -2, y: -2 };
     this.position = { x: -1, y: -1 };
@@ -145,22 +140,31 @@ export class AppComponent implements OnDestroy, OnInit {
   public startIntro(): void {
     // Création de la maison
     this.initMaisonConfig();
-    AppComponent.creerMaison();
+    this.creerMaison();
 
     setTimeout(() => {
       // instanciation du robot
       // console.log(this.robot1);
-      if (!this.robot1) {
-        // initialisation du robot et de ses caractéristiques
-        this.lastPosition = { ...AppComponent.basePosition1 };
-        this.position = { ...AppComponent.basePosition1 };
+      if (this.robot1 === undefined) {
+
+        // initialisation des caractéristiques du robot (utilisées ici par la Vue)
+        // TODO: garder ?
+        this.lastPosition = { x: 0, y: 0 };
+        this.position = { ...this.lastPosition };
         this.batterie = 12.5;
 
         // TODO: revoir injection service:
+        // initialisation du robot et passage de ses caractéristiques
         this.robot1 = new RobotAspiratorComponent(this.messageService);
-        this.robot1.lastPosition = { ...this.lastPosition };
-        this.robot1.position = { ...this.position };
-        this.robot1.batterie = this.batterie;
+        this.robot1.basePosition = { x: 0, y: 0 };
+
+        // Position de la base de charge
+        // TODO: revoir inversion x, y:
+        this.maison[this.robot1!.basePosition.y][this.robot1!.basePosition.x].cellStack[0].type = 'B';
+
+        this.robot1.lastPosition = { ...this.robot1.basePosition };
+        this.robot1.position = { ...this.robot1.basePosition };
+        this.robot1.batterie = 50;
 
         this.aspiroX1 = 0;
         this.aspiroY1 = 0 + 32;
@@ -168,16 +172,21 @@ export class AppComponent implements OnDestroy, OnInit {
       }
 
       // console.log(this.robot2);
-      if (!this.robot2) {
-        // initialisation du robot et de ses caractéristiques
-        this.lastPosition = { ...AppComponent.basePosition2 };
-        this.position = { ...AppComponent.basePosition2 };
+      if (this.robot2 === undefined) {
+        // initialisation des caractéristiques du robot (utilisées ici par la Vue)
+        this.lastPosition = { x: 9, y: 0 };
+        this.position = { ...this.lastPosition };
         this.batterie = 50;
 
+        // initialisation du robot et passage de ses caractéristiques
         this.robot2 = new RobotAspiratorComponent(this.messageService);
-        this.robot2.lastPosition = { ...this.lastPosition };
-        this.robot2.position = { ...this.position };
-        this.robot2.batterie = this.batterie;
+        this.robot2.basePosition = { x: 9, y: 0 };
+
+        this.maison[this.robot2!.basePosition.y][this.robot2!.basePosition.x].cellStack[0].type = 'B';
+
+        this.robot2.lastPosition = { ...this.robot2.basePosition };
+        this.robot2.position = { ...this.robot2.basePosition };
+        this.robot2.batterie = 50;
 
         this.aspiroX2 = 450;
         this.aspiroY2 = 0 + 32;
@@ -196,14 +205,12 @@ export class AppComponent implements OnDestroy, OnInit {
       { x: 7, y: 1 }, { x: 7, y: 2 }, { x: 7, y: 3 },
       { x: 4, y: 6 }, { x: 5, y: 6 }, { x: 6, y: 6 }
     ];
-    AppComponent.basePosition1 = { x: 0, y: 0 };
-    AppComponent.basePosition2 = { x: 9, y: 0 };
   }
 
-  private static creerMaison(): void {
+  private creerMaison(): void {
     // console.log("créer maison");
     for (let y = 0; y < AppComponent.hauteurMaison; y++) {
-      AppComponent.maison[y] = [];
+      this.maison[y] = [];
       for (let x = 0; x < AppComponent.largeurMaison; x++) {
         let cellElement: CellElement = {
           position: { x, y },
@@ -212,7 +219,7 @@ export class AppComponent implements OnDestroy, OnInit {
         };
         let cellStack: CellElement[] = [];
         cellStack.push(cellElement);
-        AppComponent.maison[y][x] = {
+        this.maison[y][x] = {
           cellStack: cellStack
         }
       }
@@ -220,15 +227,9 @@ export class AppComponent implements OnDestroy, OnInit {
     // Ajouter les obstacles
     AppComponent.obstacles.forEach(obs => {
       if (obs.x >= 0 && obs.x < AppComponent.largeurMaison && obs.y >= 0 && obs.y < AppComponent.hauteurMaison) {
-        AppComponent.maison[obs.y][obs.x].cellStack[0].type = 'X';
+        this.maison[obs.y][obs.x].cellStack[0].type = 'X';
       }
     });
-    // Position de la base de charge
-    AppComponent.maison[AppComponent.basePosition1.y][AppComponent.basePosition1.x].cellStack[0].type = 'B';
-    // AppComponent.maison[AppComponent.basePosition.y][AppComponent.basePosition.x].cellStack[0].visited = true;
-
-    AppComponent.maison[AppComponent.basePosition2.y][AppComponent.basePosition2.x].cellStack[0].type = 'B';
-
   }
 
   pauseRobot(): void {
@@ -248,15 +249,14 @@ export class AppComponent implements OnDestroy, OnInit {
       this.addRobotToSubscription(this.robot1!, "robot1");
       this.addRobotToSubscription(this.robot2!, "robot2");
     }
-
   }
 
   private addRobotToSubscription(robot: RobotAspiratorComponent, robotName: string): void {
     this.subscription!.add(
-      robot?.onStartNettoyer().subscribe({
+      robot?.onStartNettoyer(this.maison).subscribe({
         next: ([lastPosition, position]: Position[]) => {
-          console.log('next startRobot...'+ robotName);
-          this.log('next startRobot...'+ robotName);
+          console.log('next startRobot...' + robotName);
+          this.log('next startRobot...' + robotName);
           this.log(lastPosition.x.toString());
           this.log(lastPosition.y.toString());
           this.log(position.x.toString());
@@ -266,9 +266,8 @@ export class AppComponent implements OnDestroy, OnInit {
 
           this.updateMaisonViewWithRobot(lastPosition);
 
-          if (position.x === AppComponent.basePosition1.x && position.y === AppComponent.basePosition1.y) {
+          if (position.x === robot.basePosition.x && position.y === robot.basePosition.y) {
             this.log("arrivée à la base > unsubscribe");
-            // this.pauseRobot();
           }
         },
         error: (err: string) => {
@@ -279,6 +278,12 @@ export class AppComponent implements OnDestroy, OnInit {
           // this.startIntro();
           // TODO: en test - SUPPRIMÉ car bug: si un robot est en panne, l'autre est à l'arrêt à l'ihm, mais le composant continue bien les appels de service:
           // this.subscription!.unsubscribe();
+
+          if(this.robot1?.position.x === this.robot1?.basePosition.x && this.robot1?.position.y === this.robot1?.basePosition.y
+            && this.robot2?.position.x === this.robot2?.basePosition.x && this.robot2?.position.y === this.robot2?.basePosition.y
+          ) {
+            this.pauseRobot();
+          }
         }
       })
     );
@@ -296,13 +301,13 @@ export class AppComponent implements OnDestroy, OnInit {
     const aspiroDirY = (position.y - lastPosition.y) === 1 ? 50 :
       (position.y - lastPosition.y) === -1 ? -50 : 0;
 
-    if (robotName ==="robot1") {
+    if (robotName === "robot1") {
       this.aspiroX1 += aspiroDirX;
       // console.log(this.aspiroX);
       this.aspiroY1 += aspiroDirY;
       // console.log(this.aspiroY);
       // TODO: améliorer
-    } else if (robotName ==="robot2") {
+    } else if (robotName === "robot2") {
       this.aspiroX2 += aspiroDirX;
       this.aspiroY2 += aspiroDirY;
     }
@@ -315,27 +320,13 @@ export class AppComponent implements OnDestroy, OnInit {
     this.log("lastPosition.x = " + lastPosition.y);
 
     // on ne veut pas que la case de la base soit modifiée:
-    if (AppComponent.maison[lastPosition.y][lastPosition.x].cellStack[0].type !== 'B') {
-      AppComponent.maison[lastPosition.y][lastPosition.x].cellStack[0].visited = true;
-      AppComponent.maison[lastPosition.y][lastPosition.x].cellStack[0].type = '_';
+    if (this.maison[lastPosition.y][lastPosition.x].cellStack[0].type !== 'B') {
+      this.maison[lastPosition.y][lastPosition.x].cellStack[0].visited = true;
+      this.maison[lastPosition.y][lastPosition.x].cellStack[0].type = '_';
     }
 
     // nécessaire pour la fluidité de l'animation
     this.moveTrigger1++;
     this.moveTrigger2++;
   }
-
-  // Vérifier si toutes les cellules accessibles ont été visitées
-  static toutEstNettoye(): boolean {
-    for (let i = 0; i < AppComponent.maison.length; i++) {
-      for (let j = 0; j < AppComponent.maison[i].length; j++) {
-        const cell: Cell = AppComponent.maison[i][j];
-        if (cell.cellStack[0].type !== 'X' && cell.cellStack[0].type !== 'B' && !cell.cellStack[0].visited) {
-          return false;
-        }
-      }
-    }
-    return true;
-  }
-
 }

@@ -4,6 +4,7 @@ import { Position } from '../../classes/position';
 import { RobotAspiratorService } from '../../services/robot-actions/robot-aspirator.service';
 import { RobotServiceData } from '../../classes/RobotServiceData';
 import { MessageService } from '../../services/message.service';
+import { Cell } from '../../classes/cell';
 
 @Component({
   selector: 'app-robot-aspirator',
@@ -25,6 +26,8 @@ export class RobotAspiratorComponent implements OnDestroy {
   // Niveau de batterie (en pourcentage)
   @Input() batterie: number;
 
+  public basePosition: Position;
+
   private isRobotStarted: boolean;
 
   // Combien d'énergie est consommée par mouvement
@@ -37,8 +40,9 @@ export class RobotAspiratorComponent implements OnDestroy {
     this.robotAspiratorService = new RobotAspiratorService(this.messageService);
 
     // valeurs par défaut pour l'init du robot:
-    this.lastPosition = { x: -2, y: -2 };
-    this.position = { x: -1, y: -1 };
+    this.basePosition = { x: -1, y: -1 };
+    this.lastPosition = { ...this.basePosition };
+    this.position = { ...this.basePosition };
     this.batterie = -1;
 
     this.isRobotStarted = false;
@@ -68,7 +72,7 @@ export class RobotAspiratorComponent implements OnDestroy {
   }
 
   // Fonction principale pour nettoyer la maison
-  public onStartNettoyer(): Observable<Position[]> {
+  public onStartNettoyer(maison: Cell[][]): Observable<Position[]> {
 
     return new Observable<Position[]>((observer) => {
       if (!this.subscription || this.subscription.closed) {
@@ -78,6 +82,7 @@ export class RobotAspiratorComponent implements OnDestroy {
         this.robotAspiratorService = new RobotAspiratorService(this.messageService);
 
         this.subscription!.add(
+          // TODO: supprimer callback ?
           this.robotAspiratorService.robotPosition$.subscribe(update => {
             // console.log('Robot moved:', update.current, 'from:', update.last);
             // Mettre à jour l'affichage du robot si nécessaire
@@ -95,11 +100,11 @@ export class RobotAspiratorComponent implements OnDestroy {
 
       // Méthode principale de nettoyage de la maison
       this.isRobotStarted = true;
-      this.nettoyerAvecControleSouscription(observer);
+      this.nettoyerAvecControleSouscription(maison, observer);
     });
   }
 
-  private nettoyerAvecControleSouscription(observer: Subscriber<Position[]>): void {
+  private nettoyerAvecControleSouscription(maison: Cell[][], observer: Subscriber<Position[]>): void {
     this.log("Début du nettoyage");
     this.log(`Batterie: ${this.batterie}%.`);
 
@@ -108,6 +113,8 @@ export class RobotAspiratorComponent implements OnDestroy {
     this.subscription!.add(
       this.robotAspiratorService.nettoyerAvecControle(
         false,  // isRetourAlaBase = false
+        maison,
+        this.basePosition,
         this.position,
         this.batterie,
         this.isRobotStarted,
@@ -129,7 +136,7 @@ export class RobotAspiratorComponent implements OnDestroy {
             stopNettoyer$.next();
             return;
           }
-          else if (robotServiceData!.positions.length && robotServiceData!.batterie <= this.robotAspiratorService.energieNecessairePourRetour(robotServiceData!.positions[1], this.consommationParMouvement)) {
+          else if (robotServiceData!.positions.length && robotServiceData!.batterie <= this.robotAspiratorService.energieNecessairePourRetour(this.basePosition, robotServiceData!.positions[1], this.consommationParMouvement)) {
             this.log("Batterie insuffisante : retour à la base de charge nécessaire...");
             stopNettoyer$.next();
             return;
@@ -145,7 +152,7 @@ export class RobotAspiratorComponent implements OnDestroy {
           this.log("this.position.x = " + this.position.x.toString());
           this.log("this.position.y = " + this.position.y.toString());
           this.log("this.batterie ="+ this.batterie.toString());
-          this.log("Energie nécessaire au retour ="+ this.robotAspiratorService.energieNecessairePourRetour(robotServiceData?.positions[1], this.consommationParMouvement).toString());
+          this.log("Energie nécessaire au retour ="+ this.robotAspiratorService.energieNecessairePourRetour(this.basePosition, robotServiceData?.positions[1], this.consommationParMouvement).toString());
 
           try {
             observer.next([this.lastPosition, this.position]);
@@ -156,7 +163,7 @@ export class RobotAspiratorComponent implements OnDestroy {
         finalize(() => {
           // Ce bloc s'exécute UNE SEULE FOIS à la fin
           this.log('complete nettoyerAvecControleSouscription: Nettoyage ok ou batterie insuffisante !');
-          this.retournerALaBaseSouscription(observer);
+          this.retournerALaBaseSouscription(maison, observer);
           stopNettoyer$.complete(); // Nettoyer le Subject
         })
       ).subscribe({
@@ -168,7 +175,7 @@ export class RobotAspiratorComponent implements OnDestroy {
     );
   }
 
-  private retournerALaBaseSouscription(observer: Subscriber<Position[]>): void {
+  private retournerALaBaseSouscription(maison: Cell[][], observer: Subscriber<Position[]>): void {
 
     this.log("Retour à la base");
     this.log(`Batterie: ${this.batterie}%. Retour à la base.`);
@@ -176,6 +183,8 @@ export class RobotAspiratorComponent implements OnDestroy {
     this.subscription!.add(
       this.robotAspiratorService.nettoyerAvecControle(
         true, // isRetourAlaBase = true
+        maison,
+        this.basePosition,
         this.position,
         this.batterie,
         this.isRobotStarted,
@@ -209,7 +218,7 @@ export class RobotAspiratorComponent implements OnDestroy {
           this.log("this.position.x = " + this.position.x.toString());
           this.log("this.position.y = " + this.position.y.toString());
           this.log("this.batterie ="+ this.batterie.toString());
-          this.log("Energie nécessaire au retour ="+ this.robotAspiratorService.energieNecessairePourRetour(robotServiceData?.positions[1], this.consommationParMouvement).toString());
+          this.log("Energie nécessaire au retour ="+ this.robotAspiratorService.energieNecessairePourRetour(this.basePosition, robotServiceData?.positions[1], this.consommationParMouvement).toString());
 
           try {
             observer.next([this.lastPosition, this.position]);

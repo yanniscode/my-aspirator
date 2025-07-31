@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Position } from '../../classes/position';
 import { Cell } from '../../classes/cell';
-import { AppComponent } from '../../components/app.component';
 
 @Injectable({
   providedIn: 'root'
@@ -11,7 +10,7 @@ export class CheminOptimalService {
   constructor() { }
 
   // Algorithme A* pour trouver le chemin optimal
-  public trouverChemin(depart: Position, fin: Position): Position[] {
+  public trouverChemin(maison: Cell[][], depart: Position, fin: Position): Position[] {
     // Structure pour représenter un nœud dans l'algorithme A*
     interface Node {
       position: Position;
@@ -35,8 +34,8 @@ export class CheminOptimalService {
     const gScore = new Map<string, number>();
 
     // Initialiser gScore avec des valeurs infinies
-    for (let y = 0; y < AppComponent.maison.length; y++) {
-      for (let x = 0; x < AppComponent.maison[0].length; x++) {
+    for (let y = 0; y < maison.length; y++) {
+      for (let x = 0; x < maison[0].length; x++) {
         gScore.set(`${x},${y}`, Infinity);
       }
     }
@@ -70,7 +69,7 @@ export class CheminOptimalService {
       closedSet.add(currentKey);
 
       // Explorer les voisins
-      const voisins = this.obtenirCellulesAdjacentes(current.position);
+      const voisins = this.obtenirCellulesAdjacentes(maison, current.position);
 
       for (const voisin of voisins) {
         // Ignorer les obstacles
@@ -114,7 +113,7 @@ export class CheminOptimalService {
       }
 
       // Protection anti-boucle infinie
-      if (openSet.length > AppComponent.maison.length * AppComponent.maison[0].length) {
+      if (openSet.length > maison.length * maison[0].length) {
         console.error("Détection de boucle potentielle dans A*");
         break;
       }
@@ -125,7 +124,7 @@ export class CheminOptimalService {
   }
 
   // Trouver la prochaine cellule accessible non visitée la plus proche
-  public trouverProchaineDestination(position: Position): Cell | null {
+  public trouverProchaineDestination(maison: Cell[][], position: Position): Cell | null {
     // Utiliser un algorithme de recherche en largeur (BFS) pour trouver la cellule non visitée la plus proche
     const queue: { cell: Cell; distance: number }[] = [];
     const visited: Set<string> = new Set();
@@ -134,7 +133,7 @@ export class CheminOptimalService {
     visited.add(positionKey);
 
     // Ajouter les cellules adjacentes à la position actuelle
-    this.obtenirCellulesAdjacentes(position).forEach(cell => {
+    this.obtenirCellulesAdjacentes(maison, position).forEach(cell => {
       queue.push({ cell, distance: 1 });
       visited.add(`${cell.cellStack[0].position.x},${cell.cellStack[0].position.y}`);
     });
@@ -153,7 +152,7 @@ export class CheminOptimalService {
       }
 
       // Ajouter les cellules adjacentes à la file d'attente
-      this.obtenirCellulesAdjacentes(cell.cellStack[0].position).forEach(adjacentCell => {
+      this.obtenirCellulesAdjacentes(maison, cell.cellStack[0].position).forEach(adjacentCell => {
         const key = `${adjacentCell.cellStack[0].position.x},${adjacentCell.cellStack[0].position.y}`;
         if (!visited.has(key)) {
           queue.push({ cell: adjacentCell, distance: distance + 1 });
@@ -191,7 +190,7 @@ export class CheminOptimalService {
   }
 
   // Obtenir les cellules adjacentes à une position
-  private obtenirCellulesAdjacentes(position: Position): Cell[] {
+  private obtenirCellulesAdjacentes(maison: Cell[][], position: Position): Cell[] {
     const directions = [
       { dx: 0, dy: -1 }, // Nord
       { dx: 1, dy: 0 },  // Est
@@ -206,11 +205,11 @@ export class CheminOptimalService {
       const newY = position.y + dir.dy;
 
       // Vérifier si la nouvelle position est dans les limites de la maison et si c'est un bloc de type mur
-      if (newX >= 0 && newX < AppComponent.maison[0].length &&
-        newY >= 0 && newY < AppComponent.maison.length &&
-        "X" != AppComponent.maison[newY][newX].cellStack[0].type
+      if (newX >= 0 && newX < maison[0].length &&
+        newY >= 0 && newY < maison.length &&
+        "X" != maison[newY][newX].cellStack[0].type
       ) {
-        cellules.push(AppComponent.maison[newY][newX]);
+        cellules.push(maison[newY][newX]);
       }
     });
     return cellules;
