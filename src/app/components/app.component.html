@@ -13,7 +13,7 @@
 
     <div class="game-container">
       <div class="maison">
-        <p-table [value]="MaisonView" @maisonAnimation class="table-maison" cellspacing="0" cellpadding="0">
+        <p-table [value]="this.maison" @maisonAnimation class="table-maison" cellspacing="0" cellpadding="0">
           <ng-template pTemplate="body" let-rowData>
             <tr class="tr-maison">
               <td *ngFor="let cell of rowData" class="td-maison">

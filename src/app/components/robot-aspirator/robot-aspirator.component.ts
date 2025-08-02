@@ -8,6 +8,7 @@ import { Cell } from '../../classes/cell';
 
 @Component({
   selector: 'app-robot-aspirator',
+  standalone: true, // Composant autonome
   templateUrl: './robot-aspirator.component.html',
   styleUrl: './robot-aspirator.component.css'
 })
@@ -33,6 +34,10 @@ export class RobotAspiratorComponent implements OnDestroy {
   // Combien d'énergie est consommée par mouvement
   public consommationParMouvement: number;
 
+  private log(message: string) {
+    this.messageService.add(`AppComponent: ${message}`);
+  }
+
   constructor(messageService: MessageService) {
     // this.subscription = new Subscription();
     this.messageService = messageService;
@@ -57,10 +62,6 @@ export class RobotAspiratorComponent implements OnDestroy {
     }
   }
 
-  private log(message: string) {
-    this.messageService.add(`RobotAspiratorComponent: ${message}`);
-  }
-
   public pauseRobot(): void {
     this.isRobotStarted = false;
 
@@ -82,11 +83,7 @@ export class RobotAspiratorComponent implements OnDestroy {
         this.robotAspiratorService = new RobotAspiratorService(this.messageService);
 
         this.subscription!.add(
-          // TODO: supprimer callback ?
-          this.robotAspiratorService.robotPosition$.subscribe(update => {
-            // console.log('Robot moved:', update.current, 'from:', update.last);
-            // Mettre à jour l'affichage du robot si nécessaire
-          })
+          this.robotAspiratorService.robotPosition$.subscribe()
         );
       }
 
@@ -151,13 +148,13 @@ export class RobotAspiratorComponent implements OnDestroy {
           this.log("this.lastPosition.y =" + this.lastPosition.y.toString());
           this.log("this.position.x = " + this.position.x.toString());
           this.log("this.position.y = " + this.position.y.toString());
-          this.log("this.batterie ="+ this.batterie.toString());
-          this.log("Energie nécessaire au retour ="+ this.robotAspiratorService.energieNecessairePourRetour(this.basePosition, robotServiceData?.positions[1], this.consommationParMouvement).toString());
+          this.log("this.batterie =" + this.batterie.toString());
+          this.log("Energie nécessaire au retour =" + this.robotAspiratorService.energieNecessairePourRetour(this.basePosition, robotServiceData?.positions[1], this.consommationParMouvement).toString());
 
           try {
             observer.next([this.lastPosition, this.position]);
           } catch (error) {
-            this.log("Erreur lors de l'émission de la position: "+ error);
+            this.log("Erreur lors de l'émission de la position: " + error);
           }
         }),
         finalize(() => {
@@ -217,13 +214,13 @@ export class RobotAspiratorComponent implements OnDestroy {
           this.log("this.lastPosition.y =" + this.lastPosition.y.toString());
           this.log("this.position.x = " + this.position.x.toString());
           this.log("this.position.y = " + this.position.y.toString());
-          this.log("this.batterie ="+ this.batterie.toString());
-          this.log("Energie nécessaire au retour ="+ this.robotAspiratorService.energieNecessairePourRetour(this.basePosition, robotServiceData?.positions[1], this.consommationParMouvement).toString());
+          this.log("this.batterie =" + this.batterie.toString());
+          this.log("Energie nécessaire au retour =" + this.robotAspiratorService.energieNecessairePourRetour(this.basePosition, robotServiceData?.positions[1], this.consommationParMouvement).toString());
 
           try {
             observer.next([this.lastPosition, this.position]);
           } catch (error) {
-            this.log("Erreur lors de l'émission de la position: "+ error);
+            this.log("Erreur lors de l'émission de la position: " + error);
           }
 
         },

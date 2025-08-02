@@ -43,10 +43,6 @@ export class RobotAspiratorService {
   }
 
   ngOnDestroy(): void {
-    if (this.updateSubscriptionSeDeplacerVers) {
-      this.updateSubscriptionSeDeplacerVers.unsubscribe();
-    }
-
     if (this.robotPositionSubject) {
       this.robotPositionSubject.unsubscribe();
     }
@@ -58,10 +54,6 @@ export class RobotAspiratorService {
 
   public onPause(): void {
     this.isRobotStarted = false;
-
-    if (this.updateSubscriptionSeDeplacerVers) {
-      this.updateSubscriptionSeDeplacerVers.unsubscribe();
-    }
     if (this.robotPositionSubject) {
       this.robotPositionSubject.unsubscribe();
     }
@@ -115,7 +107,6 @@ export class RobotAspiratorService {
     // isRetourAlaBase n'est vrai ici que si prochaineCellule est null ou undefined
     if (prochaineCellule || isRetourAlaBase) {
 
-      // TODO: AppComponent.basePosition = variable selon le robot (ajouter variable basePosition à la classe RobotAspiratorComponent)
       let finChemin: Position = !isRetourAlaBase ? { ...prochaineCellule!.cellStack[0]!.position } : { ...basePosition };
 
       const chemin = this.cheminOptimalService.trouverChemin(maison, this.position, finChemin);
@@ -178,6 +169,8 @@ export class RobotAspiratorService {
       this.position = { ...nextPosition };
 
       this.log(`Déplacement vers (${this.position.x}, ${this.position.y}). Batterie: ${this.batterie.toFixed(1)}%`);
+
+      // TODO: simplifier en appelant un service externe où serait la Maison pour l'update des positions ?
 
       robotServiceData.positions = [lastPos, this.position];
       robotServiceData.isNettoyageComplete = false;

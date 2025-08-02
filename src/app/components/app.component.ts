@@ -15,6 +15,7 @@ import { RobotAspiratorComponent } from './robot-aspirator/robot-aspirator.compo
 
 @Component({
   selector: 'app-root',
+  standalone: true, // Composant autonome
   imports: [CommonModule, NgFor, NgIf, FormsModule, TableModule, RobotAspiratorComponent, MessagesComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
@@ -62,11 +63,8 @@ export class AppComponent implements OnDestroy, OnInit {
   // nécessaire pour l'animation (écoute d'observable avec rxjs)
   private subscription?: Subscription;
 
-  public maison: Cell[][] = [[]];
-  // TODO: garder ?
-  get MaisonView() {
-    return this.maison;
-  }
+  public maison: Cell[][] = [];
+
   static largeurMaison: number = 10;
   static hauteurMaison: number = 8;
   static obstacles: Position[] = [];
@@ -104,7 +102,13 @@ export class AppComponent implements OnDestroy, OnInit {
   // pour mettre à jour l'animation du déplacement du robot
   public moveTrigger2: number;
 
+  private log(message: string) {
+    this.messageService.add(`AppComponent: ${message}`);
+  }
+
   constructor(private messageService: MessageService) {
+    this.messageService = messageService;
+
     // valeurs par défaut pour l'initialisation du robot:
     this.lastPosition = { x: -2, y: -2 };
     this.position = { x: -1, y: -1 };
@@ -133,10 +137,6 @@ export class AppComponent implements OnDestroy, OnInit {
     }
   }
 
-  private log(message: string) {
-    this.messageService.add(`AppComponent: ${message}`);
-  }
-
   public startIntro(): void {
     // Création de la maison
     this.initMaisonConfig();
@@ -151,9 +151,9 @@ export class AppComponent implements OnDestroy, OnInit {
         // TODO: garder ?
         this.lastPosition = { x: 0, y: 0 };
         this.position = { ...this.lastPosition };
-        this.batterie = 12.5;
+        this.batterie = 50;
 
-        // TODO: revoir injection service:
+        // TODO: revoir instanciation : classe Robot à créer au lieu de l'instancier avec RobotAspiratorComponent (pas de New ici)
         // initialisation du robot et passage de ses caractéristiques
         this.robot1 = new RobotAspiratorComponent(this.messageService);
         this.robot1.basePosition = { x: 0, y: 0 };
@@ -176,7 +176,7 @@ export class AppComponent implements OnDestroy, OnInit {
         // initialisation des caractéristiques du robot (utilisées ici par la Vue)
         this.lastPosition = { x: 9, y: 0 };
         this.position = { ...this.lastPosition };
-        this.batterie = 50;
+        this.batterie = 12.5;
 
         // initialisation du robot et passage de ses caractéristiques
         this.robot2 = new RobotAspiratorComponent(this.messageService);
@@ -306,7 +306,7 @@ export class AppComponent implements OnDestroy, OnInit {
       // console.log(this.aspiroX);
       this.aspiroY1 += aspiroDirY;
       // console.log(this.aspiroY);
-      // TODO: améliorer
+      // TODO: améliorer avec tableau de robots ?
     } else if (robotName === "robot2") {
       this.aspiroX2 += aspiroDirX;
       this.aspiroY2 += aspiroDirY;
