@@ -30,13 +30,11 @@
       <!-- TODO: pour l'intro: condition d'affichage du robot, toujours présent actuellement -->
       <div class="robot" [@moveRobot1]="{ value: moveTrigger1, params: { x: aspiroX1, y: aspiroY1 } }">
         <!-- (click)="toggleAnimation()" -->
-        <app-robot-aspirator [position]="currentRobotPosition()" [lastPosition]="currentRobotLastPosition()"
-          [batterie]="currentRobotBatterie()"></app-robot-aspirator>
+        <app-robot-aspirator></app-robot-aspirator>
           <p style="font-weight:bold; font-size:8px; color:orangered;">AspiroMan 1</p>
       </div>
       <div class="robot" [@moveRobot2]="{ value: moveTrigger2, params: { x: aspiroX2, y: aspiroY2 } }">
-        <app-robot-aspirator [position]="currentRobotPosition()" [lastPosition]="currentRobotLastPosition()"
-          [batterie]="currentRobotBatterie()"></app-robot-aspirator>
+        <app-robot-aspirator></app-robot-aspirator>
           <p style="font-weight:bold; font-size:8px; color:yellow;">AspiroMan 2</p>
       </div>
     </div>

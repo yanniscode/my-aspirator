@@ -12,6 +12,7 @@ import { Cell } from '../classes/cell';
 import { CellElement } from '../classes/cellElement';
 import { MessagesComponent } from "../messages/messages.component";
 import { RobotAspiratorComponent } from './robot-aspirator/robot-aspirator.component';
+import { RobotAspiratorModel } from '../classes/robot-aspirator';
 
 @Component({
   selector: 'app-root',
@@ -70,8 +71,8 @@ export class AppComponent implements OnDestroy, OnInit {
   static obstacles: Position[] = [];
 
   // le robot peut être initialisé ou non
-  private robot1?: RobotAspiratorComponent;
-  private robot2?: RobotAspiratorComponent;
+  private robot1?: RobotAspiratorModel;
+  private robot2?: RobotAspiratorModel;
 
   private lastPosition: Position;
   private position: Position;
@@ -153,18 +154,16 @@ export class AppComponent implements OnDestroy, OnInit {
         this.position = { ...this.lastPosition };
         this.batterie = 50;
 
-        // TODO: revoir instanciation : classe Robot à créer au lieu de l'instancier avec RobotAspiratorComponent (pas de New ici)
         // initialisation du robot et passage de ses caractéristiques
-        this.robot1 = new RobotAspiratorComponent(this.messageService);
+        this.robot1 = new RobotAspiratorModel(this.messageService);
         this.robot1.basePosition = { x: 0, y: 0 };
-
-        // Position de la base de charge
-        // TODO: revoir inversion x, y:
-        this.maison[this.robot1!.basePosition.y][this.robot1!.basePosition.x].cellStack[0].type = 'B';
-
         this.robot1.lastPosition = { ...this.robot1.basePosition };
         this.robot1.position = { ...this.robot1.basePosition };
         this.robot1.batterie = 50;
+
+        // init de la base de charge du robot:
+        // TODO: revoir inversion x, y:
+        this.maison[this.robot1!.basePosition.y][this.robot1!.basePosition.x].cellStack[0].type = 'B';
 
         this.aspiroX1 = 0;
         this.aspiroY1 = 0 + 32;
@@ -179,14 +178,14 @@ export class AppComponent implements OnDestroy, OnInit {
         this.batterie = 12.5;
 
         // initialisation du robot et passage de ses caractéristiques
-        this.robot2 = new RobotAspiratorComponent(this.messageService);
+        this.robot2 = new RobotAspiratorModel(this.messageService);
         this.robot2.basePosition = { x: 9, y: 0 };
-
-        this.maison[this.robot2!.basePosition.y][this.robot2!.basePosition.x].cellStack[0].type = 'B';
-
         this.robot2.lastPosition = { ...this.robot2.basePosition };
         this.robot2.position = { ...this.robot2.basePosition };
         this.robot2.batterie = 50;
+
+        // init de la base de charge du robot:
+        this.maison[this.robot2!.basePosition.y][this.robot2!.basePosition.x].cellStack[0].type = 'B';
 
         this.aspiroX2 = 450;
         this.aspiroY2 = 0 + 32;
@@ -251,7 +250,7 @@ export class AppComponent implements OnDestroy, OnInit {
     }
   }
 
-  private addRobotToSubscription(robot: RobotAspiratorComponent, robotName: string): void {
+  private addRobotToSubscription(robot: RobotAspiratorModel, robotName: string): void {
     this.subscription!.add(
       robot?.onStartNettoyer(this.maison).subscribe({
         next: ([lastPosition, position]: Position[]) => {
