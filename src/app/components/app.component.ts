@@ -12,7 +12,7 @@ import { Cell } from '../classes/cell';
 import { CellElement } from '../classes/cellElement';
 import { MessagesComponent } from "../messages/messages.component";
 import { RobotAspiratorComponent } from './robot-aspirator/robot-aspirator.component';
-import { RobotAspiratorModel } from '../classes/robot-aspirator';
+import { RobotAspiratorModel } from '../classes/robot-aspirator-model';
 
 @Component({
   selector: 'app-root',
@@ -136,6 +136,8 @@ export class AppComponent implements OnDestroy, OnInit {
     if (this.subscription) {
       this.subscription.unsubscribe();
     }
+    this.robot1?.destroy();
+    this.robot2?.destroy();
   }
 
   public startIntro(): void {

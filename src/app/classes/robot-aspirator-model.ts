@@ -44,11 +44,16 @@ export class RobotAspiratorModel {
         this.consommationParMouvement = 0.5;
     }
 
-    //   ngOnDestroy(): void {
-    //     if (this.subscription) {
-    //       this.subscription.unsubscribe();
-    //     }
-    //   }
+    // remplace ngOnDestroy car ce n'est pas un composant Angular mais une Classe, ici:
+    public destroy(): void {
+        this.isRobotStarted = false;
+
+        if (this.subscription) {
+            this.subscription.unsubscribe();
+        }
+
+        this.robotAspiratorService.onPause();
+    }
 
     public pauseRobot(): void {
         this.isRobotStarted = false;
