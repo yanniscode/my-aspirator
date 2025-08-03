@@ -136,8 +136,6 @@ export class AppComponent implements OnDestroy, OnInit {
     if (this.subscription) {
       this.subscription.unsubscribe();
     }
-    this.robot1?.destroy();
-    this.robot2?.destroy();
   }
 
   public startIntro(): void {
@@ -157,7 +155,7 @@ export class AppComponent implements OnDestroy, OnInit {
         this.batterie = 50;
 
         // initialisation du robot et passage de ses caractéristiques
-        this.robot1 = new RobotAspiratorModel(this.messageService, this.robotAspiratorService, this.cheminOptimalService);
+        this.robot1 = new RobotAspiratorModel(this.messageService);
         this.robot1.basePosition = { x: 0, y: 0 };
         this.robot1.lastPosition = { ...this.robot1.basePosition };
         this.robot1.position = { ...this.robot1.basePosition };
@@ -280,7 +278,7 @@ export class AppComponent implements OnDestroy, OnInit {
           // TODO: en test - SUPPRIMÉ car bug: si un robot est en panne, l'autre est à l'arrêt à l'ihm, mais le composant continue bien les appels de service:
           // this.subscription!.unsubscribe();
 
-          if (this.robot1?.position.x === this.robot1?.basePosition.x && this.robot1?.position.y === this.robot1?.basePosition.y
+          if(this.robot1?.position.x === this.robot1?.basePosition.x && this.robot1?.position.y === this.robot1?.basePosition.y
             && this.robot2?.position.x === this.robot2?.basePosition.x && this.robot2?.position.y === this.robot2?.basePosition.y
           ) {
             this.pauseRobot();
@@ -314,7 +312,7 @@ export class AppComponent implements OnDestroy, OnInit {
     }
   }
 
-  private updateMaisonViewWithRobot(lastPosition: Position): void {
+  public updateMaisonViewWithRobot(lastPosition: Position): void {
 
     this.log("updateMaisonViewWithRobot");
     this.log("lastPosition.x = " + lastPosition.x);

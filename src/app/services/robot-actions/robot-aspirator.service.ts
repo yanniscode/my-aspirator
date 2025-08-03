@@ -18,7 +18,10 @@ export class RobotAspiratorService {
   private robotPositionSubject: Subject<RobotServiceData>;
   public robotPosition$: Observable<RobotServiceData>;
 
-  // TODO: supprimer les var si non-utilisées
+  // TODO: supprimer après modif de retour à la base:
+  private updateSubscriptionSeDeplacerVers?: Subscription;
+
+  // TODO: supprimer var si non-utilisées
   private isRobotStarted: boolean = false;
   // Position actuelle
   private position: Position = { x: 0, y: 0 };
