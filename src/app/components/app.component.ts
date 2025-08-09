@@ -1,5 +1,5 @@
 import { CommonModule, NgFor, NgIf } from '@angular/common';
-import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, OnDestroy, OnInit, QueryList, ViewChildren, ViewEncapsulation } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { trigger, transition, state, style, animate } from '@angular/animations';
 import { Subscription } from "rxjs";
@@ -47,6 +47,14 @@ import { RobotAspiratorModel } from '../classes/robot-aspirator-model';
   ]
 })
 export class AppComponent implements OnDestroy, OnInit {
+  // instanciation de composants enfants (un par robot)
+  @ViewChildren(RobotAspiratorComponent) robotAspiratorComponents!: QueryList<RobotAspiratorComponent>;
+
+  ngAfterViewInit() {
+    // Maintenant vous pouvez utiliser robotAspiratorComponents
+    console.log('Nombre de robots:', this.robotAspiratorComponents.length);
+  }
+
 
   // test du déplacement au clic
   // toggleAnimation() {
@@ -65,14 +73,13 @@ export class AppComponent implements OnDestroy, OnInit {
   private subscription?: Subscription;
 
   public maison: Cell[][] = [];
-
   static largeurMaison: number = 10;
   static hauteurMaison: number = 8;
   static obstacles: Position[] = [];
 
   // le robot peut être initialisé ou non
-  private robot1?: RobotAspiratorModel;
-  private robot2?: RobotAspiratorModel;
+  private robot1: RobotAspiratorModel;
+  private robot2: RobotAspiratorModel;
 
   private lastPosition: Position;
   private position: Position;
@@ -110,6 +117,9 @@ export class AppComponent implements OnDestroy, OnInit {
   constructor(private messageService: MessageService) {
     this.messageService = messageService;
 
+    this.robot1 = new RobotAspiratorModel();
+    this.robot2 = new RobotAspiratorModel();
+
     // valeurs par défaut pour l'initialisation du robot:
     this.lastPosition = { x: -2, y: -2 };
     this.position = { x: -1, y: -1 };
@@ -136,8 +146,8 @@ export class AppComponent implements OnDestroy, OnInit {
     if (this.subscription) {
       this.subscription.unsubscribe();
     }
-    this.robot1?.destroy();
-    this.robot2?.destroy();
+    // this.robot1?.destroy();
+    // this.robot2?.destroy();
   }
 
   public startIntro(): void {
@@ -147,8 +157,11 @@ export class AppComponent implements OnDestroy, OnInit {
 
     setTimeout(() => {
       // instanciation du robot
-      // console.log(this.robot1);
-      if (this.robot1 === undefined) {
+      console.log("this.robot1 :");
+      console.log(this.robot1);
+      // TODO: revoir condition
+      if (this.robot1.isRobotStarted === false) {
+        console.log(this.robot1.isRobotStarted === false);
 
         // initialisation des caractéristiques du robot (utilisées ici par la Vue)
         // TODO: garder ?
@@ -157,7 +170,8 @@ export class AppComponent implements OnDestroy, OnInit {
         this.batterie = 50;
 
         // initialisation du robot et passage de ses caractéristiques
-        this.robot1 = new RobotAspiratorModel(this.messageService);
+        this.robot1 = new RobotAspiratorModel();
+        this.robot1.robotName = "robot1";
         this.robot1.basePosition = { x: 0, y: 0 };
         this.robot1.lastPosition = { ...this.robot1.basePosition };
         this.robot1.position = { ...this.robot1.basePosition };
@@ -165,25 +179,29 @@ export class AppComponent implements OnDestroy, OnInit {
 
         // init de la base de charge du robot:
         // TODO: revoir inversion x, y:
-        this.maison[this.robot1!.basePosition.y][this.robot1!.basePosition.x].cellStack[0].type = 'B';
+        this.maison[this.robot1.basePosition.y][this.robot1.basePosition.x].cellStack[0].type = 'B';
 
         this.aspiroX1 = 0;
         this.aspiroY1 = 0 + 32;
         this.moveTrigger1 = 0
+
+        console.log(this.robot1);
       }
 
+
       // console.log(this.robot2);
-      if (this.robot2 === undefined) {
+      if (this.robot2.isRobotStarted === false) {
         // initialisation des caractéristiques du robot (utilisées ici par la Vue)
         this.lastPosition = { x: 9, y: 0 };
         this.position = { ...this.lastPosition };
         this.batterie = 12.5;
 
         // initialisation du robot et passage de ses caractéristiques
-        this.robot2 = new RobotAspiratorModel(this.messageService);
+        this.robot2 = new RobotAspiratorModel();
+        this.robot2.robotName = "robot2";
         this.robot2.basePosition = { x: 9, y: 0 };
-        this.robot2.lastPosition = { ...this.robot2.basePosition };
-        this.robot2.position = { ...this.robot2.basePosition };
+        this.robot2.lastPosition = { ...this.robot2!.basePosition };
+        this.robot2.position = { ...this.robot2!.basePosition };
         this.robot2.batterie = 50;
 
         // init de la base de charge du robot:
@@ -193,6 +211,8 @@ export class AppComponent implements OnDestroy, OnInit {
         this.aspiroY2 = 0 + 32;
         this.moveTrigger2 = 0;
       }
+      console.log(this.robot2);
+
     }, 1000);
   }
 
@@ -208,6 +228,7 @@ export class AppComponent implements OnDestroy, OnInit {
     ];
   }
 
+  // TODO: classe maison:
   private creerMaison(): void {
     // console.log("créer maison");
     for (let y = 0; y < AppComponent.hauteurMaison; y++) {
@@ -237,88 +258,54 @@ export class AppComponent implements OnDestroy, OnInit {
     if (this.subscription) {
       this.subscription.unsubscribe();
     }
-    this.robot1?.pauseRobot();
-    this.robot2?.pauseRobot();
+    // TODO: tableau de robots:
+    this.robotAspiratorComponents.get(0)?.pauseRobot();
+    // this.robot1?.pauseRobot();
+    // this.robot2?.pauseRobot();
   }
 
-  startRobot(): void {
-    // A l'intro, pas de souscription, donc on l'initialise ici
-    // si on clique plusieurs fois sur start, la souscription existe, et est ouverte, donc on ne resouscrit pas
-    // si on restart après mise en pause, la souscription existe à l'état closed, on la réinitialise ici
-    if (!this.subscription || this.subscription.closed) {
-      this.subscription = new Subscription();
-      this.addRobotToSubscription(this.robot1!, "robot1");
-      this.addRobotToSubscription(this.robot2!, "robot2");
-    }
+  public startRobot(): void {
+    console.log(this.robot1);
+    this.robotAspiratorComponents.get(0)?.startRobot(this.maison, this.robot1);
+    // this.robotAspiratorComponents.forEach(robotAspiratorComponent => {
+    //   robotAspiratorComponent.startRobot(this.maison, this.robot1);
+    // });
   }
 
-  private addRobotToSubscription(robot: RobotAspiratorModel, robotName: string): void {
-    this.subscription!.add(
-      robot?.onStartNettoyer(this.maison).subscribe({
-        next: ([lastPosition, position]: Position[]) => {
-          console.log('next startRobot...' + robotName);
-          this.log('next startRobot...' + robotName);
-          this.log(lastPosition.x.toString());
-          this.log(lastPosition.y.toString());
-          this.log(position.x.toString());
-          this.log(position.y.toString());
-
-          this.updateRobotView(robotName, lastPosition, position);
-
-          this.updateMaisonViewWithRobot(lastPosition);
-
-          if (position.x === robot.basePosition.x && position.y === robot.basePosition.y) {
-            this.log("arrivée à la base > unsubscribe");
-          }
-        },
-        error: (err: string) => {
-          this.log('Erreur onStartNettoyer: ' + err);
-        },
-        complete: () => {
-          this.log('complete onStartNettoyer: ok !');
-          // this.startIntro();
-          // TODO: en test - SUPPRIMÉ car bug: si un robot est en panne, l'autre est à l'arrêt à l'ihm, mais le composant continue bien les appels de service:
-          // this.subscription!.unsubscribe();
-
-          if(this.robot1?.position.x === this.robot1?.basePosition.x && this.robot1?.position.y === this.robot1?.basePosition.y
-            && this.robot2?.position.x === this.robot2?.basePosition.x && this.robot2?.position.y === this.robot2?.basePosition.y
-          ) {
-            this.pauseRobot();
-          }
-        }
-      })
-    );
+  // méthode pour récupérer la valeur du composant enfant > parent
+  public handleRobotUpdate(robotUpdate: RobotAspiratorModel): void {
+    console.log("handleRobotUpdate");
+    console.log(robotUpdate);
+    this.updateRobotView(robotUpdate);
+    this.updateMaisonView(robotUpdate.lastPosition);
   }
 
-  private updateRobotView(robotName: string, lastPosition: Position, position: Position): void {
+  private updateRobotView(robotUpdate: RobotAspiratorModel): void {
 
-    // console.log(lastPosition);
-    // console.log(position);
-    // console.log(this.robot.position);
-    // console.log(this.robot.position);
+    console.log(robotUpdate.lastPosition);
+    console.log(robotUpdate.position);
 
-    const aspiroDirX = (position.x - lastPosition.x) === 1 ? 50 :
-      (position.x - lastPosition.x) === -1 ? -50 : 0;
-    const aspiroDirY = (position.y - lastPosition.y) === 1 ? 50 :
-      (position.y - lastPosition.y) === -1 ? -50 : 0;
+    const aspiroDirX = (robotUpdate.position.x - robotUpdate.lastPosition.x) === 1 ? 50 :
+      (robotUpdate.position.x - robotUpdate.lastPosition.x) === -1 ? -50 : 0;
+    const aspiroDirY = (robotUpdate.position.y - robotUpdate.lastPosition.y) === 1 ? 50 :
+      (robotUpdate.position.y - robotUpdate.lastPosition.y) === -1 ? -50 : 0;
 
-    if (robotName === "robot1") {
+    if (robotUpdate.robotName === "robot1") {
       this.aspiroX1 += aspiroDirX;
       // console.log(this.aspiroX);
       this.aspiroY1 += aspiroDirY;
       // console.log(this.aspiroY);
-      // TODO: améliorer avec tableau de robots ?
-    } else if (robotName === "robot2") {
+    } else if (robotUpdate.robotName === "robot2") {
       this.aspiroX2 += aspiroDirX;
       this.aspiroY2 += aspiroDirY;
     }
   }
 
-  public updateMaisonViewWithRobot(lastPosition: Position): void {
+  private updateMaisonView(lastPosition: Position): void {
 
-    this.log("updateMaisonViewWithRobot");
-    this.log("lastPosition.x = " + lastPosition.x);
-    this.log("lastPosition.x = " + lastPosition.y);
+    console.log("updateMaisonView");
+    console.log("lastPosition.x = " + lastPosition.x);
+    console.log("lastPosition.x = " + lastPosition.y);
 
     // on ne veut pas que la case de la base soit modifiée:
     if (this.maison[lastPosition.y][lastPosition.x].cellStack[0].type !== 'B') {

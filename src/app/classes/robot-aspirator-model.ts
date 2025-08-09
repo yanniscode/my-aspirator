@@ -2,6 +2,7 @@ import { Position } from "./position";
 
 export class RobotAspiratorModel {
 
+    public robotName: string;
     // Position de la base de charge du robot
     public basePosition: Position;
     // Positions précédente et actuelle
@@ -14,6 +15,7 @@ export class RobotAspiratorModel {
     public isRobotStarted: boolean;
 
     constructor() {
+        this.robotName = "Theodule";
         // valeurs par défaut pour l'init du robot:
         this.basePosition = new Position();
         this.lastPosition = new Position();
