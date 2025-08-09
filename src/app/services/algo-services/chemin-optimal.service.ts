@@ -8,9 +8,33 @@ import { Cell } from '../../classes/cell';
 export class CheminOptimalService {
 
   constructor() { }
+    
+  public calculateNextPath(isRetourAlaBase: boolean, maison: Cell[][], basePosition: Position, position: Position): Position[] {
+    const prochaineCellule = this.trouverProchaineDestination(maison, position);
+    // console.log(prochaineCellule);
+
+    // isRetourAlaBase n'est vrai ici que si prochaineCellule est null ou undefined
+    if (prochaineCellule || isRetourAlaBase) {
+
+      let finChemin: Position = !isRetourAlaBase ? { ...prochaineCellule!.cellStack[0]!.position } : { ...basePosition };
+
+      const chemin = this.trouverChemin(maison, position, finChemin);
+      // console.log(chemin);
+
+      return chemin.map(pos => ({ ...pos }));
+      // console.log(this.cheminRestant);
+
+      // console.log("Nouveau chemin calculé vers:", prochaineCellule.cellStack[0].position);
+    } else {
+      console.log("RobotAspiratorService - Aucune cellule accessible non visitée trouvée");
+      // this.isNettoyageComplete = true;
+      return [];
+    }
+  }
+
 
   // Algorithme A* pour trouver le chemin optimal
-  public trouverChemin(maison: Cell[][], depart: Position, fin: Position): Position[] {
+  private trouverChemin(maison: Cell[][], depart: Position, fin: Position): Position[] {
     // Structure pour représenter un nœud dans l'algorithme A*
     interface Node {
       position: Position;

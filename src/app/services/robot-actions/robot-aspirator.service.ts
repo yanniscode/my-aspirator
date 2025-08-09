@@ -27,7 +27,7 @@ export class RobotAspiratorService {
   private isRobotStarted: boolean = false;
   private basePosition: Position;
   private lastPosition: Position;
-    // Position actuelle
+  // Position actuelle
   private position: Position = { x: 0, y: 0 };
   // Niveau de batterie (en pourcentage)
   private batterie: number = 0;
@@ -69,14 +69,14 @@ export class RobotAspiratorService {
   // Fonction principale pour nettoyer la maison
   public onStartNettoyer(maison: Cell[][], robot: RobotAspiratorModel): Observable<Position[]> {
 
-      console.log("onStartNettoyer robot");
-      console.log(robot);
-      this.isRobotStarted = robot.isRobotStarted;
-      this.basePosition = robot.basePosition;
-      this.lastPosition = robot.lastPosition;
-      this.position = robot.position;
-      this.batterie = robot.batterie;
-      this.consommationParMouvement = robot.consommationParMouvement;
+    console.log("onStartNettoyer robot");
+    console.log(robot);
+    this.isRobotStarted = robot.isRobotStarted;
+    this.basePosition = robot.basePosition;
+    this.lastPosition = robot.lastPosition;
+    this.position = robot.position;
+    this.batterie = robot.batterie;
+    this.consommationParMouvement = robot.consommationParMouvement;
 
     return new Observable<Position[]>((observer) => {
       if (!this.subscription || this.subscription.closed) {
@@ -243,7 +243,7 @@ export class RobotAspiratorService {
   // ******************
 
   // TODO: à simplifier ?
-  public nettoyerAvecControle(
+  private nettoyerAvecControle(
     isRetourAlaBase: boolean,
     maison: Cell[][],
     basePosition: Position,
@@ -259,6 +259,7 @@ export class RobotAspiratorService {
       this.robotPosition$ = this.robotPositionSubject.asObservable();
     }
 
+    this.basePosition = basePosition;
     this.position = { ...position };
     this.batterie = batterie;
     this.isRobotStarted = isRobotStarted;
@@ -266,7 +267,10 @@ export class RobotAspiratorService {
     this.isNettoyageComplete = false;
 
     // Calculer le chemin initial
-    this.calculateNextPath(isRetourAlaBase, maison, basePosition);
+    this.cheminRestant = this.cheminOptimalService.calculateNextPath(isRetourAlaBase, maison, this.basePosition, this.position);
+    if (this.cheminRestant.length === 0) {
+      this.isNettoyageComplete = true;
+    }
 
     // Utiliser un timer régulier pour l'animation
     return timer(0, intervalMs).pipe(
@@ -282,33 +286,9 @@ export class RobotAspiratorService {
     );
   }
 
-  // TODO: passer dans CheminOptimalService ?
-  private calculateNextPath(isRetourAlaBase: boolean, maison: Cell[][], basePosition: Position): void {
-    const prochaineCellule = this.cheminOptimalService.trouverProchaineDestination(maison, this.position);
-    // console.log(prochaineCellule);
-
-    // isRetourAlaBase n'est vrai ici que si prochaineCellule est null ou undefined
-    if (prochaineCellule || isRetourAlaBase) {
-
-      let finChemin: Position = !isRetourAlaBase ? { ...prochaineCellule!.cellStack[0]!.position } : { ...basePosition };
-
-      const chemin = this.cheminOptimalService.trouverChemin(maison, this.position, finChemin);
-      // console.log(chemin);
-
-      this.cheminRestant = chemin.map(pos => ({ ...pos }));
-      // console.log(this.cheminRestant);
-
-      // console.log("Nouveau chemin calculé vers:", prochaineCellule.cellStack[0].position);
-    } else {
-      console.log("RobotAspiratorService - Aucune cellule accessible non visitée trouvée");
-      this.isNettoyageComplete = true;
-      this.cheminRestant = [];
-    }
-  }
-
   private processNextMove(maison: Cell[][], consommationParMouvement: number, isRetourAlaBase: boolean, basePosition: Position): RobotServiceData {
 
-    this.log("########## processNextMove");
+    console.log("########## processNextMove");
 
     let robotServiceData: RobotServiceData = {
       // on actualise ici le niveau de batterie
@@ -335,7 +315,7 @@ export class RobotAspiratorService {
     // Si le chemin actuel est terminé, chercher la prochaine destination
     // Cette action est valable seulement si isRetourAlaBase = false;
     if (this.cheminRestant.length === 0 && isRetourAlaBase === false) {
-      this.calculateNextPath(false, maison, basePosition);
+      this.cheminRestant = this.cheminOptimalService.calculateNextPath(false, maison, basePosition, this.position);
 
       // Après calcul du nouveau chemin, actualisant this.cheminRestant, si aucune nouvelle destination n'est trouvée
       if (this.cheminRestant.length === 0) {
@@ -355,7 +335,7 @@ export class RobotAspiratorService {
       // Mettre à jour la position
       this.position = { ...nextPosition };
 
-      this.log(`Déplacement vers (${this.position.x}, ${this.position.y}). Batterie: ${this.batterie.toFixed(1)}%`);
+      console.log(`Déplacement vers (${this.position.x}, ${this.position.y}). Batterie: ${this.batterie.toFixed(1)}%`);
 
       // TODO: simplifier en appelant un service externe où serait la Maison pour l'update des positions ?
 
@@ -371,8 +351,8 @@ export class RobotAspiratorService {
     // Estimer la distance jusqu'à la base
     const distance = this.cheminOptimalService.distance(position, basePosition);
     this.log("distance minimale de la base = " + distance);
+
     // Ajouter une marge de sécurité
     return (distance * consommationParMouvement) * 1.2;
   }
-
 }
