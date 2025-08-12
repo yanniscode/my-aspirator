@@ -17,39 +17,8 @@
     grid-template-areas: "overlap";
 }
 
-.maison, .robot {
-    grid-area: overlap;
-}
-
-.maison {
-    background-color: #ffae2b;
-    display: flex; /* pour centrage de la maison */
-    align-items: center;
-    height: 450px;
-    position:relative;
-}
-
-.table-maison .p-datatable {
-    display: unset;
-}
-
-.tr-maison {
-    background: rgb(0, 140, 133) !important;
-}
-
-.tr-robot {
-    background: none;
-}
-
-.td-maison {
-    width: 50px;
-    height: 50px;
-    text-align: center !important;
-    border-style: none !important;
-    padding: 0rem 0.5rem !important;
-}
-
-.robot {
+.robot-container {
+    grid-area: overlap; /* important pour la disposition du robot */
     width: 50px;
     height: 50px;
     /* background-color: red; */ /* pour tests */

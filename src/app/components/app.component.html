@@ -12,32 +12,17 @@
     <h1>Aspiro-Man</h1>
 
     <div class="game-container">
-      <div class="maison">
-        <p-table [value]="this.maison" @maisonAnimation class="table-maison" cellspacing="0" cellpadding="0">
-          <ng-template pTemplate="body" let-rowData>
-            <tr class="tr-maison">
-              <td *ngFor="let cell of rowData" class="td-maison">
-                <img *ngIf="cell.cellStack[0].type === 'O'" src="/assets/texture-non-visitee.png" alt='O' />
-                <img *ngIf="cell.cellStack[0].type === 'X'" src="/assets/texture-mur.png" alt='X' />
-                <img *ngIf="cell.cellStack[0].type === 'B'" src="/assets/texture-base.png" alt='B' />
-                <img *ngIf="cell.cellStack[0].type === '_'" src="/assets/texture-visitee.png" alt='_' />
-              </td>
-            </tr>
-          </ng-template>
-        </p-table>
-      </div>
+
+      <app-maison></app-maison>
 
       <!-- TODO: pour l'intro: condition d'affichage du robot, toujours présent actuellement -->
-      <div class="robot" [@moveRobot1]="{ value: moveTrigger1, params: { x: aspiroX1, y: aspiroY1 } }">
+      <div class="robot-container" [@moveRobot1]="{ value: moveTrigger1, params: { x: aspiroX1, y: aspiroY1 } }">
         <!-- (click)="toggleAnimation()" -->
-        <app-robot-aspirator 
-          [positionInput]="currentRobotPosition()" 
-          [lastPositionInput]="currentRobotLastPosition()"
-          (robotUpdate)="handleRobotUpdate($event)"
-          [batterie]="currentRobotBatterie()"></app-robot-aspirator>
+        <app-robot-aspirator [positionInput]="currentRobotPosition()" [lastPositionInput]="currentRobotLastPosition()"
+          (robotUpdate)="handleRobotUpdate($event)" [batterie]="currentRobotBatterie()"></app-robot-aspirator>
         <p style="font-weight:bold; font-size:8px; color:orangered;">AspiroMan 1</p>
       </div>
-      <div class="robot" [@moveRobot2]="{ value: moveTrigger2, params: { x: aspiroX2, y: aspiroY2 } }">
+      <div class="robot-container" [@moveRobot2]="{ value: moveTrigger2, params: { x: aspiroX2, y: aspiroY2 } }">
         <app-robot-aspirator [positionInput]="currentRobotPosition()" [lastPositionInput]="currentRobotLastPosition()"
           [batterie]="currentRobotBatterie()"></app-robot-aspirator>
         <p style="font-weight:bold; font-size:8px; color:yellow;">AspiroMan 2</p>

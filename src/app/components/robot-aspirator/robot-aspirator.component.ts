@@ -1,16 +1,18 @@
-import { Component, EventEmitter, Input, OnDestroy, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnDestroy, Output, ViewEncapsulation } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { MessageService } from '../../services/message.service';
 import { Cell } from '../../classes/cell';
 import { Position } from '../../classes/position';
 import { RobotAspiratorService } from '../../services/robot-actions/robot-aspirator.service';
 import { RobotAspiratorModel } from '../../classes/robot-aspirator-model';
+import { RobotServiceData } from '../../classes/RobotServiceData';
 
 @Component({
   selector: 'app-robot-aspirator',
   standalone: true, // Composant autonome
   templateUrl: './robot-aspirator.component.html',
-  styleUrl: './robot-aspirator.component.css'
+  styleUrl: './robot-aspirator.component.css',
+  encapsulation: ViewEncapsulation.None
 })
 export class RobotAspiratorComponent implements OnDestroy {
 
@@ -27,11 +29,6 @@ export class RobotAspiratorComponent implements OnDestroy {
   @Output() robotUpdate: EventEmitter<RobotAspiratorModel> = new EventEmitter();
   private robotOutput: RobotAspiratorModel;
 
-  // le robot peut être initialisé ou non
-  // private robot1?: RobotAspiratorComponent;
-  // private robot1?: RobotAspiratorComponent;
-  // private robot2?: RobotAspiratorComponent;
-
   // Combien d'énergie est consommée par mouvement
   public consommationParMouvement: number;
 
@@ -42,20 +39,12 @@ export class RobotAspiratorComponent implements OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.robotAspiratorService.onPause();
     if (this.subscription) {
       this.log("RobotAspiratorComponent - ngOnDestroy unsubscribe !");
       this.subscription.unsubscribe();
     }
-    // this.robotAspiratorService.onPause();
   }
-  // remplace ngOnDestroy car ce n'est pas un composant Angular mais une Classe, ici:
-  // public destroy(): void {
-  //   // this.isRobotStarted = false;
-  //   if (this.subscription) {
-  //     this.subscription.unsubscribe();
-  //   }
-  //   this.robotAspiratorService.onPause();
-  // }
 
   constructor(private messageService: MessageService, private robotAspiratorService: RobotAspiratorService) {
 
@@ -77,14 +66,12 @@ export class RobotAspiratorComponent implements OnDestroy {
   }
 
   public pauseRobot(): void {
-    // this.isRobotStarted = false;
-    this.robotOutput.isRobotStarted = false;
-    
+    this.robotAspiratorService.onPause();
     if (this.subscription) {
       this.subscription.unsubscribe();
     }
-
-    this.robotAspiratorService.onPause();
+    // this.isRobotStarted = false;
+    this.robotOutput.isRobotStarted = false;
   }
 
 
@@ -100,10 +87,11 @@ export class RobotAspiratorComponent implements OnDestroy {
     }
   }
 
+  // méthode séparée, car à l'avenir, un robot peut avoir d'autres spécialités que l'aspi !
   private startAspiratorRobot(maison: Cell[][], robot: RobotAspiratorModel) {
     // public addRobotToSubscription(subscription: Subscription, maison: Cell[][], robot: RobotAspiratorModel, robotName: string): void {
 
-    console.log("addRobotToSubscription robot");
+    console.log("RobotAspiratorComponent startAspiratorRobot robot");
     console.log(robot);
     // this.isRobotStarted = robot.isRobotStarted;
     this.basePosition = robot.basePosition;
@@ -117,26 +105,32 @@ export class RobotAspiratorComponent implements OnDestroy {
 
     this.subscription!.add(
       this.robotAspiratorService.onStartNettoyer(maison, robot).subscribe({
-        next: ([lastPosition, position]: Position[]) => {
+        next: (robotServiceData: RobotServiceData) => {
 
           // TODO: ajouter robotName :
           console.log('next startRobot...' + robot.robotName);
           this.log('next startRobot...' + robot.robotName);
-          console.log(lastPosition.x.toString());
-          console.log(lastPosition.y.toString());
-          console.log(position.x.toString());
-          console.log(position.y.toString());
+          console.log(robotServiceData.positions[0].x.toString());
+          console.log(robotServiceData.positions[0].y.toString());
+          console.log(robotServiceData.positions[1].x.toString());
+          console.log(robotServiceData.positions[1].y.toString());
 
           // TODO: variable Output pour renvoyer au parent AppComponent pour update de la Vue
-          this.robotOutput = { ...robot };
-          this.robotOutput.lastPosition = { ...lastPosition };
-          this.robotOutput.position = { ...position };
-          
+          console.log('robot.position:', JSON.stringify(robot.position)); // Force la sérialisation immédiate
+          console.log(robot);
+          // copie par référence souhaitée ici:
+          this.robotOutput = robot;
+          console.log('robotOutput.position:', JSON.stringify(this.robotOutput.position));
+          console.log(this.robotOutput);
+          this.robotOutput.lastPosition = { ...robotServiceData.positions[0] };
+          this.robotOutput.position = { ...robotServiceData.positions[1] };
+          this.robotOutput.batterie = robotServiceData.batterie;
+
           this.updateRobot();
           // this.updateRobotView(robotName, lastPosition, position);
           // this.updateMaisonViewWithRobot(lastPosition);
 
-          if (position.x === robot.basePosition.x && position.y === robot.basePosition.y) {
+          if (robotServiceData.positions[1].x === robot.basePosition.x && robotServiceData.positions[1].y === robot.basePosition.y) {
             this.log("arrivée à la base > unsubscribe");
           }
         },
@@ -159,8 +153,9 @@ export class RobotAspiratorComponent implements OnDestroy {
     );
   }
 
+  // lien du composant enfant > parent
   public updateRobot(): void {
-    console.log(this.robotOutput);
+    // console.log(this.robotOutput);
     this.robotUpdate.emit(this.robotOutput);
-  }  
+  }
 }
