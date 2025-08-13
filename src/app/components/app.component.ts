@@ -176,7 +176,7 @@ export class AppComponent implements OnDestroy, OnInit {
         // au départ, le robot est à la base:
         this.robot1View.lastPosition = { ...this.robot1View.basePosition };
         this.robot1View.position = { ...this.robot1View.basePosition };
-        this.robot1View.batterie = 12.5;
+        this.robot1View.batterie = 50;
 
         // init de la base de charge du robot:
         // TODO: revoir inversion x, y:
