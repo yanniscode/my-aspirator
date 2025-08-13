@@ -17,7 +17,7 @@
     grid-template-areas: "overlap";
 }
 
-.robot-container {
+.robot-view-container {
     grid-area: overlap; /* important pour la disposition du robot */
     width: 50px;
     height: 50px;
