@@ -37,21 +37,9 @@ export class MaisonComponent {
     this.messageService.add(`AppComponent: ${message}`);
   }
 
-  public initMaisonConfig(): void {
-    this.log("*** initMaisonConfig ***");
-    // Création de la maison
-    MaisonModel.largeurMaison = 10;
-    MaisonModel.hauteurMaison = 8;
-    MaisonModel.obstacles = [
-      { x: 2, y: 3 }, { x: 2, y: 4 }, { x: 3, y: 4 },
-      { x: 7, y: 1 }, { x: 7, y: 2 }, { x: 7, y: 3 },
-      { x: 4, y: 6 }, { x: 5, y: 6 }, { x: 6, y: 6 }
-    ];
-  }
-
   // TODO: classe maison:
   public creerMaison(): void {
-    // console.log("créer maison");
+    this.log("créer maison");
     for (let y = 0; y < MaisonModel.hauteurMaison; y++) {
       this.maisonModel.maison[y] = [];
       for (let x = 0; x < MaisonModel.largeurMaison; x++) {

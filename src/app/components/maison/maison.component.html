@@ -2,6 +2,7 @@
     <p-table [value]="this.maisonModel.maison" @maisonAnimation class="table-maison" cellspacing="0" cellpadding="0">
         <ng-template pTemplate="body" let-rowData>
             <tr class="tr-maison">
+                <!-- TODO: placer le robot ici ?? -->
                 <td *ngFor="let cell of rowData" class="td-maison">
                     <img *ngIf="cell.cellStack[0].type === 'O'" src="/assets/texture-non-visitee.png" alt='O' />
                     <img *ngIf="cell.cellStack[0].type === 'X'" src="/assets/texture-mur.png" alt='X' />

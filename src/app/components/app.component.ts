@@ -12,6 +12,7 @@ import { MessagesComponent } from "../messages/messages.component";
 import { RobotAspiratorComponent } from './robot-aspirator/robot-aspirator.component';
 import { RobotAspiratorModel } from '../classes/robot-aspirator-model';
 import { MaisonComponent } from "./maison/maison.component";
+import { MaisonModel } from '../classes/maison-model';
 
 @Component({
   selector: 'app-root',
@@ -147,8 +148,11 @@ export class AppComponent implements OnDestroy, OnInit {
   }
 
   public startIntro(): void {
-    // Création de la maison
-    this.maisonComponent.initMaisonConfig();
+    this.log("startIntro");
+
+    // initialisation des datas de la maison
+    this.initMaisonConfig();
+    // création de la maison
     this.maisonComponent.creerMaison();
 
     setTimeout(() => {
@@ -211,6 +215,18 @@ export class AppComponent implements OnDestroy, OnInit {
       console.log(this.robot2View);
 
     }, 1000);
+  }
+
+  private initMaisonConfig(): void {
+    console.log("initMaisonConfig");
+    // Création de la maison
+    MaisonModel.largeurMaison = 10;
+    MaisonModel.hauteurMaison = 8;
+    MaisonModel.obstacles = [
+      { x: 2, y: 3 }, { x: 2, y: 4 }, { x: 3, y: 4 },
+      { x: 7, y: 1 }, { x: 7, y: 2 }, { x: 7, y: 3 },
+      { x: 4, y: 6 }, { x: 5, y: 6 }, { x: 6, y: 6 }
+    ];
   }
 
   public pauseRobot(): void {
