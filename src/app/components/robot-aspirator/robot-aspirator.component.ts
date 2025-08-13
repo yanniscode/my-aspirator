@@ -1,11 +1,11 @@
 import { Component, EventEmitter, Input, OnDestroy, Output, ViewEncapsulation } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { MessageService } from '../../services/message.service';
-import { Cell } from '../../classes/cell';
-import { Position } from '../../classes/position';
 import { RobotAspiratorService } from '../../services/robot-actions/robot-aspirator.service';
-import { RobotAspiratorModel } from '../../classes/robot-aspirator-model';
-import { RobotServiceData } from '../../classes/RobotServiceData';
+import { Cell } from '../../classes/models/cell';
+import { Position } from '../../classes/models/position';
+import { RobotAspirator } from '../../classes/models/robot-aspirator';
+import { RobotServiceDtoOut } from '../../classes/dtos/robot-service-dto-out';
 
 @Component({
   selector: 'app-robot-aspirator',
@@ -26,8 +26,8 @@ export class RobotAspiratorComponent implements OnDestroy {
   // Niveau de batterie (en pourcentage)
   @Input() batterie: number;
 
-  @Output() robotUpdate: EventEmitter<RobotAspiratorModel> = new EventEmitter();
-  private robotOutput: RobotAspiratorModel;
+  @Output() robotUpdate: EventEmitter<RobotAspirator> = new EventEmitter();
+  private robotOutput: RobotAspirator;
 
   // Combien d'énergie est consommée par mouvement
   public consommationParMouvement: number;
@@ -62,7 +62,7 @@ export class RobotAspiratorComponent implements OnDestroy {
     // Combien d'énergie est consommée par mouvement
     this.consommationParMouvement = 0.5;
 
-    this.robotOutput = new RobotAspiratorModel();
+    this.robotOutput = new RobotAspirator();
   }
 
   public pauseRobot(): void {
@@ -77,7 +77,7 @@ export class RobotAspiratorComponent implements OnDestroy {
 
   // ********************
 
-  public startRobot(maison: Cell[][], robot: RobotAspiratorModel): void {
+  public startRobot(maison: Cell[][], robot: RobotAspirator): void {
     // A l'intro, pas de souscription, donc on l'initialise ici
     // si on clique plusieurs fois sur start, la souscription existe, et est ouverte, donc on ne resouscrit pas
     // si on restart après mise en pause, la souscription existe à l'état closed, on la réinitialise ici
@@ -88,8 +88,8 @@ export class RobotAspiratorComponent implements OnDestroy {
   }
 
   // méthode séparée, car à l'avenir, un robot peut avoir d'autres spécialités que l'aspi !
-  private startAspiratorRobot(maison: Cell[][], robot: RobotAspiratorModel) {
-    // public addRobotToSubscription(subscription: Subscription, maison: Cell[][], robot: RobotAspiratorModel, robotName: string): void {
+  private startAspiratorRobot(maison: Cell[][], robot: RobotAspirator) {
+    // public addRobotToSubscription(subscription: Subscription, maison: Cell[][], robot: RobotAspirator, robotName: string): void {
 
     console.log("RobotAspiratorComponent startAspiratorRobot robot");
     console.log(robot);
@@ -105,7 +105,7 @@ export class RobotAspiratorComponent implements OnDestroy {
 
     this.subscription!.add(
       this.robotAspiratorService.onStartNettoyer(maison, robot).subscribe({
-        next: (robotServiceData: RobotServiceData) => {
+        next: (robotServiceData: RobotServiceDtoOut) => {
 
           // TODO: ajouter robotName :
           console.log('next startRobot...' + robot.robotName);

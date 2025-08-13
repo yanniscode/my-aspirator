@@ -1,7 +1,7 @@
-import { Position } from "./position";
+import { Position } from "../models/position";
 
 // TODO: supprimer cette classe ??
-export class RobotServiceData {
+export class RobotServiceDtoOut {
     batterie: number;
     // TODO: isNettoyageComplete dans classe maison (à créer)
     isNettoyageComplete: boolean;

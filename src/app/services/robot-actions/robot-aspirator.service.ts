@@ -1,12 +1,12 @@
 import { Injectable } from '@angular/core';
-import { Position } from '../../classes/position';
-import { RobotServiceData } from '../../classes/RobotServiceData';
 
 import { finalize, map, Observable, Subject, Subscriber, Subscription, takeUntil, takeWhile, tap, timer } from 'rxjs';
 import { CheminOptimalService } from '../algo-services/chemin-optimal.service';
 import { MessageService } from '../message.service';
-import { Cell } from '../../classes/cell';
-import { RobotAspiratorModel } from '../../classes/robot-aspirator-model';
+import { Cell } from '../../classes/models/cell';
+import { Position } from '../../classes/models/position';
+import { RobotAspirator } from '../../classes/models/robot-aspirator';
+import { RobotServiceDtoOut } from '../../classes/dtos/robot-service-dto-out';
 
 @Injectable({
   providedIn: 'root'
@@ -68,7 +68,7 @@ export class RobotAspiratorService {
   }
 
   // Fonction principale pour nettoyer la maison
-  public onStartNettoyer(maison: Cell[][], robot: RobotAspiratorModel): Observable<RobotServiceData> {
+  public onStartNettoyer(maison: Cell[][], robot: RobotAspirator): Observable<RobotServiceDtoOut> {
 
     console.log("onStartNettoyer robot");
     console.log(robot);
@@ -79,7 +79,7 @@ export class RobotAspiratorService {
     this.batterie = robot.batterie;
     this.consommationParMouvement = robot.consommationParMouvement;
 
-    return new Observable<RobotServiceData>((observer) => {
+    return new Observable<RobotServiceDtoOut>((observer) => {
       console.log(this.subscription);
       if (!this.subscription || this.subscription.closed) {
         console.log("onStartNettoyer new subscription !")
@@ -106,7 +106,7 @@ export class RobotAspiratorService {
     });
   }
 
-  private nettoyerAvecControleSouscription(maison: Cell[][], observer: Subscriber<RobotServiceData>): void {
+  private nettoyerAvecControleSouscription(maison: Cell[][], observer: Subscriber<RobotServiceDtoOut>): void {
     console.log("Début du nettoyage");
     console.log(`Batterie: ${this.batterie}%.`);
 
@@ -123,7 +123,7 @@ export class RobotAspiratorService {
         this.consommationParMouvement
       ).pipe(
         takeUntil(stopNettoyer$), // L'Observable continue jusqu'à ce que stopNettoyer$ émette
-        tap((robotServiceData: RobotServiceData) => {
+        tap((robotServiceData: RobotServiceDtoOut) => {
 
           console.log('*** next nettoyerAvecControleSouscription...');
           console.log(robotServiceData);
@@ -183,7 +183,7 @@ export class RobotAspiratorService {
     );
   }
 
-  private retournerALaBaseSouscription(maison: Cell[][], observer: Subscriber<RobotServiceData>): void {
+  private retournerALaBaseSouscription(maison: Cell[][], observer: Subscriber<RobotServiceDtoOut>): void {
 
     console.log("*** Retour à la base ***");
     console .log(`Batterie: ${this.batterie}%. Retour à la base.`);
@@ -198,7 +198,7 @@ export class RobotAspiratorService {
         this.isRobotStarted,
         this.consommationParMouvement
       ).subscribe({
-        next: (robotServiceData: RobotServiceData) => {
+        next: (robotServiceData: RobotServiceDtoOut) => {
 
           console.log('next retournerALaBaseSouscription...');
           console.log(robotServiceData);
@@ -260,7 +260,7 @@ export class RobotAspiratorService {
     isRobotStarted: boolean,
     consommationParMouvement: number,
     intervalMs: number = 600
-  ): Observable<RobotServiceData> {
+  ): Observable<RobotServiceDtoOut> {
 
     // console.log(this.robotPositionSubject);
     // if (this.robotPositionSubject.closed) {
@@ -295,11 +295,11 @@ export class RobotAspiratorService {
     );
   }
 
-  private processNextMove(maison: Cell[][], consommationParMouvement: number, isRetourAlaBase: boolean, basePosition: Position): RobotServiceData {
+  private processNextMove(maison: Cell[][], consommationParMouvement: number, isRetourAlaBase: boolean, basePosition: Position): RobotServiceDtoOut{
 
     console.log("########## processNextMove");
 
-    let robotServiceData: RobotServiceData = {
+    let robotServiceData: RobotServiceDtoOut= {
       // on actualise ici le niveau de batterie
       batterie: this.batterie,
       isNettoyageComplete: false,

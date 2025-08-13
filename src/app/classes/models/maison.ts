@@ -1,7 +1,7 @@
 import { Cell } from "./cell";
 import { Position } from "./position";
 
-export class MaisonModel {
+export class Maison {
     public maison: Cell[][];
     static largeurMaison: number;
     static hauteurMaison: number;
@@ -9,8 +9,8 @@ export class MaisonModel {
 
     constructor() {
         this.maison = [];
-        MaisonModel.largeurMaison = 0;
-        MaisonModel.hauteurMaison = 0
-        MaisonModel.obstacles = [];
+        Maison.largeurMaison = 0;
+        Maison.hauteurMaison = 0
+        Maison.obstacles = [];
     }
 }

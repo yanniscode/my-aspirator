@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { Position } from '../../classes/position';
-import { Cell } from '../../classes/cell';
+import { Cell } from '../../classes/models/cell';
+import { Position } from '../../classes/models/position';
 
 @Injectable({
   providedIn: 'root'

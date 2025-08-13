@@ -7,12 +7,12 @@ import { TableModule } from 'primeng/table';
 
 import { MessageService } from '../services/message.service';
 
-import { Position } from '../classes/position';
 import { MessagesComponent } from "../messages/messages.component";
 import { RobotAspiratorComponent } from './robot-aspirator/robot-aspirator.component';
-import { RobotAspiratorModel } from '../classes/robot-aspirator-model';
 import { MaisonComponent } from "./maison/maison.component";
-import { MaisonModel } from '../classes/maison-model';
+import { Position } from '../classes/models/position';
+import { RobotAspirator } from '../classes/models/robot-aspirator';
+import { Maison } from '../classes/models/maison';
 
 @Component({
   selector: 'app-root',
@@ -62,8 +62,8 @@ export class AppComponent implements OnDestroy, OnInit {
   private subscription?: Subscription;
 
   // le robot peut être initialisé ou non
-  private robot1View: RobotAspiratorModel;
-  private robot2View: RobotAspiratorModel;
+  private robot1View: RobotAspirator;
+  private robot2View: RobotAspirator;
 
   private lastPosition: Position;
   private position: Position;
@@ -101,8 +101,8 @@ export class AppComponent implements OnDestroy, OnInit {
   constructor(private messageService: MessageService) {
     this.messageService = messageService;
 
-    this.robot1View = new RobotAspiratorModel();
-    this.robot2View = new RobotAspiratorModel();
+    this.robot1View = new RobotAspirator();
+    this.robot2View = new RobotAspirator();
 
     // valeurs par défaut pour l'initialisation du robot:
     this.lastPosition = { x: -2, y: -2 };
@@ -170,17 +170,17 @@ export class AppComponent implements OnDestroy, OnInit {
         this.batterie = 0;
 
         // initialisation du robot et passage de ses caractéristiques
-        this.robot1View = new RobotAspiratorModel();
+        this.robot1View = new RobotAspirator();
         this.robot1View.robotName = "robot1";
         this.robot1View.basePosition = { x: 0, y: 0 };
         // au départ, le robot est à la base:
         this.robot1View.lastPosition = { ...this.robot1View.basePosition };
         this.robot1View.position = { ...this.robot1View.basePosition };
-        this.robot1View.batterie = 50;
+        this.robot1View.batterie = 12.5;
 
         // init de la base de charge du robot:
         // TODO: revoir inversion x, y:
-        this.maisonComponent.maisonModel.maison[this.robot1View.basePosition.y][this.robot1View.basePosition.x].cellStack[0].type = 'B';
+        this.maisonComponent.maisonView.maison[this.robot1View.basePosition.y][this.robot1View.basePosition.x].cellStack[0].type = 'B';
 
         this.aspiroX1 = 0;
         this.aspiroY1 = 0 + 82;
@@ -198,7 +198,7 @@ export class AppComponent implements OnDestroy, OnInit {
         this.batterie = 12.5;
 
         // initialisation du robot et passage de ses caractéristiques
-        this.robot2View = new RobotAspiratorModel();
+        this.robot2View = new RobotAspirator();
         this.robot2View.robotName = "robot2";
         this.robot2View.basePosition = { x: 9, y: 0 };
         this.robot2View.lastPosition = { ...this.robot2View!.basePosition };
@@ -206,7 +206,7 @@ export class AppComponent implements OnDestroy, OnInit {
         this.robot2View.batterie = 50;
 
         // init de la base de charge du robot:
-        this.maisonComponent.maisonModel.maison[this.robot2View!.basePosition.y][this.robot2View!.basePosition.x].cellStack[0].type = 'B';
+        this.maisonComponent.maisonView.maison[this.robot2View!.basePosition.y][this.robot2View!.basePosition.x].cellStack[0].type = 'B';
 
         this.aspiroX2 = 450;
         this.aspiroY2 = 0 + 82;
@@ -220,9 +220,9 @@ export class AppComponent implements OnDestroy, OnInit {
   private initMaisonConfig(): void {
     console.log("initMaisonConfig");
     // Création de la maison
-    MaisonModel.largeurMaison = 10;
-    MaisonModel.hauteurMaison = 8;
-    MaisonModel.obstacles = [
+    Maison.largeurMaison = 10;
+    Maison.hauteurMaison = 8;
+    Maison.obstacles = [
       { x: 2, y: 3 }, { x: 2, y: 4 }, { x: 3, y: 4 },
       { x: 7, y: 1 }, { x: 7, y: 2 }, { x: 7, y: 3 },
       { x: 4, y: 6 }, { x: 5, y: 6 }, { x: 6, y: 6 }
@@ -241,7 +241,7 @@ export class AppComponent implements OnDestroy, OnInit {
 
   public startRobot(): void {
     console.log(this.robot1View);
-    this.robotAspiratorComponents.get(0)?.startRobot(this.maisonComponent.maisonModel.maison, this.robot1View);
+    this.robotAspiratorComponents.get(0)?.startRobot(this.maisonComponent.maisonView.maison, this.robot1View);
     // TODO: remettre en place après créa de tableau de Robots
     // this.robotAspiratorComponents.forEach(robotAspiratorComponent => {
     //   robotAspiratorComponent.startRobot(this.maison, this.robot1);
@@ -249,14 +249,14 @@ export class AppComponent implements OnDestroy, OnInit {
   }
 
   // méthode pour récupérer la nouvelle valeur du composant Robot enfant > parent et mettre à jour la vue (Robot et Maison)
-  public handleRobotUpdate(robotUpdate: RobotAspiratorModel): void {
+  public handleRobotUpdate(robotUpdate: RobotAspirator): void {
     console.log("handleRobotUpdate");
     console.log(robotUpdate);
     this.updateRobotView(robotUpdate);
     this.maisonComponent.updateMaisonView(robotUpdate.lastPosition);
   }
 
-  private updateRobotView(robotUpdate: RobotAspiratorModel): void {
+  private updateRobotView(robotUpdate: RobotAspirator): void {
     console.log(robotUpdate.robotName);
     console.log(robotUpdate.isRobotStarted);
     console.log(robotUpdate.lastPosition);
