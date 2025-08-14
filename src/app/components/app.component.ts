@@ -7,12 +7,11 @@ import { TableModule } from 'primeng/table';
 
 import { MessageService } from '../services/message.service';
 
-import { MessagesComponent } from "../messages/messages.component";
 import { RobotAspiratorComponent } from './robot-aspirator/robot-aspirator.component';
 import { MaisonComponent } from "./maison/maison.component";
 import { Position } from '../classes/models/position';
 import { RobotAspirator } from '../classes/models/robot-aspirator';
-import { Maison } from '../classes/models/maison';
+import { MessagesComponent } from './messages/messages.component';
 
 @Component({
   selector: 'app-root',
@@ -42,8 +41,8 @@ import { Maison } from '../classes/models/maison';
 })
 export class AppComponent implements OnDestroy, OnInit {
   // instantiation des composants enfants (un par robot)
-  @ViewChild(MaisonComponent) maisonComponent!: MaisonComponent;
-  @ViewChildren(RobotAspiratorComponent) robotAspiratorComponents!: QueryList<RobotAspiratorComponent>;
+  @ViewChild(MaisonComponent) maisonChildComponent!: MaisonComponent;
+  @ViewChildren(RobotAspiratorComponent) robotAspiratorChildComponents!: QueryList<RobotAspiratorComponent>;
 
   // test du déplacement au clic
   // toggleAnimation() {
@@ -119,12 +118,12 @@ export class AppComponent implements OnDestroy, OnInit {
   }
 
   ngOnInit(): void {
-    console.log('maisonComponent:', this.maisonComponent);
-    console.log('Nombre de robots:', this.robotAspiratorComponents?.length);
+    console.log('maisonComponent:', this.maisonChildComponent);
+    console.log('Nombre de robots:', this.robotAspiratorChildComponents?.length);
 
     // Attendre que la vue soit complètement initialisée
     setTimeout(() => {
-      if (this.maisonComponent) {
+      if (this.maisonChildComponent) {
         this.startIntro();
       }
     }, 100);
@@ -133,8 +132,8 @@ export class AppComponent implements OnDestroy, OnInit {
   ngAfterViewInit() {
   // TODO: garder ? voir si startIntro() possible ici ?
     // Maintenant vous pouvez utiliser robotAspiratorComponents
-    console.log('maisonComponent:', this.maisonComponent);
-    console.log('Nombre de robots:', this.robotAspiratorComponents.length);
+    console.log('maisonComponent:', this.maisonChildComponent);
+    console.log('Nombre de robots:', this.robotAspiratorChildComponents.length);
   }
 
   ngOnDestroy(): void {
@@ -153,7 +152,7 @@ export class AppComponent implements OnDestroy, OnInit {
     // initialisation des datas de la maison
     this.initMaisonConfig();
     // création de la maison
-    this.maisonComponent.creerMaison();
+    this.maisonChildComponent.creerMaison();
 
     setTimeout(() => {
       // instantiation du robot
@@ -180,7 +179,7 @@ export class AppComponent implements OnDestroy, OnInit {
 
         // init de la base de charge du robot:
         // TODO: revoir inversion x, y:
-        this.maisonComponent.maisonView.maison[this.robot1View.basePosition.y][this.robot1View.basePosition.x].cellStack[0].type = 'B';
+        this.maisonChildComponent.maisonView.maison[this.robot1View.basePosition.y][this.robot1View.basePosition.x].cellStack[0].type = 'B';
 
         this.aspiroX1 = 0;
         this.aspiroY1 = 0 + 82;
@@ -188,7 +187,6 @@ export class AppComponent implements OnDestroy, OnInit {
 
         console.log(this.robot1View);
       }
-
 
       // console.log(this.robot2);
       if (this.robot2View.isRobotStarted === false) {
@@ -206,7 +204,7 @@ export class AppComponent implements OnDestroy, OnInit {
         this.robot2View.batterie = 50;
 
         // init de la base de charge du robot:
-        this.maisonComponent.maisonView.maison[this.robot2View!.basePosition.y][this.robot2View!.basePosition.x].cellStack[0].type = 'B';
+        this.maisonChildComponent.maisonView.maison[this.robot2View!.basePosition.y][this.robot2View!.basePosition.x].cellStack[0].type = 'B';
 
         this.aspiroX2 = 450;
         this.aspiroY2 = 0 + 82;
@@ -220,9 +218,9 @@ export class AppComponent implements OnDestroy, OnInit {
   private initMaisonConfig(): void {
     console.log("initMaisonConfig");
     // Création de la maison
-    Maison.largeurMaison = 10;
-    Maison.hauteurMaison = 8;
-    Maison.obstacles = [
+    this.maisonChildComponent.maisonView.largeurMaison = 10;
+    this.maisonChildComponent.maisonView.hauteurMaison = 8;
+    this.maisonChildComponent.maisonView.obstacles = [
       { x: 2, y: 3 }, { x: 2, y: 4 }, { x: 3, y: 4 },
       { x: 7, y: 1 }, { x: 7, y: 2 }, { x: 7, y: 3 },
       { x: 4, y: 6 }, { x: 5, y: 6 }, { x: 6, y: 6 }
@@ -234,14 +232,14 @@ export class AppComponent implements OnDestroy, OnInit {
       this.subscription.unsubscribe();
     }
     // TODO: tableau de robots:
-    this.robotAspiratorComponents.get(0)?.pauseRobot();
+    this.robotAspiratorChildComponents.get(0)?.pauseRobot();
     // this.robot1?.pauseRobot();
     // this.robot2?.pauseRobot();
   }
 
   public start(): void {
     console.log(this.robot1View);
-    this.robotAspiratorComponents.get(0)?.startRobot(this.maisonComponent.maisonView.maison, this.robot1View);
+    this.robotAspiratorChildComponents.get(0)?.startRobot(this.maisonChildComponent.maisonView.maison, this.robot1View);
     // TODO: remettre en place après créa de tableau de Robots
     // this.robotAspiratorComponents.forEach(robotAspiratorComponent => {
     //   robotAspiratorComponent.startRobot(this.maison, this.robot1);
@@ -253,7 +251,7 @@ export class AppComponent implements OnDestroy, OnInit {
     console.log("handleRobotUpdate");
     console.log(robotUpdate);
     this.updateRobotView(robotUpdate);
-    this.maisonComponent.updateMaisonView(robotUpdate.lastPosition);
+    this.maisonChildComponent.updateMaisonView(robotUpdate.lastPosition);
   }
 
   private updateRobotView(robotUpdate: RobotAspirator): void {

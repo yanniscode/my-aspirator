@@ -3,14 +3,14 @@ import { Position } from "./position";
 
 export class Maison {
     public maison: Cell[][];
-    static largeurMaison: number;
-    static hauteurMaison: number;
-    static obstacles: Position[];
+    public largeurMaison: number;
+    public hauteurMaison: number;
+    public obstacles: Position[];
 
     constructor() {
         this.maison = [];
-        Maison.largeurMaison = 0;
-        Maison.hauteurMaison = 0
-        Maison.obstacles = [];
+        this.largeurMaison = 0;
+        this.hauteurMaison = 0
+        this.obstacles = [];
     }
 }

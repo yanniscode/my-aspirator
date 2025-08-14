@@ -29,9 +29,9 @@ export class MaisonComponent {
   constructor(private messageService: MessageService) {
     this.maisonView = new Maison();
     // TODO: revoir maison sans static ??
-    Maison.largeurMaison = 10;
-    Maison.hauteurMaison = 8;
-    Maison.obstacles = [];
+    this.maisonView.largeurMaison = 10;
+    this.maisonView.hauteurMaison = 8;
+    this.maisonView.obstacles = [];
   }
 
   private log(message: string) {
@@ -41,9 +41,9 @@ export class MaisonComponent {
   // TODO: classe maison:
   public creerMaison(): void {
     this.log("créer maison");
-    for (let y = 0; y < Maison.hauteurMaison; y++) {
+    for (let y = 0; y < this.maisonView.hauteurMaison; y++) {
       this.maisonView.maison[y] = [];
-      for (let x = 0; x < Maison.largeurMaison; x++) {
+      for (let x = 0; x < this.maisonView.largeurMaison; x++) {
         let cellElement: CellElement = {
           position: { x, y },
           type: 'O',
@@ -57,8 +57,8 @@ export class MaisonComponent {
       }
     }
     // Ajouter les obstacles
-    Maison.obstacles.forEach(obs => {
-      if (obs.x >= 0 && obs.x < Maison.largeurMaison && obs.y >= 0 && obs.y < Maison.hauteurMaison) {
+    this.maisonView.obstacles.forEach(obs => {
+      if (obs.x >= 0 && obs.x < this.maisonView.largeurMaison && obs.y >= 0 && obs.y < this.maisonView.hauteurMaison) {
         this.maisonView.maison[obs.y][obs.x].cellStack[0].type = 'X';
       }
     });
