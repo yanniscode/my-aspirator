@@ -229,7 +229,7 @@ export class AppComponent implements OnDestroy, OnInit {
     ];
   }
 
-  public pauseRobot(): void {
+  public pause(): void {
     if (this.subscription) {
       this.subscription.unsubscribe();
     }
@@ -239,7 +239,7 @@ export class AppComponent implements OnDestroy, OnInit {
     // this.robot2?.pauseRobot();
   }
 
-  public startRobot(): void {
+  public start(): void {
     console.log(this.robot1View);
     this.robotAspiratorComponents.get(0)?.startRobot(this.maisonComponent.maisonView.maison, this.robot1View);
     // TODO: remettre en place après créa de tableau de Robots
