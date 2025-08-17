@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Cell } from '../../classes/models/cell';
 import { Position } from '../../classes/models/position';
+import { Maison } from '../../classes/models/maison';
 
 @Injectable({
   providedIn: 'root'
@@ -8,7 +9,7 @@ import { Position } from '../../classes/models/position';
 export class CheminOptimalService {
 
   constructor() { }
-    
+
   public calculateNextPath(isRetourAlaBase: boolean, maison: Cell[][], basePosition: Position, position: Position): Position[] {
     const prochaineCellule = this.trouverProchaineDestination(maison, position);
     // console.log(prochaineCellule);
@@ -208,11 +209,6 @@ export class CheminOptimalService {
     return chemin;
   }
 
-  // Calculer la distance entre deux positions (heuristique pour A*)
-  public distance(a: Position, b: Position): number {
-    return Math.abs(a.x - b.x) + Math.abs(a.y - b.y); // Distance de Manhattan
-  }
-
   // Obtenir les cellules adjacentes à une position
   private obtenirCellulesAdjacentes(maison: Cell[][], position: Position): Cell[] {
     const directions = [
@@ -239,4 +235,8 @@ export class CheminOptimalService {
     return cellules;
   }
 
+  // Calculer la distance entre deux positions (heuristique pour A*)
+  public distance(a: Position, b: Position): number {
+    return Math.abs(a.x - b.x) + Math.abs(a.y - b.y); // Distance de Manhattan
+  }
 }

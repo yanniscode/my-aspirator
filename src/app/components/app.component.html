@@ -11,23 +11,7 @@
 
     <h1>Aspiro-Man</h1>
 
-    <div class="game-container">
-
-      <app-maison></app-maison>
-
-      <!-- TODO: pour l'intro: condition d'affichage du robot, toujours présent actuellement -->
-      <div class="robot-view-container" [@moveRobot1]="{ value: moveTrigger1, params: { x: aspiroX1, y: aspiroY1 } }">
-        <!-- (click)="toggleAnimation()" -->
-        <app-robot-aspirator [positionInput]="currentRobotPosition()" [lastPositionInput]="currentRobotLastPosition()"
-          (robotUpdate)="handleRobotUpdate($event)" [batterie]="currentRobotBatterie()"></app-robot-aspirator>
-        <p style="font-weight:bold; font-size:8px; color:orangered;">AspiroMan 1</p>
-      </div>
-      <div class="robot-view-container" [@moveRobot2]="{ value: moveTrigger2, params: { x: aspiroX2, y: aspiroY2 } }">
-        <app-robot-aspirator [positionInput]="currentRobotPosition()" [lastPositionInput]="currentRobotLastPosition()"
-          [batterie]="currentRobotBatterie()"></app-robot-aspirator>
-        <p style="font-weight:bold; font-size:8px; color:yellow;">AspiroMan 2</p>
-      </div>
-    </div>
+    <app-maison></app-maison>
 
     <div class="buttons">
       <form (ngSubmit)="start()" #maisonForm="ngForm">
@@ -41,8 +25,8 @@
         </div>
       </form>
     </div>
+
+    <app-messages></app-messages>
+
   </div>
-
-  <app-messages></app-messages>
-
 </div>

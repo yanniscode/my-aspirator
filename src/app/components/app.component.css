@@ -12,19 +12,6 @@
     width: auto;
 }
 
-.game-container {
-    display: grid;
-    grid-template-areas: "overlap";
-}
-
-.robot-view-container {
-    grid-area: overlap; /* important pour la disposition du robot */
-    width: 50px;
-    height: 50px;
-    /* background-color: red; */ /* pour tests */
-    /* border-radius: 50%; */
-}
-
 .buttons {
     background-color: #752713;
 }

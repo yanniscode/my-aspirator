@@ -7,6 +7,7 @@ import { Cell } from '../../classes/models/cell';
 import { Position } from '../../classes/models/position';
 import { RobotAspirator } from '../../classes/models/robot-aspirator';
 import { RobotServiceDtoOut } from '../../classes/dtos/robot-service-dto-out';
+import { Maison } from '../../classes/models/maison';
 
 @Injectable({
   providedIn: 'root'
@@ -21,30 +22,7 @@ export class RobotAspiratorService {
   // private robotPositionSubject: Subject<RobotServiceData>;
   // public robotPosition$: Observable<RobotServiceData>;
 
-  // TODO: supprimer après modif de retour à la base:
-  // private updateSubscriptionSeDeplacerVers?: Subscription;
-
-  // TODO: supprimer var si non-utilisées
-  private isRobotStarted: boolean = false;
-  private basePosition: Position;
-  private lastPosition: Position;
-  // Position actuelle
-  private position: Position = { x: 0, y: 0 };
-  // Niveau de batterie (en pourcentage)
-  private batterie: number = 0;
-  private consommationParMouvement: number;
-
-  private cheminRestant: Position[] = [];
-  private isNettoyageComplete: boolean = false;
-
   constructor(private messageService: MessageService, private cheminOptimalService: CheminOptimalService) {
-
-    // this.robotPositionSubject = new Subject<RobotServiceData>();
-    // this.robotPosition$ = this.robotPositionSubject.asObservable();
-
-    this.basePosition = { x: -1, y: -1 };
-    this.lastPosition = { ...this.basePosition };
-    this.consommationParMouvement = 0.5;
   }
 
   ngOnDestroy(): void {
@@ -62,22 +40,18 @@ export class RobotAspiratorService {
     // if (this.robotPositionSubject) {
     //   this.robotPositionSubject.complete();
     // }
-    // TODO: revoir ici : remettre var "globale" privée : this.robot
-    this.isRobotStarted = false;
+    // TODO: revoir
+    // this.isRobotStarted = false;
 
   }
 
   // Fonction principale pour nettoyer la maison
-  public onStartNettoyer(maison: Cell[][], robot: RobotAspirator): Observable<RobotServiceDtoOut> {
+  public onStartNettoyer(maisonModel: Maison, robot: RobotAspirator): Observable<RobotServiceDtoOut> {
 
-    console.log("onStartNettoyer robot");
+    console.log("RobotAspiratorService onStartNettoyer()");
+    console.log(robot.robotName);
     console.log(robot);
-    this.isRobotStarted = robot.isRobotStarted;
-    this.basePosition = robot.basePosition;
-    this.lastPosition = robot.lastPosition;
-    this.position = robot.position;
-    this.batterie = robot.batterie;
-    this.consommationParMouvement = robot.consommationParMouvement;
+    console.log(robot.position);
 
     return new Observable<RobotServiceDtoOut>((observer) => {
       console.log(this.subscription);
@@ -85,42 +59,37 @@ export class RobotAspiratorService {
         console.log("onStartNettoyer new subscription !")
         this.subscription = new Subscription();
 
-        // this.robotAspiratorService = new RobotAspiratorService(this.messageService);
-
         // this.subscription!.add(
         //   this.robotPosition$.subscribe()
         // );
       }
 
-      this.isRobotStarted = true;
+      // TODO: revoir:
+      // robot.isRobotStarted = true;
 
       // en cas de mise en pause
-      if (!this.isRobotStarted) {
+      if (!robot.isRobotStarted) {
         observer.complete();
         return;
       }
 
       // Méthode principale de nettoyage de la maison
-      this.isRobotStarted = true;
-      this.nettoyerAvecControleSouscription(maison, observer);
+      robot.isRobotStarted = true;
+      this.nettoyerAvecControleSouscription(maisonModel, robot, observer);
     });
   }
 
-  private nettoyerAvecControleSouscription(maison: Cell[][], observer: Subscriber<RobotServiceDtoOut>): void {
+  private nettoyerAvecControleSouscription(maisonModel: Maison, robot: RobotAspirator, observer: Subscriber<RobotServiceDtoOut>): void {
     console.log("Début du nettoyage");
-    console.log(`Batterie: ${this.batterie}%.`);
+    console.log(`Batterie: ${robot.batterie}%.`);
 
     const stopNettoyer$ = new Subject<void>();
 
     this.subscription!.add(
       this.nettoyerAvecControle(
         false,  // isRetourAlaBase = false
-        maison,
-        this.basePosition,
-        this.position,
-        this.batterie,
-        this.isRobotStarted,
-        this.consommationParMouvement
+        maisonModel,
+        robot
       ).pipe(
         takeUntil(stopNettoyer$), // L'Observable continue jusqu'à ce que stopNettoyer$ émette
         tap((robotServiceData: RobotServiceDtoOut) => {
@@ -138,7 +107,10 @@ export class RobotAspiratorService {
             stopNettoyer$.next();
             return;
           }
-          else if (robotServiceData!.positions.length && robotServiceData!.batterie <= this.energieNecessairePourRetour(this.basePosition, robotServiceData!.positions[1], this.consommationParMouvement)) {
+          else if (robotServiceData!.positions.length &&
+            robotServiceData!.batterie <= this.energieNecessairePourRetour(
+              robot.basePosition, robotServiceData!.positions[1], robot.consommationParMouvement)
+            ) {
             console.log("Batterie insuffisante : retour à la base de charge nécessaire...");
 
             // TODO: test : ajout sinon s'arrête sans attendre la fin de l'interval souhaité:
@@ -150,16 +122,18 @@ export class RobotAspiratorService {
           }
 
           // Continuer le nettoyage
-          this.lastPosition = { x: robotServiceData!.positions[0]!.x, y: robotServiceData!.positions[0]!.y };
-          this.position = { x: robotServiceData!.positions[1]!.x, y: robotServiceData!.positions[1]!.y };
-          this.batterie = robotServiceData!.batterie;
+          robot.lastPosition = { x: robotServiceData!.positions[0]!.x, y: robotServiceData!.positions[0]!.y };
+          robot.position = { x: robotServiceData!.positions[1]!.x, y: robotServiceData!.positions[1]!.y };
+          robot.batterie = robotServiceData!.batterie;
 
-          console.log("this.lastPosition.x = " + this.lastPosition.x.toString());
-          console.log("this.lastPosition.y =" + this.lastPosition.y.toString());
-          console.log("this.position.x = " + this.position.x.toString());
-          console.log("this.position.y = " + this.position.y.toString());
-          console.log("this.batterie =" + this.batterie.toString());
-          console.log("Energie nécessaire au retour =" + this.energieNecessairePourRetour(this.basePosition, robotServiceData?.positions[1], this.consommationParMouvement).toString());
+          console.log("this.lastPosition.x = " + robot.lastPosition.x.toString());
+          console.log("this.lastPosition.y =" + robot.lastPosition.y.toString());
+          console.log("this.position.x = " + robot.position.x.toString());
+          console.log("this.position.y = " + robot.position.y.toString());
+          console.log("this.batterie =" + robot.batterie.toString());
+          console.log("Energie nécessaire au retour =" + this.energieNecessairePourRetour(
+            robot.basePosition, robotServiceData?.positions[1], robot.consommationParMouvement).toString()
+          );
 
           try {
             observer.next(robotServiceData);
@@ -170,7 +144,7 @@ export class RobotAspiratorService {
         finalize(() => {
           // Ce bloc s'exécute UNE SEULE FOIS à la fin
           console.log('complete nettoyerAvecControleSouscription: Nettoyage ok ou batterie insuffisante !');
-          this.retournerALaBaseSouscription(maison, observer);
+          this.retournerALaBaseSouscription(maisonModel, robot, observer);
 
           stopNettoyer$.complete(); // Nettoyer le Subject
         })
@@ -183,20 +157,16 @@ export class RobotAspiratorService {
     );
   }
 
-  private retournerALaBaseSouscription(maison: Cell[][], observer: Subscriber<RobotServiceDtoOut>): void {
+  private retournerALaBaseSouscription(maisonModel: Maison, robot: RobotAspirator, observer: Subscriber<RobotServiceDtoOut>): void {
 
     console.log("*** Retour à la base ***");
-    console .log(`Batterie: ${this.batterie}%. Retour à la base.`);
+    console .log(`Batterie: ${robot.batterie}%. Retour à la base.`);
 
     this.subscription!.add(
       this.nettoyerAvecControle(
         true, // isRetourAlaBase = true
-        maison,
-        this.basePosition,
-        this.position,
-        this.batterie,
-        this.isRobotStarted,
-        this.consommationParMouvement
+        maisonModel,
+        robot
       ).subscribe({
         next: (robotServiceData: RobotServiceDtoOut) => {
 
@@ -217,16 +187,18 @@ export class RobotAspiratorService {
           }
 
           // Continuer le retour à la base
-          this.lastPosition = { x: robotServiceData!.positions[0]!.x, y: robotServiceData!.positions[0]!.y };
-          this.position = { x: robotServiceData!.positions[1]!.x, y: robotServiceData!.positions[1]!.y };
-          this.batterie = robotServiceData!.batterie;
+          robot.lastPosition = { x: robotServiceData!.positions[0]!.x, y: robotServiceData!.positions[0]!.y };
+          robot.position = { x: robotServiceData!.positions[1]!.x, y: robotServiceData!.positions[1]!.y };
+          robot.batterie = robotServiceData!.batterie;
 
-          console.log("this.lastPosition.x = " + this.lastPosition.x.toString());
-          console.log("this.lastPosition.y =" + this.lastPosition.y.toString());
-          console.log("this.position.x = " + this.position.x.toString());
-          console.log("this.position.y = " + this.position.y.toString());
-          console.log("this.batterie =" + this.batterie.toString());
-          console.log("Energie nécessaire au retour =" + this.energieNecessairePourRetour(this.basePosition, robotServiceData?.positions[1], this.consommationParMouvement).toString());
+          console.log("robot.lastPosition.x = " + robot.lastPosition.x.toString());
+          console.log("robot.lastPosition.y =" + robot.lastPosition.y.toString());
+          console.log("robot.position.x = " + robot.position.x.toString());
+          console.log("robot.position.y = " + robot.position.y.toString());
+          console.log("robot.batterie =" + robot.batterie.toString());
+          console.log("Energie nécessaire au retour =" + this.energieNecessairePourRetour(
+            robot.basePosition, robotServiceData?.positions[1], robot.consommationParMouvement).toString()
+          );
 
           try {
             observer.next(robotServiceData);
@@ -240,7 +212,7 @@ export class RobotAspiratorService {
         },
         complete: () => {
           console.log('complete retournerALaBase: ok !');
-          this.isRobotStarted = false;
+          robot.isRobotStarted = false;
           observer.complete();
         }
       })
@@ -253,12 +225,8 @@ export class RobotAspiratorService {
   // TODO: à simplifier ?
   private nettoyerAvecControle(
     isRetourAlaBase: boolean,
-    maison: Cell[][],
-    basePosition: Position,
-    position: Position,
-    batterie: number,
-    isRobotStarted: boolean,
-    consommationParMouvement: number,
+    maisonModel: Maison,
+    robot: RobotAspirator,
     intervalMs: number = 600
   ): Observable<RobotServiceDtoOut> {
 
@@ -268,23 +236,23 @@ export class RobotAspiratorService {
     //   // this.robotPosition$ = this.robotPositionSubject.asObservable();
     // }
 
-    this.basePosition = basePosition;
-    this.position = { ...position };
-    this.batterie = batterie;
-    this.isRobotStarted = isRobotStarted;
-    this.cheminRestant = [];
-    this.isNettoyageComplete = false;
+    maisonModel.isNettoyageComplete = false;
 
     // Calculer le chemin initial
-    this.cheminRestant = this.cheminOptimalService.calculateNextPath(isRetourAlaBase, maison, this.basePosition, this.position);
-    if (this.cheminRestant.length === 0) {
-      this.isNettoyageComplete = true;
+    // TODO: revoir structuredClone
+    const cheminRestant: Position[] = structuredClone(
+      this.cheminOptimalService.calculateNextPath(
+        isRetourAlaBase, maisonModel.maison, robot.basePosition, robot.position
+      )
+    );
+    if (cheminRestant.length === 0) {
+      maisonModel.isNettoyageComplete = true;
     }
 
     // Utiliser un timer régulier pour l'animation
     return timer(0, intervalMs).pipe(
-      map(() => this.processNextMove(maison, consommationParMouvement, isRetourAlaBase, basePosition)),
-      takeWhile(result => !result.isNettoyageComplete && this.batterie > 0, true),
+      map(() => this.processNextMove(maisonModel, robot, cheminRestant, isRetourAlaBase)),
+      takeWhile(result => !result.isNettoyageComplete && robot.batterie > 0, true),
       tap(result => {
         console.log(result);
         // // Émettre la mise à jour de position
@@ -295,39 +263,37 @@ export class RobotAspiratorService {
     );
   }
 
-  private processNextMove(maison: Cell[][], consommationParMouvement: number, isRetourAlaBase: boolean, basePosition: Position): RobotServiceDtoOut{
+  private processNextMove(maisonModel: Maison, robot: RobotAspirator, cheminRestant: Position[], isRetourAlaBase: boolean): RobotServiceDtoOut{
 
     console.log("########## processNextMove");
 
     let robotServiceData: RobotServiceDtoOut= {
       // on actualise ici le niveau de batterie
-      batterie: this.batterie,
+      batterie: robot.batterie,
       isNettoyageComplete: false,
       positions: []
     };
 
-    console.log(this.batterie.toString());
-    this.batterie -= consommationParMouvement;
-    robotServiceData.batterie = this.batterie;
-
+    console.log(robot.batterie.toString());
+    robot.batterie -= robot.consommationParMouvement;
+    robotServiceData.batterie = robot.batterie;
     // console.log(robotServiceData);
 
     // Vérifier les conditions d'arrêt
-    if (!this.isRobotStarted || this.isNettoyageComplete) {
-
+    if (!robot.isRobotStarted || maisonModel.isNettoyageComplete) {
       robotServiceData.isNettoyageComplete = true;
-
       console.log(robotServiceData);
+
       return robotServiceData;
     }
 
     // Si le chemin actuel est terminé, chercher la prochaine destination
     // Cette action est valable seulement si isRetourAlaBase = false;
-    if (this.cheminRestant.length === 0 && isRetourAlaBase === false) {
-      this.cheminRestant = this.cheminOptimalService.calculateNextPath(false, maison, basePosition, this.position);
+    if (cheminRestant.length === 0 && isRetourAlaBase === false) {
+      cheminRestant = structuredClone(this.cheminOptimalService.calculateNextPath(false, maisonModel.maison, robot.basePosition, robot.position));
 
       // Après calcul du nouveau chemin, actualisant this.cheminRestant, si aucune nouvelle destination n'est trouvée, le netttoyage est complet:
-      if (this.cheminRestant.length === 0) {
+      if (cheminRestant.length === 0) {
         robotServiceData.isNettoyageComplete = true;
 
         console.log(robotServiceData);
@@ -336,19 +302,17 @@ export class RobotAspiratorService {
 
     }
 
-    if (this.cheminRestant.length !== 0) {
+    if (cheminRestant.length !== 0) {
 
-      const lastPos = { ...this.position };
+      robot.lastPosition = { ...robot.position };
 
       // Mettre à jour la position
       // Prendre la prochaine position du chemin actuel
-      this.position = this.cheminRestant.shift()!;
+      robot.position = { ...cheminRestant.shift()! };
 
-      console.log(`Déplacement vers (${this.position.x}, ${this.position.y}). Batterie: ${this.batterie.toFixed(1)}%`);
+      console.log(`Déplacement vers (${robot.position.x}, ${robot.position.y}). Batterie: ${robot.batterie.toFixed(1)}%`);
 
-      // TODO: simplifier en appelant un service externe où serait la Maison pour l'update des positions ?
-
-      robotServiceData.positions = [lastPos, this.position];
+      robotServiceData.positions = structuredClone([robot.lastPosition, robot.position]);
       robotServiceData.isNettoyageComplete = false;
     }
 
