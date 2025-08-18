@@ -2,9 +2,9 @@ import { Component, EventEmitter, Input, OnDestroy, Output, ViewEncapsulation } 
 import { Subscription } from 'rxjs';
 import { MessageService } from '../../services/message.service';
 import { RobotAspiratorService } from '../../services/robot-actions/robot-aspirator.service';
-import { RobotAspirator } from '../../classes/models/robot-aspirator';
+import { RobotAspiratorModel } from '../../classes/models/robot-aspirator-model';
 import { RobotServiceDtoOut } from '../../classes/dtos/robot-service-dto-out';
-import { Maison } from '../../classes/models/maison';
+import { MaisonModel } from '../../classes/models/maison-model';
 
 @Component({
   selector: 'app-robot-aspirator',
@@ -19,8 +19,8 @@ export class RobotAspiratorComponent implements OnDestroy {
   // public car appelée dans app-maison:
   public subscription?: Subscription;
 
-  @Output() robotUpdate: EventEmitter<RobotAspirator> = new EventEmitter();
-  private robotOutput: RobotAspirator;
+  @Output() robotUpdateModel: EventEmitter<RobotAspiratorModel> = new EventEmitter();
+  private robotOutputModel: RobotAspiratorModel;
 
   private log(message: string) {
     this.messageService.add(`RobotAspiratorComponent: ${message}`);
@@ -35,7 +35,7 @@ export class RobotAspiratorComponent implements OnDestroy {
   }
 
   constructor(private messageService: MessageService, private robotAspiratorService: RobotAspiratorService) {
-    this.robotOutput = new RobotAspirator();
+    this.robotOutputModel = new RobotAspiratorModel();
   }
 
   public pauseRobot(): void {
@@ -43,13 +43,13 @@ export class RobotAspiratorComponent implements OnDestroy {
     if (this.subscription) {
       this.subscription.unsubscribe();
     }
-    this.robotOutput.isRobotStarted = false;
+    this.robotOutputModel.isRobotStarted = false;
   }
 
 
   // ********************
 
-  public startRobot(maison: Maison, robot: RobotAspirator): void {
+  public startRobot(maison: MaisonModel, robot: RobotAspiratorModel): void {
 
     console.log("startRobot");
     // A l'intro, pas de souscription, donc on l'initialise ici
@@ -67,7 +67,7 @@ export class RobotAspiratorComponent implements OnDestroy {
   }
 
   // méthode qui fait le lien avec le service du robot aspirateur
-  private startAspiratorRobot(maison: Maison, robot: RobotAspirator): void {
+  private startAspiratorRobot(maison: MaisonModel, robot: RobotAspiratorModel): void {
     // public addRobotToSubscription(subscription: Subscription, maison: Maison, robot: RobotAspirator, robotName: string): void {
 
     console.log("RobotAspiratorComponent startAspiratorRobot robot");
@@ -76,7 +76,6 @@ export class RobotAspiratorComponent implements OnDestroy {
       this.robotAspiratorService.onStartNettoyer(maison, robot).subscribe({
         next: (robotServiceDtoOut: RobotServiceDtoOut) => {
 
-          // TODO: ajouter robotName :
           console.log('next startRobot...' + robot.robotName);
           this.log('next startRobot...' + robot.robotName);
           console.log(robotServiceDtoOut.positions[0].x.toString());
@@ -84,16 +83,18 @@ export class RobotAspiratorComponent implements OnDestroy {
           console.log(robotServiceDtoOut.positions[1].x.toString());
           console.log(robotServiceDtoOut.positions[1].y.toString());
 
-          // TODO: variable Output pour renvoyer au parent AppComponent pour update de la Vue
           console.log('robot.position:', JSON.stringify(robot.position)); // Force la sérialisation immédiate
           console.log(robot);
+
+          // Variable robotOutputModel pour renvoyer au parent MaisonComponent qui fait la mise à jour de la Vue
           // copie par référence souhaitée ici:
-          this.robotOutput = robot;
-          console.log('robotOutput.position:', JSON.stringify(this.robotOutput.position));
-          console.log(this.robotOutput);
-          this.robotOutput.lastPosition = { ...robotServiceDtoOut.positions[0] };
-          this.robotOutput.position = { ...robotServiceDtoOut.positions[1] };
-          this.robotOutput.batterie = robotServiceDtoOut.batterie;
+          this.robotOutputModel = robot;
+
+          console.log('robotOutputModel.position:', JSON.stringify(this.robotOutputModel.position));
+          console.log(this.robotOutputModel);
+          this.robotOutputModel.lastPosition = { ...robotServiceDtoOut.positions[0] };
+          this.robotOutputModel.position = { ...robotServiceDtoOut.positions[1] };
+          this.robotOutputModel.batterie = robotServiceDtoOut.batterie;
 
           this.updateRobot();
 
@@ -111,7 +112,7 @@ export class RobotAspiratorComponent implements OnDestroy {
           // mais le composant continue bien les appels de service:
           // this.subscription!.unsubscribe();
 
-          // TODO: revoir miise en pause: après modifs, si l'un est revenu à la base, l'autre est mis à l'arrêt
+          // TODO: revoir mise en pause: après modifs, si l'un est revenu à la base, l'autre est mis à l'arrêt
           if (robot.position.x === robot.basePosition.x && robot.position.y === robot.basePosition.y
             // && this.robot2?.position.x === this.robot2?.basePosition.x && this.robot2?.position.y === this.robot2?.basePosition.y
           ) {
@@ -125,7 +126,7 @@ export class RobotAspiratorComponent implements OnDestroy {
 
   // lien du composant enfant > parent
   public updateRobot(): void {
-    // console.log(this.robotOutput);
-    this.robotUpdate.emit(this.robotOutput);
+    // console.log(this.robotOutputModel);
+    this.robotUpdateModel.emit(this.robotOutputModel);
   }
 }

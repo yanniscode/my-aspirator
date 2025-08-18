@@ -1,7 +1,7 @@
 import { Cell } from "./cell";
 import { Position } from "./position";
 
-export class Maison {
+export class MaisonModel {
     public maison: Cell[][];
     public largeurMaison: number;
     public hauteurMaison: number;

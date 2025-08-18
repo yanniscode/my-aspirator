@@ -60,6 +60,7 @@ export class AppComponent implements AfterViewInit, OnInit {
     }
 
   public pause(): void {
+    this.log("pause(");
     // TODO: tableau de robots:
     this.maisonChildComponent.onPause();
     // this.robot1?.pauseRobot();
@@ -67,6 +68,7 @@ export class AppComponent implements AfterViewInit, OnInit {
   }
 
   public start(): void {
+    this.log("start(");
     this.maisonChildComponent.onStart();
   }
 

@@ -1,6 +1,6 @@
 import { Position } from "./position";
 
-export class RobotAspirator {
+export class RobotAspiratorModel {
 
     public robotName: string;
     // Position de la base de charge du robot

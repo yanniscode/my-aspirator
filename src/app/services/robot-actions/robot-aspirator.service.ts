@@ -3,11 +3,10 @@ import { Injectable } from '@angular/core';
 import { finalize, map, Observable, Subject, Subscriber, Subscription, takeUntil, takeWhile, tap, timer } from 'rxjs';
 import { CheminOptimalService } from '../algo-services/chemin-optimal.service';
 import { MessageService } from '../message.service';
-import { Cell } from '../../classes/models/cell';
 import { Position } from '../../classes/models/position';
-import { RobotAspirator } from '../../classes/models/robot-aspirator';
+import { RobotAspiratorModel } from '../../classes/models/robot-aspirator-model';
 import { RobotServiceDtoOut } from '../../classes/dtos/robot-service-dto-out';
-import { Maison } from '../../classes/models/maison';
+import { MaisonModel } from '../../classes/models/maison-model';
 
 @Injectable({
   providedIn: 'root'
@@ -46,7 +45,7 @@ export class RobotAspiratorService {
   }
 
   // Fonction principale pour nettoyer la maison
-  public onStartNettoyer(maisonModel: Maison, robot: RobotAspirator): Observable<RobotServiceDtoOut> {
+  public onStartNettoyer(maisonModel: MaisonModel, robot: RobotAspiratorModel): Observable<RobotServiceDtoOut> {
 
     console.log("RobotAspiratorService onStartNettoyer()");
     console.log(robot.robotName);
@@ -79,7 +78,7 @@ export class RobotAspiratorService {
     });
   }
 
-  private nettoyerAvecControleSouscription(maisonModel: Maison, robot: RobotAspirator, observer: Subscriber<RobotServiceDtoOut>): void {
+  private nettoyerAvecControleSouscription(maisonModel: MaisonModel, robot: RobotAspiratorModel, observer: Subscriber<RobotServiceDtoOut>): void {
     console.log("Début du nettoyage");
     console.log(`Batterie: ${robot.batterie}%.`);
 
@@ -157,7 +156,7 @@ export class RobotAspiratorService {
     );
   }
 
-  private retournerALaBaseSouscription(maisonModel: Maison, robot: RobotAspirator, observer: Subscriber<RobotServiceDtoOut>): void {
+  private retournerALaBaseSouscription(maisonModel: MaisonModel, robot: RobotAspiratorModel, observer: Subscriber<RobotServiceDtoOut>): void {
 
     console.log("*** Retour à la base ***");
     console .log(`Batterie: ${robot.batterie}%. Retour à la base.`);
@@ -225,8 +224,8 @@ export class RobotAspiratorService {
   // TODO: à simplifier ?
   private nettoyerAvecControle(
     isRetourAlaBase: boolean,
-    maisonModel: Maison,
-    robot: RobotAspirator,
+    maisonModel: MaisonModel,
+    robot: RobotAspiratorModel,
     intervalMs: number = 600
   ): Observable<RobotServiceDtoOut> {
 
@@ -263,7 +262,7 @@ export class RobotAspiratorService {
     );
   }
 
-  private processNextMove(maisonModel: Maison, robot: RobotAspirator, cheminRestant: Position[], isRetourAlaBase: boolean): RobotServiceDtoOut{
+  private processNextMove(maisonModel: MaisonModel, robot: RobotAspiratorModel, cheminRestant: Position[], isRetourAlaBase: boolean): RobotServiceDtoOut{
 
     console.log("########## processNextMove");
 
