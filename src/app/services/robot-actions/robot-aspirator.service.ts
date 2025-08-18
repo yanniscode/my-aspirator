@@ -109,7 +109,7 @@ export class RobotAspiratorService {
           else if (robotServiceData!.positions.length &&
             robotServiceData!.batterie <= this.energieNecessairePourRetour(
               robot.basePosition, robotServiceData!.positions[1], robot.consommationParMouvement)
-            ) {
+          ) {
             console.log("Batterie insuffisante : retour à la base de charge nécessaire...");
 
             // TODO: test : ajout sinon s'arrête sans attendre la fin de l'interval souhaité:
@@ -159,7 +159,7 @@ export class RobotAspiratorService {
   private retournerALaBaseSouscription(maisonModel: MaisonModel, robot: RobotAspiratorModel, observer: Subscriber<RobotServiceDtoOut>): void {
 
     console.log("*** Retour à la base ***");
-    console .log(`Batterie: ${robot.batterie}%. Retour à la base.`);
+    console.log(`Batterie: ${robot.batterie}%. Retour à la base.`);
 
     this.subscription!.add(
       this.nettoyerAvecControle(
@@ -238,12 +238,8 @@ export class RobotAspiratorService {
     maisonModel.isNettoyageComplete = false;
 
     // Calculer le chemin initial
-    // TODO: revoir structuredClone
-    const cheminRestant: Position[] = structuredClone(
-      this.cheminOptimalService.calculateNextPath(
-        isRetourAlaBase, maisonModel.maison, robot.basePosition, robot.position
-      )
-    );
+    const cheminRestant: Position[] =
+      this.cheminOptimalService.calculateNextPath(isRetourAlaBase, maisonModel.maison, robot.basePosition, robot.position);
     if (cheminRestant.length === 0) {
       maisonModel.isNettoyageComplete = true;
     }
@@ -262,11 +258,11 @@ export class RobotAspiratorService {
     );
   }
 
-  private processNextMove(maisonModel: MaisonModel, robot: RobotAspiratorModel, cheminRestant: Position[], isRetourAlaBase: boolean): RobotServiceDtoOut{
+  private processNextMove(maisonModel: MaisonModel, robot: RobotAspiratorModel, cheminRestant: Position[], isRetourAlaBase: boolean): RobotServiceDtoOut {
 
     console.log("########## processNextMove");
 
-    let robotServiceData: RobotServiceDtoOut= {
+    let robotServiceData: RobotServiceDtoOut = {
       // on actualise ici le niveau de batterie
       batterie: robot.batterie,
       isNettoyageComplete: false,
@@ -289,7 +285,7 @@ export class RobotAspiratorService {
     // Si le chemin actuel est terminé, chercher la prochaine destination
     // Cette action est valable seulement si isRetourAlaBase = false;
     if (cheminRestant.length === 0 && isRetourAlaBase === false) {
-      cheminRestant = structuredClone(this.cheminOptimalService.calculateNextPath(false, maisonModel.maison, robot.basePosition, robot.position));
+      cheminRestant = this.cheminOptimalService.calculateNextPath(false, maisonModel.maison, robot.basePosition, robot.position);
 
       // Après calcul du nouveau chemin, actualisant this.cheminRestant, si aucune nouvelle destination n'est trouvée, le netttoyage est complet:
       if (cheminRestant.length === 0) {
@@ -311,7 +307,7 @@ export class RobotAspiratorService {
 
       console.log(`Déplacement vers (${robot.position.x}, ${robot.position.y}). Batterie: ${robot.batterie.toFixed(1)}%`);
 
-      robotServiceData.positions = structuredClone([robot.lastPosition, robot.position]);
+      robotServiceData.positions = [robot.lastPosition, robot.position];
       robotServiceData.isNettoyageComplete = false;
     }
 

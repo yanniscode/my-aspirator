@@ -49,9 +49,10 @@ export class RobotAspiratorComponent implements OnDestroy {
 
   // ********************
 
-  public startRobot(maison: MaisonModel, robot: RobotAspiratorModel): void {
+  public startRobot(maisonModel: MaisonModel, robotModel: RobotAspiratorModel): void {
 
     console.log("startRobot");
+    console.log(robotModel);
     // A l'intro, pas de souscription, donc on l'initialise ici
 
     // si on clique plusieurs fois sur start, la souscription existe et est ouverte, donc on ne resouscrit pas
@@ -62,33 +63,33 @@ export class RobotAspiratorComponent implements OnDestroy {
 
       // sous-appel de méthode, car à l'avenir:
       // un robot pourrait avoir d'autres spécialités que de passer l'aspi
-      this.startAspiratorRobot(maison, robot);
+      this.startAspiratorRobot(maisonModel, robotModel);
     }
   }
 
   // méthode qui fait le lien avec le service du robot aspirateur
-  private startAspiratorRobot(maison: MaisonModel, robot: RobotAspiratorModel): void {
+  private startAspiratorRobot(maisonModel: MaisonModel, robotModel: RobotAspiratorModel): void {
     // public addRobotToSubscription(subscription: Subscription, maison: Maison, robot: RobotAspirator, robotName: string): void {
 
     console.log("RobotAspiratorComponent startAspiratorRobot robot");
-    console.log(robot);
+    console.log(robotModel);
     this.subscription!.add(
-      this.robotAspiratorService.onStartNettoyer(maison, robot).subscribe({
+      this.robotAspiratorService.onStartNettoyer(maisonModel, robotModel).subscribe({
         next: (robotServiceDtoOut: RobotServiceDtoOut) => {
 
-          console.log('next startRobot...' + robot.robotName);
-          this.log('next startRobot...' + robot.robotName);
+          console.log('next startRobot...' + robotModel.robotName);
+          this.log('next startRobot...' + robotModel.robotName);
           console.log(robotServiceDtoOut.positions[0].x.toString());
           console.log(robotServiceDtoOut.positions[0].y.toString());
           console.log(robotServiceDtoOut.positions[1].x.toString());
           console.log(robotServiceDtoOut.positions[1].y.toString());
 
-          console.log('robot.position:', JSON.stringify(robot.position)); // Force la sérialisation immédiate
-          console.log(robot);
+          console.log('robot.position:', JSON.stringify(robotModel.position)); // Force la sérialisation immédiate
+          console.log(robotModel);
 
           // Variable robotOutputModel pour renvoyer au parent MaisonComponent qui fait la mise à jour de la Vue
           // copie par référence souhaitée ici:
-          this.robotOutputModel = robot;
+          this.robotOutputModel = robotModel;
 
           console.log('robotOutputModel.position:', JSON.stringify(this.robotOutputModel.position));
           console.log(this.robotOutputModel);
@@ -98,7 +99,7 @@ export class RobotAspiratorComponent implements OnDestroy {
 
           this.updateRobot();
 
-          if (robotServiceDtoOut.positions[1].x === robot.basePosition.x && robotServiceDtoOut.positions[1].y === robot.basePosition.y) {
+          if (robotServiceDtoOut.positions[1].x === robotModel.basePosition.x && robotServiceDtoOut.positions[1].y === robotModel.basePosition.y) {
             this.log("arrivée à la base > unsubscribe");
           }
         },
@@ -113,7 +114,7 @@ export class RobotAspiratorComponent implements OnDestroy {
           // this.subscription!.unsubscribe();
 
           // TODO: revoir mise en pause: après modifs, si l'un est revenu à la base, l'autre est mis à l'arrêt
-          if (robot.position.x === robot.basePosition.x && robot.position.y === robot.basePosition.y
+          if (robotModel.position.x === robotModel.basePosition.x && robotModel.position.y === robotModel.basePosition.y
             // && this.robot2?.position.x === this.robot2?.basePosition.x && this.robot2?.position.y === this.robot2?.basePosition.y
           ) {
             this.pauseRobot();

@@ -69,9 +69,9 @@ export class MaisonComponent implements OnDestroy, OnInit {
   private robot2Model: RobotAspiratorModel;
 
   // Position robot 2
-  public aspiroX2: number = 0;
+  public aspiroX2: number;
   // ajout d'un décalage du robot au départ  Y += 82px:
-  public aspiroY2: number = 0 + 82;
+  public aspiroY2: number;
   // pour mettre à jour l'animation du déplacement du robot
   public moveTrigger2: number;
 
@@ -79,6 +79,8 @@ export class MaisonComponent implements OnDestroy, OnInit {
   public currentRobot2Parameters() {
     return this.robot2Model;
   }
+
+  private robotModelsTab: RobotAspiratorModel[];
 
   ngOnDestroy(): void {
     console.log("MaisonComponent ngOnDestroy()");
@@ -117,6 +119,7 @@ export class MaisonComponent implements OnDestroy, OnInit {
     // initialisation des robots:
     this.robot1Model = new RobotAspiratorModel();
     this.robot2Model = new RobotAspiratorModel();
+    this.robotModelsTab = [];
     this.aspiroX1 = 0;
     this.aspiroY1 = 0 + 82;
     this.moveTrigger1 = 0;
@@ -193,7 +196,7 @@ export class MaisonComponent implements OnDestroy, OnInit {
         // au départ, le robot est à la base:
         this.robot1Model.lastPosition = { ...this.robot1Model.basePosition };
         this.robot1Model.position = { ...this.robot1Model.basePosition };
-        this.robot1Model.batterie = 50;
+        this.robot1Model.batterie = 5.5;
         this.robot1Model.isRobotStarted = false;
 
         // init de la base de charge du robot:
@@ -227,15 +230,20 @@ export class MaisonComponent implements OnDestroy, OnInit {
 
         console.log(this.robot2Model);
       }
+      // les robots sont ajoutés au tableau
+      this.robotModelsTab = [this.robot1Model, this.robot2Model];
     }, 1000);
+
+
   }
 
   public onPause() {
     console.log("MaisonComponent onPause()");;
 
     if (this.robotAspiratorChildComponents.length) {
-      this.robotAspiratorChildComponents.get(0)?.pauseRobot();
-      this.robotAspiratorChildComponents.get(1)?.pauseRobot();
+      for (var robotIndex in this.robotModelsTab) {
+        this.robotAspiratorChildComponents.get(Number(robotIndex))?.pauseRobot();
+      }
     }
   }
 
@@ -249,15 +257,16 @@ export class MaisonComponent implements OnDestroy, OnInit {
     this.robot1Model.isRobotStarted = true;
     this.robot2Model.isRobotStarted = true;
 
-    // TODO: tableau de robots
-    this.robotAspiratorChildComponents.get(0)?.startRobot(this.maisonModel, this.robot1Model);
-    this.robotAspiratorChildComponents.get(1)?.startRobot(this.maisonModel, this.robot2Model);
+    for (var robotIndex in this.robotModelsTab) {
+      console.log("loop number="+ robotIndex);
+      this.robotAspiratorChildComponents.get(Number(robotIndex))?.startRobot(this.maisonModel, this.robotModelsTab[Number(robotIndex)]);
+    }
   }
 
-  // méthode pour récupérer la nouvelle valeur du composant Robot enfant > parent et mettre à jour la vue (Robot et Maison)
+  // méthode pour récupérer la nouvelle valeur du Robot depuis le composant enfant et mettre à jour la vue (Robot et Maison)
   public handleRobotUpdate(robotUpdateModel: RobotAspiratorModel): void {
     console.log("MaisonComponent handleRobotUpdate()");
-    console.log(robotUpdateModel);
+    // console.log(robotUpdateModel);
     this.updateRobotView(robotUpdateModel);
     this.updateMaisonView(robotUpdateModel.lastPosition);
   }
