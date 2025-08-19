@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 
 import { finalize, map, Observable, Subject, Subscriber, Subscription, takeUntil, takeWhile, tap, timer } from 'rxjs';
 import { CheminOptimalService } from '../algo-services/chemin-optimal.service';
-import { MessageService } from '../message.service';
+import { MessageService } from '../message-service/message.service';
 import { Position } from '../../classes/models/position';
 import { RobotAspiratorModel } from '../../classes/models/robot-aspirator-model';
 import { RobotServiceDtoOut } from '../../classes/dtos/robot-service-dto-out';

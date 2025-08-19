@@ -1,6 +1,6 @@
-import { Component, EventEmitter, Input, OnDestroy, Output, ViewEncapsulation } from '@angular/core';
+import { Component, EventEmitter, OnDestroy, Output, ViewEncapsulation } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { MessageService } from '../../services/message.service';
+import { MessageService } from '../../services/message-service/message.service';
 import { RobotAspiratorService } from '../../services/robot-actions/robot-aspirator.service';
 import { RobotAspiratorModel } from '../../classes/models/robot-aspirator-model';
 import { RobotServiceDtoOut } from '../../classes/dtos/robot-service-dto-out';

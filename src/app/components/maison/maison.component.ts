@@ -1,7 +1,7 @@
 import { trigger, transition, style, animate, state } from '@angular/animations';
 import { NgFor, NgIf } from '@angular/common';
 import { Component, ViewEncapsulation, OnDestroy, OnInit, ViewChildren, QueryList } from '@angular/core';
-import { MessageService } from '../../services/message.service';
+import { MessageService } from '../../services/message-service/message.service';
 import { TableModule } from "primeng/table";
 import { CellElement } from '../../classes/models/cellElement';
 import { MaisonModel } from '../../classes/models/maison-model';
@@ -44,8 +44,6 @@ import { Subscription } from 'rxjs/internal/Subscription';
 export class MaisonComponent implements OnDestroy, OnInit {
   @ViewChildren(RobotAspiratorComponent) robotAspiratorChildComponents!: QueryList<RobotAspiratorComponent>;
 
-  private robotChildSubscription!: Subscription;
-
   public maisonModel: MaisonModel;
 
   // *** ROBOT 1:
@@ -86,19 +84,18 @@ export class MaisonComponent implements OnDestroy, OnInit {
     console.log("MaisonComponent ngOnDestroy()");
     // TODO: gérer destruction du composant enfant + service ?
     // Se désabonner pour éviter les fuites de mémoire
-    const robot1Subscription = this.robotAspiratorChildComponents.get(0)?.subscription;
-    const robot2Subscription = this.robotAspiratorChildComponents.get(1)?.subscription;
-
-    if (this.robotChildSubscription) {
-      robot1Subscription?.unsubscribe();
-      robot2Subscription?.unsubscribe();
+    for (var robotIndex in this.robotModelsTab) {
+      const robotSubscription = this?.robotAspiratorChildComponents?.get(Number(robotIndex))?.subscription;
+      // on vérifie null et undefined avec "!="
+      if (robotSubscription != null) {
+        robotSubscription.unsubscribe();
+      }
     }
   }
 
   ngOnInit(): void {
     console.log("MaisonComponent ngOnInit()");
     console.log('Nombre de robots:', this.robotAspiratorChildComponents?.length);
-
     // Attendre que la vue soit complètement initialisée
     setTimeout(() => {
       if (this.robotAspiratorChildComponents) {
@@ -196,7 +193,7 @@ export class MaisonComponent implements OnDestroy, OnInit {
         // au départ, le robot est à la base:
         this.robot1Model.lastPosition = { ...this.robot1Model.basePosition };
         this.robot1Model.position = { ...this.robot1Model.basePosition };
-        this.robot1Model.batterie = 5.5;
+        this.robot1Model.batterie = 50;
         this.robot1Model.isRobotStarted = false;
 
         // init de la base de charge du robot:
@@ -258,7 +255,7 @@ export class MaisonComponent implements OnDestroy, OnInit {
     this.robot2Model.isRobotStarted = true;
 
     for (var robotIndex in this.robotModelsTab) {
-      console.log("loop number="+ robotIndex);
+      console.log("loop number=" + robotIndex);
       this.robotAspiratorChildComponents.get(Number(robotIndex))?.startRobot(this.maisonModel, this.robotModelsTab[Number(robotIndex)]);
     }
   }

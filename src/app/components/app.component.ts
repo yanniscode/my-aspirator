@@ -3,7 +3,7 @@ import { Component, AfterViewInit, OnInit, ViewChild, ViewEncapsulation } from '
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
 
-import { MessageService } from '../services/message.service';
+import { MessageService } from '../services/message-service/message.service';
 
 import { MaisonComponent } from "./maison/maison.component";
 import { MessagesComponent } from './messages/messages.component';

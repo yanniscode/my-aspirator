@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Cell } from '../../classes/models/cell';
 import { Position } from '../../classes/models/position';
-import { MaisonModel } from '../../classes/models/maison-model';
 
 @Injectable({
   providedIn: 'root'
