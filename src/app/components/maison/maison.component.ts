@@ -7,6 +7,7 @@ import { MaisonModel } from '../../classes/models/maison-model';
 import { Position } from '../../classes/models/position';
 import { RobotAspiratorComponent } from "../robot-aspirator/robot-aspirator.component";
 import { RobotAspiratorModel } from '../../classes/models/robot-aspirator-model';
+import { CellElement } from '../../classes/models/cellElement';
 
 @Component({
   selector: 'app-maison',
@@ -26,7 +27,7 @@ import { RobotAspiratorModel } from '../../classes/models/robot-aspirator-model'
         transform: 'translate({{ x }}px, {{ y }}px)'
       }), { params: { x: 0, y: 0 + 82 } }), // décalage de Y de 32 pour le robot
       transition('* <=> *', [
-        animate('300ms ease-in-out') // 400 = moins que l'interval au nuveau service pour anim plus régulière
+        animate('300ms ease-in-out') // 400 = moins que l'intervalle au niveau service pour anim plus régulière
       ]),
     ]),
     trigger('moveRobot2', [
@@ -34,7 +35,7 @@ import { RobotAspiratorModel } from '../../classes/models/robot-aspirator-model'
         transform: 'translate({{ x }}px, {{ y }}px)'
       }), { params: { x: 450, y: 0 + 82 } }), // décalage de Y de 32 pour le robot
       transition('* <=> *', [
-        animate('300ms ease-in-out') // 400 = moins que l'interval au nuveau service pour anim plus régulière
+        animate('300ms ease-in-out') // 400 = moins que l'intervalle au niveau service pour anim plus régulière
       ]),
     ])
   ]
@@ -166,9 +167,11 @@ export class MaisonComponent implements OnDestroy, OnInit {
     console.log("lastPosition.x = " + lastPosition.y);
 
     // on ne veut pas que la case de la base soit modifiée:
-    if (this.maisonViewModel.maison[lastPosition.y][lastPosition.x].cellStack[0].type !== 'B') {
-      this.maisonViewModel.maison[lastPosition.y][lastPosition.x].cellStack[0].visited = true;
-      this.maisonViewModel.maison[lastPosition.y][lastPosition.x].cellStack[0].type = '_';
+    const lastVisitedCell: CellElement = this.maisonViewModel.maison[lastPosition.y][lastPosition.x].cellStack[0];
+
+    if (lastVisitedCell.type !== 'B') {
+      lastVisitedCell.visited = true;
+      lastVisitedCell.type = '_';
     }
   }
 
