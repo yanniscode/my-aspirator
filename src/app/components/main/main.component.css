@@ -1,0 +1,29 @@
+.main {
+    display: flex;
+    justify-content: center;
+    /* avec flex, pour centrer les éléments contenus*/
+    background-color: darkgrey;
+}
+
+.content {
+    position: relative;
+    /* nécessaire pour avoir des div superposées */
+    background-color: #752713;
+    text-align: center;
+    color: #0071e6;
+    width: auto;
+}
+
+.buttons {
+    background-color: #752713;
+}
+
+.start-button {
+    padding-top: 20px;
+    padding-bottom: 10px;
+}
+
+.pause-button {
+    margin-top: 20px;
+    padding-bottom: 10px;
+}
