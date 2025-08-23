@@ -8,7 +8,6 @@ import { MaisonModel } from '../../classes/models/maison-model';
 
 @Component({
   selector: 'app-robot-aspirator',
-  standalone: true, // Composant autonome
   templateUrl: './robot-aspirator.component.html',
   styleUrl: './robot-aspirator.component.css',
   encapsulation: ViewEncapsulation.None

@@ -4,7 +4,6 @@ import { MessageService } from '../../services/message-service/message.service';
 
 @Component({
   selector: 'app-messages',
-  standalone: true, // Composant autonome
   imports: [NgIf, NgFor],
   templateUrl: './messages.component.html',
   styleUrls: ['./messages.component.css']
