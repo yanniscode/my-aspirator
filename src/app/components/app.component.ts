@@ -7,6 +7,11 @@ import { MessageService } from '../services/message-service/message.service';
 
 import { MaisonComponent } from "./maison/maison.component";
 import { MessagesComponent } from './messages/messages.component';
+import { MaisonModel } from '../classes/models/maison-model';
+import { RobotAspiratorModel } from '../classes/models/robot-aspirator-model';
+import { MaisonService } from '../services/maison-service/maison.service';
+import { RobotAspiratorService } from '../services/robot-actions/robot-aspirator.service';
+import { Position } from '../classes/models/position';
 
 @Component({
   selector: 'app-root',
@@ -17,59 +22,84 @@ import { MessagesComponent } from './messages/messages.component';
   encapsulation: ViewEncapsulation.None
 })
 export class AppComponent implements AfterViewInit, OnInit {
-  // instantiation des composants enfants (un par robot)
+  // instantiation du composants enfant
   @ViewChild(MaisonComponent) maisonChildComponent!: MaisonComponent;
 
-  // test du déplacement au clic
-  // toggleAnimation() {
-  //   console.log("toogle anim");
-  //   this.aspiroDirX = 50;
-  //   this.aspiroDirY = 0;
-  //   this.aspiroX += this.aspiroDirX;
-  //   this.aspiroY += this.aspiroDirY;
-
-  //   console.log(this.aspiroX);
-  //   console.log(this.aspiroY);
-  //   this.moveTrigger++;
-  // }
+  public maisonModel: MaisonModel;
+  private robotModelsTab: RobotAspiratorModel[];
 
   private log(message: string) {
     this.messageService.add(`AppComponent: ${message}`);
   }
 
-  constructor(private messageService: MessageService) {
-    this.messageService = messageService;
+  constructor(private messageService: MessageService, private maisonService: MaisonService, private robotAspiratorService: RobotAspiratorService) {
+    console.log("MaisonComponent constructor()");
+
+    // initialisation des params de la maison
+    this.maisonModel = new MaisonModel();
+    this.maisonModel.largeurMaison = 10;
+    this.maisonModel.hauteurMaison = 8;
+    this.maisonModel.obstacles = [];
+    this.maisonModel.isNettoyageComplete = false;
+
+    // initialisation des robots:
+    this.robotModelsTab = [];
   }
 
   ngOnInit(): void {
     console.log('AppComponent ngOnInit() maisonComponent:', this.maisonChildComponent);
 
-    // TODO: remettre l'intro dans un service app-service  :
     // Attendre que la vue soit complètement initialisée
+
     // setTimeout(() => {
     //   if (this.maisonChildComponent) {
-    //     this.maisonChildComponent.startIntro();
+    //     this.startIntro();
     //   }
     // }, 100);
   }
 
   ngAfterViewInit() {
-  // TODO: garder ? voir si startIntro() possible ici ?
+    // TODO: garder ? voir si startIntro() possible ici ?
     // Maintenant vous pouvez utiliser robotAspiratorComponents
     console.log('AppComponent ngAfterViewInit() maisonComponent:', this.maisonChildComponent);
+
+    // setTimeout() pour éviter l'erreur: "ExpressionChangedAfterItHasBeenCheckedError: Expression has changed after it was checked.""
+    setTimeout(() => {
+      if (this.maisonChildComponent) {
+        this.startIntro();
+      }
+    }, 100);
+  }
+
+  public startIntro(): void {
+    console.log("MaisonComponent startIntro()");
+
+    this.maisonModel = { ...this.maisonService.getMaisonParams() };
+
+    this.maisonChildComponent.construireMaison(this.maisonModel);
+
+    // TODO: revoir condition isRobotStarted pour les 2 robots (ou tous...) : possible de passer la vérif dans getRobotsParams()
+    // if (this.robot1Model.isRobotStarted === false) {
+    // setTimeout(() => {
+    this.robotModelsTab = { ...this.robotAspiratorService.getRobotsParams() };
+
+    for (let robotIndex in this.robotModelsTab) {
+      const robotBasePosition: Position = { ...this.robotModelsTab[robotIndex].basePosition };
+
+      this.maisonModel = { ...this.maisonService.updateMaisonConfig(this.maisonModel, robotBasePosition) };
     }
+    // }, 1000);
+    // }
+  }
 
   public pause(): void {
     this.log("pause(");
-    // TODO: tableau de robots:
-    this.maisonChildComponent.onPause();
-    // this.robot1?.pauseRobot();
-    // this.robot2?.pauseRobot();
+    // TODO: la maison se charge de mettre en pause ses composant enfant (robots)
+    this.maisonChildComponent.maisonPause(this.robotModelsTab);
   }
 
   public start(): void {
     this.log("start(");
-    this.maisonChildComponent.onStart();
+    this.maisonChildComponent.onMaisonStart(this.maisonModel, this.robotModelsTab);
   }
-
 }

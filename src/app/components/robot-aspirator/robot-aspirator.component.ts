@@ -19,6 +19,7 @@ export class RobotAspiratorComponent implements OnDestroy {
   // public car appelée dans app-maison:
   public subscription?: Subscription;
 
+  // variable @Output pour le composant parent
   @Output() robotUpdateModel: EventEmitter<RobotAspiratorModel> = new EventEmitter();
   private robotOutputModel: RobotAspiratorModel;
 
@@ -38,7 +39,7 @@ export class RobotAspiratorComponent implements OnDestroy {
     this.robotOutputModel = new RobotAspiratorModel();
   }
 
-  public pauseRobot(): void {
+  public robotPause(): void {
     this.robotAspiratorService.onPause();
     if (this.subscription) {
       this.subscription.unsubscribe();
@@ -53,15 +54,14 @@ export class RobotAspiratorComponent implements OnDestroy {
 
     console.log("startRobot");
     console.log(robotModel);
-    // A l'intro, pas de souscription, donc on l'initialise ici
 
     // si on clique plusieurs fois sur start, la souscription existe et est ouverte, donc on ne resouscrit pas
-    // si on re-start après mise en pause, la souscription existe à l'état closed, on la réinitialise ici
+    // ou bien : si on re-start après mise en pause, la souscription existe à l'état closed, on la réinitialise ici
     // TODO: condition
     if (!this.subscription || this.subscription.closed) {
       this.subscription = new Subscription();
 
-      // sous-appel de méthode, car à l'avenir:
+      // sous-appel de méthode, car :
       // un robot pourrait avoir d'autres spécialités que de passer l'aspi
       this.startAspiratorRobot(maisonModel, robotModel);
     }
@@ -69,22 +69,22 @@ export class RobotAspiratorComponent implements OnDestroy {
 
   // méthode qui fait le lien avec le service du robot aspirateur
   private startAspiratorRobot(maisonModel: MaisonModel, robotModel: RobotAspiratorModel): void {
-    // public addRobotToSubscription(subscription: Subscription, maison: Maison, robot: RobotAspirator, robotName: string): void {
-
     console.log("RobotAspiratorComponent startAspiratorRobot robot");
     console.log(robotModel);
+
     this.subscription!.add(
       this.robotAspiratorService.onStartNettoyer(maisonModel, robotModel).subscribe({
         next: (robotServiceDtoOut: RobotServiceDtoOut) => {
 
-          console.log('next startRobot...' + robotModel.robotName);
           this.log('next startRobot...' + robotModel.robotName);
+          console.log('next startRobot...' + robotModel.robotName);
+
           console.log(robotServiceDtoOut.positions[0].x.toString());
           console.log(robotServiceDtoOut.positions[0].y.toString());
           console.log(robotServiceDtoOut.positions[1].x.toString());
           console.log(robotServiceDtoOut.positions[1].y.toString());
 
-          console.log('robot.position:', JSON.stringify(robotModel.position)); // Force la sérialisation immédiate
+          console.log('robot.position:', JSON.stringify(robotModel.position)); // Force la sérialisation immédiate pour logger
           console.log(robotModel);
 
           // Variable robotOutputModel pour renvoyer au parent MaisonComponent qui fait la mise à jour de la Vue
@@ -117,7 +117,7 @@ export class RobotAspiratorComponent implements OnDestroy {
           if (robotModel.position.x === robotModel.basePosition.x && robotModel.position.y === robotModel.basePosition.y
             // && this.robot2?.position.x === this.robot2?.basePosition.x && this.robot2?.position.y === this.robot2?.basePosition.y
           ) {
-            this.pauseRobot();
+            this.robotPause();
           }
         }
       })

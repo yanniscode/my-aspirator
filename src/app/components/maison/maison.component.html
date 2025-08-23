@@ -1,7 +1,7 @@
 <div class="game-container">
 
     <div class="maison">
-        <p-table [value]="this.maisonModel.maison" @maisonAnimation class="table-maison" cellspacing="0" cellpadding="0">
+        <p-table [value]="this.maisonViewModel.maison" @maisonAnimation class="table-maison" cellspacing="0" cellpadding="0">
             <ng-template pTemplate="body" let-rowData>
                 <tr class="tr-maison">
                     <!-- TODO: placer le robot ici ?? -->
@@ -20,12 +20,10 @@
     <div class="robot-view-container" [@moveRobot1]="{ value: moveTrigger1, params: { x: aspiroX1, y: aspiroY1 } }">
         <!-- (click)="toggleAnimation()" -->
         <app-robot-aspirator (robotUpdateModel)="handleRobotUpdate($event)"></app-robot-aspirator>
-        <!-- <app-robot-aspirator [robot1Input]="currentRobot1Parameters()" (robotUpdate)="handleRobotUpdate($event)"></app-robot-aspirator> -->
         <p style="font-weight:bold; font-size:8px; color:orangered;">AspiroMan 1</p>
     </div>
     <div class="robot-view-container" [@moveRobot2]="{ value: moveTrigger2, params: { x: aspiroX2, y: aspiroY2 } }">
         <app-robot-aspirator (robotUpdateModel)="handleRobotUpdate($event)"></app-robot-aspirator>
-        <!-- <app-robot-aspirator [robot2Input]="currentRobot2Parameters()" (robotUpdate)="handleRobotUpdate($event)"></app-robot-aspirator> -->
         <p style="font-weight:bold; font-size:8px; color:yellow;">AspiroMan 2</p>
     </div>
 

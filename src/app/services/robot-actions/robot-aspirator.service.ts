@@ -13,16 +13,15 @@ import { MaisonModel } from '../../classes/models/maison-model';
 })
 export class RobotAspiratorService {
 
-  // nécessaire pour l'animation (écoute d'observable avec rxjs)
+  // Nécessaire pour l'animation (écoute d'observable avec rxjs)
   private subscription?: Subscription;
 
-  // 3. Subject pour émettre les mises à jour de position
+  // Subject pour émettre les mises à jour de position
   // TODO: revoir si nécessaire:
   // private robotPositionSubject: Subject<RobotServiceData>;
   // public robotPosition$: Observable<RobotServiceData>;
 
-  constructor(private messageService: MessageService, private cheminOptimalService: CheminOptimalService) {
-  }
+  constructor(private messageService: MessageService, private cheminOptimalService: CheminOptimalService) { }
 
   ngOnDestroy(): void {
     // if (this.robotPositionSubject) {
@@ -32,6 +31,53 @@ export class RobotAspiratorService {
 
   public log(message: string) {
     this.messageService.add(`RobotAspiratorService: ${message}`);
+  }
+
+  public getRobotsParams(): RobotAspiratorModel[] {
+
+    // robot1 test
+    // TODO: possible récupération des données dans des objets JSON / appels HTTP
+    let robotName = "robot1";
+    let basePosition = { x: 0, y: 0 };
+    // au départ, le robot est à la base:
+    let lastPosition = { ...basePosition };
+    let position = { ...basePosition };
+    let batterie = 12.5;
+    let isRobotStarted = false;
+
+    let robot1Model = new RobotAspiratorModel();
+    robot1Model.robotName = robotName;
+    robot1Model.basePosition = { ...basePosition };
+    // au départ, le robot est à la base:
+    robot1Model.lastPosition = { ...lastPosition };
+    robot1Model.position = { ...position };
+    robot1Model.batterie = batterie;
+    robot1Model.isRobotStarted = isRobotStarted;
+
+    console.log(robot1Model);
+
+    // robot2 test
+    robotName = "robot2";
+    // TODO: possible récupération des données dans des objets JSON / appels HTTP
+    basePosition = { x: 9, y: 0 };
+    // au départ, le robot est à la base:
+    lastPosition = { ...basePosition };
+    position = { ...basePosition };
+    batterie = 50;
+    isRobotStarted = false;
+
+    let robot2Model = new RobotAspiratorModel();
+    robot2Model.robotName = robotName;
+    robot2Model.basePosition = { ...basePosition };
+    // au départ, le robot est à la base:
+    robot2Model.lastPosition = { ...lastPosition };
+    robot2Model.position = { ...position };
+    robot2Model.batterie = batterie;
+    robot2Model.isRobotStarted = isRobotStarted;
+
+    console.log(robot2Model);
+
+    return [robot1Model, robot2Model];
   }
 
   public onPause(): void {
@@ -232,7 +278,7 @@ export class RobotAspiratorService {
     // console.log(this.robotPositionSubject);
     // if (this.robotPositionSubject.closed) {
     //   this.robotPositionSubject = new Subject<RobotServiceData>();
-    //   // this.robotPosition$ = this.robotPositionSubject.asObservable();
+    // this.robotPosition$ = this.robotPositionSubject.asObservable();
     // }
 
     maisonModel.isNettoyageComplete = false;
@@ -314,7 +360,7 @@ export class RobotAspiratorService {
     return robotServiceData;
   }
 
-  // Estimer l'énergie nécessaire pour retourner à la base
+  // Estimer l'énergie nécessaire au robot pour retourner à la base
   public energieNecessairePourRetour(basePosition: Position, position: Position, consommationParMouvement: number): number {
     // Estimer la distance jusqu'à la base
     const distance = this.cheminOptimalService.distance(position, basePosition);
