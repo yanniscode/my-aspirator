@@ -4,6 +4,7 @@ export class RobotServiceDtoOut {
     batterie: number;
     isNettoyageComplete: boolean;
     positions: Position[]; // Contient [lastPosition, currentPosition]
+    isRobotReturningToBase: boolean;
 
     constructor() {
         this.batterie = -1;
@@ -11,5 +12,6 @@ export class RobotServiceDtoOut {
         this.positions = [
             new Position()
         ];
+        this.isRobotReturningToBase = false;
     }
 }

@@ -127,7 +127,7 @@ export class MaisonComponent implements OnDestroy, OnInit {
   }
 
   public maisonPause(robotModelsTab: RobotAspiratorModel[]) {
-    console.log("MaisonComponent onPause()");
+    console.log("MaisonComponent maisonPause()");
     if (this.robotAspiratorChildComponents.length) {
       for (let robotIndex in robotModelsTab) {
         this.robotAspiratorChildComponents.get(Number(robotIndex))?.robotPause();
@@ -136,17 +136,20 @@ export class MaisonComponent implements OnDestroy, OnInit {
   }
 
   public onMaisonStart(maisonModel: MaisonModel, robotModelsTab: RobotAspiratorModel[]) {
-    console.log("MaisonComponent onStart()");
+    console.log("MaisonComponent onMaisonStart()");
     console.log("robotModelsTab");
     console.log(robotModelsTab[0]);
     console.log(robotModelsTab[0].lastPosition);
     console.log(robotModelsTab[0].position);
+    console.log(robotModelsTab[0].batterie);
+    console.log(robotModelsTab[0].isRobotStarted);
+    console.log(robotModelsTab[0].isRobotReturningToBase);
 
     for (let robotIndex in robotModelsTab) {
       console.log("loop number=" + robotIndex);
       const robotModel = robotModelsTab[Number(robotIndex)];
 
-      // TODO: utile ?
+      // Le robot démarre
       robotModel.isRobotStarted = true;
 
       this.robotAspiratorChildComponents.get(Number(robotIndex))?.startRobot(maisonModel, robotModel);
@@ -157,15 +160,21 @@ export class MaisonComponent implements OnDestroy, OnInit {
   public handleRobotUpdate(robotUpdateModel: RobotAspiratorModel): void {
     console.log("MaisonComponent handleRobotUpdate()");
     // console.log(robotUpdateModel);
-    this.updateRobotView(robotUpdateModel);
-    this.updateMaisonView(robotUpdateModel.lastPosition);
+    if(robotUpdateModel.batterie > 0) {
+      this.updateRobotView(robotUpdateModel);
+      this.updateMaisonView(robotUpdateModel.lastPosition);
+    }
   }
 
   public updateMaisonView(lastPosition: Position): void {
     console.log("MaisonComponent updateMaisonView()");
     console.log("lastPosition.x = " + lastPosition.x);
-    console.log("lastPosition.x = " + lastPosition.y);
+    console.log("lastPosition.y = " + lastPosition.y);
 
+    // Vérification des null et undefined
+    if (lastPosition.x == null || lastPosition.y == null) {
+      return;
+    }
     // on ne veut pas que la case de la base soit modifiée:
     const lastVisitedCell: CellElement = this.maisonViewModel.maison[lastPosition.y][lastPosition.x].cellStack[0];
 

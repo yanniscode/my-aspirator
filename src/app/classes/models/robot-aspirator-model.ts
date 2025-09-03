@@ -13,6 +13,7 @@ export class RobotAspiratorModel {
     // Combien d'énergie est consommée par mouvement
     public consommationParMouvement: number;
     public isRobotStarted: boolean;
+    public isRobotReturningToBase: boolean;
 
     constructor() {
         this.robotName = "Theodule";
@@ -24,5 +25,6 @@ export class RobotAspiratorModel {
         this.isRobotStarted = false;
         // Combien d'énergie est consommée par mouvement
         this.consommationParMouvement = 0.5;
+        this.isRobotReturningToBase = false;
     }
 }
