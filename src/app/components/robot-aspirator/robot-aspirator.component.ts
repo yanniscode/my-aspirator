@@ -21,13 +21,14 @@ export class RobotAspiratorComponent implements OnDestroy {
   // public car appelée dans app-maison:
   public subscription?: Subscription;
 
-  // variable @Output pour le composant parent
+  // Variable @Output pour le composant parent
   @Output() robotUpdateModel: EventEmitter<RobotAspiratorModel> = new EventEmitter();
+  // Variable robotOutputModel pour renvoyer au parent qui fait la mise à jour de la Vue
   private robotOutputModel: RobotAspiratorModel;
   private maisonModel = new MaisonModel();
 
   ngOnDestroy(): void {
-    this.robotOutputModel = this.robotAspiratorService.onPauseRobotService(); // TODO : test return
+    this.robotOutputModel = this.robotAspiratorService.onPauseRobotService();
     if (this.subscription) {
       this.log("RobotAspiratorComponent - ngOnDestroy unsubscribe !");
       this.subscription.unsubscribe();
@@ -46,7 +47,7 @@ export class RobotAspiratorComponent implements OnDestroy {
     if (this.subscription) {
       this.subscription.unsubscribe();
     }
-    return this.robotOutputModel; // TODO: test return
+    return this.robotOutputModel;
   }
 
 
@@ -70,7 +71,6 @@ export class RobotAspiratorComponent implements OnDestroy {
 
     // si on clique plusieurs fois sur start, la souscription existe et est ouverte, donc on ne resouscrit pas
     // ou bien : si on re-start après mise en pause, la souscription existe à l'état closed, on la réinitialise ici
-    // TODO: condition
     console.log(this.subscription);
     if (!this.subscription || this.subscription.closed) {
       this.subscription = new Subscription();
@@ -98,9 +98,6 @@ export class RobotAspiratorComponent implements OnDestroy {
           return;
         }
 
-        // Variable robotOutputModel pour renvoyer au parent MaisonComponent qui fait la mise à jour de la Vue
-        // todo: copie par référence souhaitée ici avec 2 robots ?? > test par valeur:
-        // this.robotOutputModel = { ...robotModelInput };
         // console.log('robotOutputModel.position:', JSON.stringify(this.robotOutputModel.position));
 
         this.robotOutputModel.lastPosition = { ...robotServiceDtoOut.positions[0] };
@@ -124,10 +121,9 @@ export class RobotAspiratorComponent implements OnDestroy {
       complete: () => {
         console.log('complete onStartNettoyer: ok !');
         // this.startIntro();
-        // TODO: en test - SUPPRIMÉ car bug: si un robot est en panne, l'autre est à l'arrêt à l'ihm, mais le composant continue quand même les appels de service
-        // this.subscription!.unsubscribe();
+        // todo: en test avec :
+        this.subscription!.unsubscribe();
 
-        // TODO: revoir mise en pause: après modifs, si l'un est revenu à la base, l'autre est mis à l'arrêt
         if (this.robotOutputModel.position.x === this.robotOutputModel.basePosition.x && this.robotOutputModel.position.y === this.robotOutputModel.basePosition.y
         ) {
           this.robotPause();
@@ -135,7 +131,6 @@ export class RobotAspiratorComponent implements OnDestroy {
       }
     });
 
-    // console.log(this.subscription);
     return this.robotOutputModel;
   }
 

@@ -20,7 +20,7 @@ import { MessageService } from '../../services/message-service/message.service';
   templateUrl: './main.component.html',
   styleUrl: './main.component.css',
   encapsulation: ViewEncapsulation.None,
-  providers: [RobotAspiratorService] // TODO: Chaque instance aura son propre service > VOIR POUR MaisonService
+  providers: [RobotAspiratorService] // TODO: Chaque instance aura son propre service -> TODO: MaisonService
 })
 export class MainComponent implements AfterViewInit, OnInit {
   // instantiation du composants enfant
@@ -56,10 +56,7 @@ export class MainComponent implements AfterViewInit, OnInit {
   }
 
   ngAfterViewInit() {
-    // TODO: garder ? voir si startIntro() possible ici ?
-    // Maintenant vous pouvez utiliser robotAspiratorComponents
     console.log('MainComponent ngAfterViewInit() maisonComponent:', this.maisonChildComponent);
-
     // setTimeout() pour éviter l'erreur: "ExpressionChangedAfterItHasBeenCheckedError: Expression has changed after it was checked.""
     setTimeout(() => {
       if (this.maisonChildComponent) {
@@ -75,7 +72,6 @@ export class MainComponent implements AfterViewInit, OnInit {
 
     this.maisonChildComponent.construireMaison(this.maisonModel);
 
-    // TODO: revoir condition isRobotStarted pour les 2 robots (ou tous...) : possible de passer la vérif dans getRobotsParams()
     // if (this.robot1Model.isRobotStarted === false) {
     // setTimeout(() => {
     this.robotModelsTab = { ...this.robotAspiratorService.getRobotsParams() };

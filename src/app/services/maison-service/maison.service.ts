@@ -86,8 +86,6 @@ export class MaisonService {
       return;
     }
     // on ne veut pas que la case de la base soit modifiée:
-    // TODO: ne pas modifier la maison ici mais dans son service
-    // TODO: voir pour modifier la position plutôt que lastPosition
     const lastVisitedCell: CellElement = maisonModel.maison[lastPosition.y][lastPosition.x].cellStack[0];
 
     if (lastVisitedCell.type !== 'B') {
