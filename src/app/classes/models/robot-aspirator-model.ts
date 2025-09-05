@@ -27,4 +27,22 @@ export class RobotAspiratorModel {
         this.consommationParMouvement = 0.5;
         this.isRobotReturningToBase = false;
     }
+
+    public static logger(robot: RobotAspiratorModel): void {
+        console.debug("*******************");
+        console.debug("RobotAspiratorModel - logger()");
+        // console.debug(robot);
+        console.debug("robot.robotName = " + robot.robotName);
+        console.debug("robot.basePosition :");
+        console.debug(robot.basePosition);
+        console.debug("robot.lastPosition :");
+        console.debug(robot.lastPosition);
+        console.debug("robot.position :");
+        console.debug(robot.position);
+        console.debug(`robot.batterie: ${robot.batterie}%.`);
+        console.debug("robot.isRobotStarted = " + robot.isRobotStarted);
+        console.debug("robot.consommationParMouvement = " + robot.consommationParMouvement);
+        console.debug("robot.isRobotReturningToBase = " + robot.isRobotReturningToBase);
+        console.debug("*******************");
+    }
 }

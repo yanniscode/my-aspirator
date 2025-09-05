@@ -19,7 +19,8 @@ import { MessageService } from '../../services/message-service/message.service';
   imports: [CommonModule, FormsModule, TableModule, MessagesComponent, MaisonComponent],
   templateUrl: './main.component.html',
   styleUrl: './main.component.css',
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
+  providers: [RobotAspiratorService] // TODO: Chaque instance aura son propre service > VOIR POUR MaisonService
 })
 export class MainComponent implements AfterViewInit, OnInit {
   // instantiation du composants enfant
@@ -27,10 +28,6 @@ export class MainComponent implements AfterViewInit, OnInit {
 
   public maisonModel: MaisonModel;
   private robotModelsTab: RobotAspiratorModel[];
-
-  private log(message: string) {
-    this.messageService.add(`AppComponent: ${message}`);
-  }
 
   constructor(private messageService: MessageService, private maisonService: MaisonService, private robotAspiratorService: RobotAspiratorService) {
     console.log("MaisonComponent constructor()");
@@ -47,7 +44,7 @@ export class MainComponent implements AfterViewInit, OnInit {
   }
 
   ngOnInit(): void {
-    console.log('AppComponent ngOnInit() maisonComponent:', this.maisonChildComponent);
+    console.log('MainComponent ngOnInit() maisonComponent:', this.maisonChildComponent);
 
     // Attendre que la vue soit complètement initialisée
 
@@ -61,7 +58,7 @@ export class MainComponent implements AfterViewInit, OnInit {
   ngAfterViewInit() {
     // TODO: garder ? voir si startIntro() possible ici ?
     // Maintenant vous pouvez utiliser robotAspiratorComponents
-    console.log('AppComponent ngAfterViewInit() maisonComponent:', this.maisonChildComponent);
+    console.log('MainComponent ngAfterViewInit() maisonComponent:', this.maisonChildComponent);
 
     // setTimeout() pour éviter l'erreur: "ExpressionChangedAfterItHasBeenCheckedError: Expression has changed after it was checked.""
     setTimeout(() => {
@@ -72,7 +69,7 @@ export class MainComponent implements AfterViewInit, OnInit {
   }
 
   public startIntro(): void {
-    console.log("MaisonComponent startIntro()");
+    console.log("MainComponent startIntro()");
 
     this.maisonModel = { ...this.maisonService.getMaisonParams() };
 
@@ -93,13 +90,17 @@ export class MainComponent implements AfterViewInit, OnInit {
   }
 
   public pause(): void {
-    this.log("pause(");
+    console.log("pause()");
     // TODO: la maison se charge de mettre en pause ses composant enfant (robots)
-    this.maisonChildComponent.maisonPause(this.robotModelsTab);
+    this.robotModelsTab = this.maisonChildComponent.onMaisonPause(this.robotModelsTab);
   }
 
   public start(): void {
-    this.log("start(");
-    this.maisonChildComponent.onMaisonStart(this.maisonModel, this.robotModelsTab);
+    console.log("start()");
+    this.robotModelsTab = this.maisonChildComponent.onMaisonStart(this.maisonModel, this.robotModelsTab);
+  }
+
+  private log(message: string) {
+    this.messageService.add(`MainComponent: ${message}`);
   }
 }
