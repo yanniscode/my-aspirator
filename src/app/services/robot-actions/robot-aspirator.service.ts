@@ -35,7 +35,7 @@ export class RobotAspiratorService {
     // au départ, le robot est à la base:
     let lastPosition = { ...basePosition };
     let position = { ...basePosition };
-    let batterie = 60;
+    let batterie = 50;
     let isRobotStarted = false;
     let isRobotReturningToBase = false;
 
@@ -274,12 +274,6 @@ export class RobotAspiratorService {
     intervalMs: number = 600
   ): Observable<RobotServiceDtoOut> {
 
-    // console.log(this.robotPositionSubject);
-    // if (this.robotPositionSubject.closed) {
-    //   this.robotPositionSubject = new Subject<RobotServiceData>();
-    // this.robotPosition$ = this.robotPositionSubject.asObservable();
-    // }
-
     this.maisonModel.isNettoyageComplete = false;
 
     // Calculer le chemin initial
@@ -303,13 +297,11 @@ export class RobotAspiratorService {
     return timer(0, intervalMs).pipe(
       map(() => this.processNextMove(cheminRestant)),
       takeWhile(result => !result.isNettoyageComplete && this.robot.batterie > 0, true), // TODO: revoir conditions + à quoi sert true ?
-      tap(robotServiceDtoResult => {
-        console.log("result - robotServiceDtoResult :");
-        RobotServiceDtoOut.logger(robotServiceDtoResult);
-        // Émettre la mise à jour de position
-        // if (result.positions.length > 0) {
-        //   this.robotPositionSubject.next(result);
-        // }
+      tap({
+        next: (robotServiceDtoResult: RobotServiceDtoOut) => {
+          console.log("result - robotServiceDtoResult :");
+          RobotServiceDtoOut.logger(robotServiceDtoResult);
+        }
       })
     );
   }
@@ -412,7 +404,6 @@ export class RobotAspiratorService {
 
     this.robotServiceDtoOut.batterie = this.robot.batterie - this.robot.consommationParMouvement;
     console.log("this.robotServiceDtoOut batterie = " + this.robotServiceDtoOut.batterie);
-    this.robot.batterie = this.robotServiceDtoOut.batterie; // TODO: tests avec modif batterie de this.robot
   }
 
   private robotMustStop(position: Position): boolean {
