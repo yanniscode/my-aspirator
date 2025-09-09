@@ -131,7 +131,7 @@ export class MaisonComponent implements OnDestroy, OnInit {
         this.robotModelsTab[robotIndex] = this.robotAspiratorChildComponents.get(Number(robotIndex))!.robotPause();
       }
     }
-    return this.robotModelsTab; // TODO: test return
+    return this.robotModelsTab;
   }
 
   public onMaisonStart(maisonModel: MaisonModel, robotModelsTab: RobotAspiratorModel[]): RobotAspiratorModel[] {
@@ -148,7 +148,7 @@ export class MaisonComponent implements OnDestroy, OnInit {
 
       this.robotModelsTab[robotIndex] = this.robotAspiratorChildComponents.get(Number(robotIndex))!.startRobot(maisonModel, robotModel);
     }
-    return this.robotModelsTab; // TODO: test return
+    return this.robotModelsTab;
   }
 
   // méthode pour récupérer la nouvelle valeur du Robot depuis le composant enfant et mettre à jour la vue (Robot et Maison)
@@ -156,7 +156,7 @@ export class MaisonComponent implements OnDestroy, OnInit {
     console.log("MaisonComponent handleRobotUpdate()");
     RobotAspiratorModel.logger(robotUpdateModel);
 
-    if (robotUpdateModel.batterie > 0) {
+    if (robotUpdateModel.batterie >= 0) { // >= pour prendre en compte le dernier mouvement
       this.updateRobotView(robotUpdateModel);
       this.maisonService.updateMaisonCells(this.maisonViewModel, robotUpdateModel.lastPosition);
     }

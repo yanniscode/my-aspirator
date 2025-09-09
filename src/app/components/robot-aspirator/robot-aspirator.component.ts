@@ -92,13 +92,12 @@ export class RobotAspiratorComponent implements OnDestroy {
         console.log('next startAspiratorRobot...');
         console.log("robotOutputModel avant modif:");
         RobotAspiratorModel.logger(this.robotOutputModel);
+        // console.log('robotOutputModel.position:', JSON.stringify(this.robotOutputModel.position));
 
         // Vérification de la longueur du tableau
         if (robotServiceDtoOut!.positions.length === 0) {
           return;
         }
-
-        // console.log('robotOutputModel.position:', JSON.stringify(this.robotOutputModel.position));
 
         this.robotOutputModel.lastPosition = { ...robotServiceDtoOut.positions[0] };
         this.robotOutputModel.position = { ...robotServiceDtoOut.positions[1] };
@@ -120,8 +119,11 @@ export class RobotAspiratorComponent implements OnDestroy {
       },
       complete: () => {
         console.log('complete onStartNettoyer: ok !');
+
+        RobotAspiratorModel.logger(this.robotOutputModel);
+
         // this.startIntro();
-        // todo: en test avec :
+
         this.subscription!.unsubscribe();
 
         if (this.robotOutputModel.position.x === this.robotOutputModel.basePosition.x && this.robotOutputModel.position.y === this.robotOutputModel.basePosition.y
@@ -134,9 +136,9 @@ export class RobotAspiratorComponent implements OnDestroy {
     return this.robotOutputModel;
   }
 
-  // lien du composant enfant > parent
+  // lien du composant enfant > parent pour la vue
   public updateRobot(): void {
-    // console.log(this.robotOutputModel);
+    // RobotAspiratorModel.logger(this.robotOutputModel);
     this.robotUpdateModel.emit(this.robotOutputModel);
   }
 

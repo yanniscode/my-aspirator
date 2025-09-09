@@ -19,21 +19,10 @@ export class RobotAspiratorService {
   private robot: RobotAspiratorModel;
   private robotServiceDtoOut: RobotServiceDtoOut;
 
-  // Subject pour émettre les mises à jour de position
-  // TODO: revoir si nécessaire :
-  // private robotPositionSubject: Subject<RobotServiceData>;
-  // public robotPosition$: Observable<RobotServiceData>;
-
   constructor(private messageService: MessageService, private cheminOptimalService: CheminOptimalService) {
     this.maisonModel = new MaisonModel();
     this.robot = new RobotAspiratorModel();
     this.robotServiceDtoOut = new RobotServiceDtoOut();
-  }
-
-  ngOnDestroy(): void {
-    // if (this.robotPositionSubject) {
-    //   this.robotPositionSubject.complete();
-    // }
   }
 
   public getRobotsParams(): RobotAspiratorModel[] {
@@ -46,7 +35,7 @@ export class RobotAspiratorService {
     // au départ, le robot est à la base:
     let lastPosition = { ...basePosition };
     let position = { ...basePosition };
-    let batterie = 50;
+    let batterie = 60;
     let isRobotStarted = false;
     let isRobotReturningToBase = false;
 
@@ -88,19 +77,16 @@ export class RobotAspiratorService {
 
     console.log(robot2Model);
 
-    // Ajout / suppression au tableauici, pour test avec 1 ou 2 robots :
+    // TODO: pour tester avec 1 ou 2 robots, ajouter ici
     return [robot1Model, robot2Model];
   }
 
   public onPauseRobotService(): RobotAspiratorModel {
     this.subscription?.unsubscribe();
-    // if (this.robotPositionSubject) {
-    //   this.robotPositionSubject.complete();
-    // }
-    // TODO: revoir
+
     this.robot.isRobotStarted = false;
 
-    return this.robot; // TODO: test avec return this.robot
+    return this.robot;
   }
 
   // Fonction principale pour nettoyer la maison
@@ -120,13 +106,9 @@ export class RobotAspiratorService {
       if (!this.subscription || this.subscription.closed) {
         console.log("onStartNettoyer new subscription !")
         this.subscription = new Subscription();
-
-        // this.subscription!.add(
-        //   this.robotPosition$.subscribe()
-        // );
       }
 
-      // TODO: revoir:
+      // TODO: revoir si il faudrait actualiser aussi le robot pour la cohérence des données:
       // robot.isRobotStarted = true;
 
       // en cas de mise en pause
@@ -146,12 +128,12 @@ export class RobotAspiratorService {
 
     const stopNettoyer$ = new Subject<void>();
 
-    let nextPathStopSearchFlag: boolean = false;
+    let nextPathStopSearchFlag: boolean = false; // TODO: revoir si le flag est nécessaire à présent, ou si refacto possible de la variable dans la classe
 
-    if (this.robotMustStop()) {
+    if (this.robot.batterie <= 0) {
       console.log("1/ Batterie insuffisante : retour à la base de charge nécessaire...");
       // on active le flag stoppant la recherche d'un nouveau chemin,
-      //  si le robot n'a pas l'énergie nécessaire pour continuer
+      // si le robot n'a pas l'énergie nécessaire pour continuer
       nextPathStopSearchFlag = true;
     }
 
@@ -190,12 +172,12 @@ export class RobotAspiratorService {
           this.robot.lastPosition = { x: this.robotServiceDtoOut!.positions[0]!.x, y: this.robotServiceDtoOut!.positions[0]!.y };
           this.robot.position = { x: this.robotServiceDtoOut!.positions[1]!.x, y: this.robotServiceDtoOut!.positions[1]!.y };
           this.robot.batterie = this.robotServiceDtoOut!.batterie;
-          this.robot.isRobotReturningToBase = this.robotServiceDtoOut.isRobotReturningToBase; // TODO tester
+          this.robot.isRobotReturningToBase = this.robotServiceDtoOut.isRobotReturningToBase;
 
           console.log("nettoyerAvecControle() - this.robot après modif datas:");
           RobotAspiratorModel.logger(this.robot);
 
-          console.log("Energie nécessaire au retour =" + this.energieNecessairePourRetour());
+          console.log("Energie nécessaire au retour =" + this.energieNecessairePourRetour(this.robot.position));
         }
 
         try {
@@ -251,7 +233,7 @@ export class RobotAspiratorService {
           observer.complete();
           return;
         }
-        else if (this.robotServiceDtoOut!.batterie <= 0) {
+        else if (this.robotServiceDtoOut!.batterie < 0) {
           this.log('Batterie à plat ! Robot en panne...');
           this.subscription!.unsubscribe();
           observer.complete();
@@ -266,7 +248,7 @@ export class RobotAspiratorService {
         console.log("nettoyerAvecControle() - next: this.robot datas début");
         RobotAspiratorModel.logger(this.robot);
 
-        console.log("Energie nécessaire au retour =" + this.energieNecessairePourRetour());
+        console.log("Energie nécessaire au retour =" + this.energieNecessairePourRetour(this.robot.position));
 
         try {
           observer.next(this.robotServiceDtoOut);
@@ -345,7 +327,7 @@ export class RobotAspiratorService {
     this.robotServiceDtoOut = {
       // on actualise ici le niveau de batterie
       batterie: -1,
-      isNettoyageComplete: false, // TODO : test avec this.maisonModel.isNettoyageComplete
+      isNettoyageComplete: false, // TODO : test avec this.maisonModel.isNettoyageComplete pour voir si on peut se passer de cette valeur dans RobotServiceDtoOut
       positions: [], // TODO : test avec valeur ?
       isRobotReturningToBase: false
     };
@@ -356,12 +338,23 @@ export class RobotAspiratorService {
       RobotServiceDtoOut.logger(this.robotServiceDtoOut);
       return this.robotServiceDtoOut;
     }
-    else if (this.robotMustStop()) {
+    else if (this.robotMustStop(this.robot.position)) {
       console.log("Le robot ne peut aller plus loin : batterie insuffisante !");
       RobotServiceDtoOut.logger(this.robotServiceDtoOut);
-      // robot.isRobotReturningToBase = true; // TODO: tester sans
+
+      // Dans tous les cas : si le chemin actuel n'est pas terminé, procéder au mouvement
+      if (cheminRestant.length !== 0) {
+        // Mettre à jour la position précédente
+        const lastPosition = { ...this.robot.position };
+        // Mettre à jour la nouvelle position avec la première position du chemin enregistré
+        const position = { ...cheminRestant.shift()! };
+
+        this.updateRobotServiceDtoOut(lastPosition, position);
+      }
+
+      // robot.isRobotReturningToBase = true; // TODO: mettre à jour le robot ?
       this.robotServiceDtoOut.isRobotReturningToBase = true;
-      // Note: pas ici de return robotServiceDtoOut; (la position est actualisée plus bas) // TODO: revoir
+      return this.robotServiceDtoOut;
     }
     // Sinon si la maison est nettoyée
     else if (this.maisonModel.isNettoyageComplete) {
@@ -374,9 +367,9 @@ export class RobotAspiratorService {
     // (cette action est valable seulement si ce n'est pas un retour à la base)
     else if (cheminRestant.length === 0 && this.robot.isRobotReturningToBase === false) {
       cheminRestant = this.cheminOptimalService.calculateNextPath(false, this.maisonModel.maison, this.robot.basePosition, this.robot.position);
-
-      // Après calcul du nouveau chemin, actualisant this.cheminRestant, si aucune nouvelle destination n'est trouvée, le netttoyage est complet:
+      // Si aucune nouvelle destination n'est trouvée, le netttoyage est complet :
       if (cheminRestant.length === 0) {
+        console.log("Aucun chemin trouvé !")
         this.robotServiceDtoOut.isNettoyageComplete = true;
         this.robotServiceDtoOut.isRobotReturningToBase = true;
         RobotServiceDtoOut.logger(this.robotServiceDtoOut);
@@ -384,22 +377,23 @@ export class RobotAspiratorService {
       }
     }
 
-    // Dans tous les cas : Si le chemin actuel n'est pas terminé, procéder au mouvement
+    // Dans les cas passants : si le chemin actuel n'est pas terminé, procéder au mouvement
     if (cheminRestant.length !== 0) {
+      // Après calcul du nouveau chemin:
+      // Si la position suivante est trop loin, par rapport au niveau de batterie :
+      if (this.robotMustStop(cheminRestant[0])) {
+        console.log('Pas assez de batterie pour avancer d\'une case supplémentaire !');
+        this.robotServiceDtoOut.isRobotReturningToBase = true;
+        return this.robotServiceDtoOut;
+      }
       // Mettre à jour la position précédente
       const newLastPosition = { ...this.robot.position };
       // Mettre à jour la nouvelle position avec la première position du chemin enregistré
       const nextPosition = { ...cheminRestant.shift()! };
-      console.log(`Déplacement vers (${newLastPosition.x}, ${newLastPosition.y}). Batterie: ${this.robot.batterie.toFixed(1)}%`);
 
-      this.robotServiceDtoOut.isNettoyageComplete = this.maisonModel.isNettoyageComplete;
-      this.robotServiceDtoOut.positions = [{ ...newLastPosition }, { ...nextPosition }];
-      this.robotServiceDtoOut.isRobotReturningToBase = this.robot.isRobotReturningToBase;
-      this.robotServiceDtoOut.isNettoyageComplete = false;
-
-      this.robotServiceDtoOut.batterie = this.robot.batterie - this.robot.consommationParMouvement;
-      console.log("this.robotServiceDtoOut batterie = " + this.robotServiceDtoOut.batterie);
+      this.updateRobotServiceDtoOut(newLastPosition, nextPosition);
     }
+
     // Renvoyer les données du robot modifiées ou non
     console.log("processNextMove() - fin");
     RobotServiceDtoOut.logger(this.robotServiceDtoOut);
@@ -407,19 +401,33 @@ export class RobotAspiratorService {
     return this.robotServiceDtoOut;
   }
 
-  private robotMustStop(): boolean {
-    return this.robot.position && this.robot.batterie <= this.energieNecessairePourRetour() ?
+  private updateRobotServiceDtoOut(lastPosition: Position, position: Position): void {
+
+    console.log(`Déplacement vers (${lastPosition.x}, ${position.y}). Batterie: ${this.robot.batterie.toFixed(1)}%`);
+
+    this.robotServiceDtoOut.isNettoyageComplete = this.maisonModel.isNettoyageComplete;
+    this.robotServiceDtoOut.positions = [{ ...lastPosition }, { ...position }];
+    this.robotServiceDtoOut.isRobotReturningToBase = this.robot.isRobotReturningToBase;
+    this.robotServiceDtoOut.isNettoyageComplete = false;
+
+    this.robotServiceDtoOut.batterie = this.robot.batterie - this.robot.consommationParMouvement;
+    console.log("this.robotServiceDtoOut batterie = " + this.robotServiceDtoOut.batterie);
+    this.robot.batterie = this.robotServiceDtoOut.batterie; // TODO: tests avec modif batterie de this.robot
+  }
+
+  private robotMustStop(position: Position): boolean {
+    return position && this.robot.batterie <= this.energieNecessairePourRetour(position) ?
       true : false;
   }
 
   // Estimer l'énergie nécessaire au robot pour retourner à la base
-  private energieNecessairePourRetour(): number {
+  private energieNecessairePourRetour(position: Position): number {
     // Estimer la distance jusqu'à la base
-    const distance = this.cheminOptimalService.distance(this.robot.position, this.robot.basePosition);
+    const distance = this.cheminOptimalService.distance(position, this.robot.basePosition);
     console.log("distance minimale de la base = " + distance);
 
     // Ajouter une marge de sécurité
-    return (distance * this.robot.consommationParMouvement) * 1.5; // TODO: revoir le chiffre de 1.2
+    return (distance * this.robot.consommationParMouvement) * 1.2;
   }
 
   public log(message: string) {
