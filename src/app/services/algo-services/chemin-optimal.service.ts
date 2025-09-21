@@ -35,7 +35,7 @@ export class CheminOptimalService {
 
 
   // Algorithme A* pour trouver le chemin optimal
-  private trouverChemin(maison: Cell[][], depart: Position, fin: Position): Position[] {
+  public trouverChemin(maison: Cell[][], depart: Position, fin: Position): Position[] {
     // Structure pour représenter un nœud dans l'algorithme A*
     interface Node {
       position: Position;

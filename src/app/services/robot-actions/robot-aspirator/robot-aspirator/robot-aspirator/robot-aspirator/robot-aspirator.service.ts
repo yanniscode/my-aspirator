@@ -1,13 +1,13 @@
-import { Injectable } from '@angular/core';
+import { Injectable } from "@angular/core";
+import { Subscription, Observable, Subscriber, Subject, takeUntil, tap, finalize, timer, map, takeWhile } from "rxjs";
 
-import { finalize, map, Observable, Subject, Subscriber, Subscription, takeUntil, takeWhile, tap, timer } from 'rxjs';
+import { RobotServiceDtoOut } from "../../../../../../classes/dtos/robot-service-dto-out";
+import { MaisonModel } from "../../../../../../classes/models/maison-model";
+import { Position } from "../../../../../../classes/models/position";
+import { RobotAspiratorModel } from "../../../../../../classes/models/robot-aspirator-model";
 
-import { CheminOptimalService } from '../algo-services/chemin-optimal.service';
-import { MessageService } from '../message-service/message.service';
-import { Position } from '../../classes/models/position';
-import { RobotAspiratorModel } from '../../classes/models/robot-aspirator-model';
-import { RobotServiceDtoOut } from '../../classes/dtos/robot-service-dto-out';
-import { MaisonModel } from '../../classes/models/maison-model';
+import { CheminOptimalService } from "../../../../../algo-services/chemin-optimal.service";
+import { MessageService } from "../../../../../message-service/message.service";
 
 @Injectable() // Pas de providedIn: 'root' car on veut une instance du service par composant appelant RobotAspiratorComponent, pas un singleton
 export class RobotAspiratorService {
@@ -407,7 +407,7 @@ export class RobotAspiratorService {
   }
 
   private robotMustStop(position: Position): boolean {
-    return position && this.robot.batterie <= this.energieNecessairePourRetour(position) ?
+    return (position && this.robot.batterie <= this.energieNecessairePourRetour(position)) ?
       true : false;
   }
 

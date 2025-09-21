@@ -125,28 +125,38 @@ export class MaisonComponent implements OnDestroy, OnInit {
 
   public onMaisonPause(robotModelsTabInput: RobotAspiratorModel[]): RobotAspiratorModel[] {
     this.robotModelsTab = robotModelsTabInput;
+
     console.log("MaisonComponent maisonPause()");
+
     if (this.robotAspiratorChildComponents.length) {
-      for (let robotIndex in robotModelsTabInput) {
-        this.robotModelsTab[robotIndex] = this.robotAspiratorChildComponents.get(Number(robotIndex))!.robotPause();
+
+      for (let robotIndex in this.robotModelsTab) {
+        const robotModelInput: RobotAspiratorModel = this.robotAspiratorChildComponents.get(Number(robotIndex))!.robotPause();
+        robotModelInput.isRobotStarted = false;
+
+        this.robotModelsTab[robotIndex] = robotModelInput;
       }
     }
     return this.robotModelsTab;
   }
 
-  public onMaisonStart(maisonModel: MaisonModel, robotModelsTab: RobotAspiratorModel[]): RobotAspiratorModel[] {
+  public onMaisonStart(maisonModel: MaisonModel, robotModelsTabInput: RobotAspiratorModel[]): RobotAspiratorModel[] {
+    this.robotModelsTab = robotModelsTabInput;
+
     console.log("MaisonComponent onMaisonStart()");
-    console.log("robotModelsTab[0]");
-    RobotAspiratorModel.logger(robotModelsTab[0]);
+    console.log("robotModelsTabInput[0]");
+    RobotAspiratorModel.logger(robotModelsTabInput[0]);
+    if (this.robotAspiratorChildComponents.length) {
 
-    for (let robotIndex in robotModelsTab) {
-      console.log("loop number=" + robotIndex);
-      const robotModel = robotModelsTab[Number(robotIndex)];
-
-      // Le robot démarre
-      robotModel.isRobotStarted = true;
-
-      this.robotModelsTab[robotIndex] = this.robotAspiratorChildComponents.get(Number(robotIndex))!.startRobot(maisonModel, robotModel);
+      for (let robotIndex in this.robotModelsTab) {
+        const robotModel: RobotAspiratorModel = this.robotModelsTab[robotIndex];
+        // Seulement si le robot est à l'arrêt:
+        if (!robotModel.isRobotStarted) {
+          // Le robot démarre
+          robotModel.isRobotStarted = true;
+          this.robotModelsTab[robotIndex] = this.robotAspiratorChildComponents.get(Number(robotIndex))!.startRobot(maisonModel, robotModel);
+        }
+      }
     }
     return this.robotModelsTab;
   }
