@@ -35,7 +35,7 @@ export class RobotAspiratorService {
     // au départ, le robot est à la base:
     let lastPosition = { ...basePosition };
     let position = { ...basePosition };
-    let batterie = 50;
+    let batterie = 55;
     let isRobotStarted = false;
     let isRobotReturningToBase = false;
 

@@ -5,17 +5,16 @@ import { Subscription } from 'rxjs';
 import { MessageService } from '../../services/message-service/message.service';
 import { RobotAspiratorModel } from '../../classes/models/robot-aspirator-model';
 import { MaisonModel } from '../../classes/models/maison-model';
-import { RobotAspiratorBService } from '../../services/robot-actions/robot-aspirator-b/robot-aspirator-b.service';
 import { CheminOptimalService } from '../../services/algo-services/chemin-optimal.service';
-import { RobotServiceDtoOut } from '../../classes/dtos/robot-service-dto-out';
 import { RobotAspiratorService } from '../../services/robot-actions/robot-aspirator/robot-aspirator/robot-aspirator/robot-aspirator/robot-aspirator.service';
+import { RobotAspiratorWithNextPositionService } from '../../services/robot-actions/robot-aspirator-with-next-position/robot-aspirator-with-next-position.service';
 
 @Component({
   selector: 'app-robot-aspirator',
   templateUrl: './robot-aspirator.component.html',
   styleUrl: './robot-aspirator.component.css',
   encapsulation: ViewEncapsulation.None,
-  providers: [RobotAspiratorService, RobotAspiratorBService, CheminOptimalService] // Chaque instance aura son propre service
+  providers: [RobotAspiratorService, RobotAspiratorWithNextPositionService, CheminOptimalService] // Chaque instance aura son propre service
 })
 export class RobotAspiratorComponent implements OnDestroy {
 
@@ -44,8 +43,7 @@ export class RobotAspiratorComponent implements OnDestroy {
 
   constructor(private messageService: MessageService,
     private robotAspiratorService: RobotAspiratorService,
-    private robotAspiratorBService: RobotAspiratorBService,
-    private cheminOptimalService: CheminOptimalService
+    private robotAspiratorWithNextPositionService: RobotAspiratorWithNextPositionService,
   ) {
     // this.robotModel = new RobotAspiratorModel();
     this.robotOutputModel = new RobotAspiratorModel();
@@ -146,7 +144,7 @@ export class RobotAspiratorComponent implements OnDestroy {
     }
 
     // algo principal de nettoyage de la maison
-    this.subscription = this.robotAspiratorBService.nettoyer(this.maisonModel, this.robotOutputModel).subscribe({
+    this.subscription = this.robotAspiratorWithNextPositionService.nettoyer(this.maisonModel, this.robotOutputModel).subscribe({
       next: (robotOutputModel: RobotAspiratorModel) => {
         console.log("updateSubscriptionNettoyer next()");
 
@@ -179,7 +177,7 @@ export class RobotAspiratorComponent implements OnDestroy {
         this.robotOutputModel.isRobotReturningToBase = true;
 
         // puis on souscrit à retournerALaBase
-        this.subscription = this.robotAspiratorBService.retournerALaBase(this.maisonModel, this.robotOutputModel).subscribe({
+        this.subscription = this.robotAspiratorWithNextPositionService.retournerALaBase(this.maisonModel, this.robotOutputModel).subscribe({
           next: (robotOutputModel: RobotAspiratorModel) => {
             console.log('next retournerALaBase...');
 

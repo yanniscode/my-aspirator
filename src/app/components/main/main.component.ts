@@ -12,8 +12,8 @@ import { MaisonModel } from '../../classes/models/maison-model';
 import { Position } from '../../classes/models/position';
 import { RobotAspiratorModel } from '../../classes/models/robot-aspirator-model';
 import { MessageService } from '../../services/message-service/message.service';
-import { RobotAspiratorBService } from '../../services/robot-actions/robot-aspirator-b/robot-aspirator-b.service';
 import { RobotAspiratorService } from '../../services/robot-actions/robot-aspirator/robot-aspirator/robot-aspirator/robot-aspirator/robot-aspirator.service';
+import { RobotAspiratorWithNextPositionService } from '../../services/robot-actions/robot-aspirator-with-next-position/robot-aspirator-with-next-position.service';
 
 @Component({
   selector: 'app-main',
@@ -21,7 +21,7 @@ import { RobotAspiratorService } from '../../services/robot-actions/robot-aspira
   templateUrl: './main.component.html',
   styleUrl: './main.component.css',
   encapsulation: ViewEncapsulation.None,
-  providers: [RobotAspiratorService, RobotAspiratorBService] // TODO: Chaque instance aura son propre service -> TODO: MaisonService
+  providers: [RobotAspiratorService, RobotAspiratorWithNextPositionService] // TODO: Chaque instance aura son propre service -> TODO: MaisonService
 })
 export class MainComponent implements AfterViewInit, OnInit {
   // instantiation du composants enfant
@@ -31,7 +31,7 @@ export class MainComponent implements AfterViewInit, OnInit {
   private robotModelsTab: RobotAspiratorModel[];
 
   constructor(private messageService: MessageService, private maisonService: MaisonService,
-    private robotAspiratorService: RobotAspiratorService, private robotAspiratorBService: RobotAspiratorBService) {
+    private robotAspiratorService: RobotAspiratorService, private robotAspiratorWithNextPositionService: RobotAspiratorWithNextPositionService) {
     console.log("MaisonComponent constructor()");
 
     // initialisation des params de la maison
@@ -76,7 +76,7 @@ export class MainComponent implements AfterViewInit, OnInit {
 
     // if (this.robot1Model.isRobotStarted === false) {
     // setTimeout(() => {
-    this.robotModelsTab = { ...this.robotAspiratorBService.getRobotsParams() };
+    this.robotModelsTab = { ...this.robotAspiratorWithNextPositionService.getRobotsParams() };
 
     for (let robotIndex in this.robotModelsTab) {
       const robotBasePosition: Position = { ...this.robotModelsTab[robotIndex].basePosition };

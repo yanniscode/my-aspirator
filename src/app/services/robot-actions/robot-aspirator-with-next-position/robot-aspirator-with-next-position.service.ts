@@ -8,7 +8,7 @@ import { Position } from '../../../classes/models/position';
 import { Cell } from '../../../classes/models/cell';
 
 @Injectable()
-export class RobotAspiratorBService {
+export class RobotAspiratorWithNextPositionService {
 
   private maisonModel: MaisonModel;
   private robot: RobotAspiratorModel;
@@ -113,20 +113,20 @@ export class RobotAspiratorBService {
         if (prochaineCellule) {
 
           // Utiliser A* ou un autre algorithme de recherche de chemin pour trouver le chemin optimal
-          const chemin = this.cheminOptimalService.trouverChemin(this.maisonModel.maison, this.robot.position, prochaineCellule.cellStack[0].position);
-          console.log(chemin.length === 0);
+          const nextPosition: Position = this.cheminOptimalService.trouverPositionSuivante(this.maisonModel.maison, this.robot.position, prochaineCellule.cellStack[0].position);
+          console.log("nextPosition :" + nextPosition);
 
-          if (chemin === undefined) {
+          if (nextPosition === undefined) {
             console.log("Impossible de trouver un chemin vers la destination");
             observer.complete();
             return;
           }
 
           // ** Dans cette version de l'algo: on prend la première position du chemin à chaque tour de boucle
-          const pos: Position = chemin[0];
+          // const pos: Position = chemin[0];
 
           // marquer la cellule comme visitée + opérer le déplacement:
-          this.robot = { ...this.deplacer(pos) };
+          this.robot = { ...this.deplacer(nextPosition) };
 
           observer.next(this.robot);
 
@@ -163,21 +163,23 @@ export class RobotAspiratorBService {
         console.log("intervalId = " + intervalId);
 
         // Trouver le chemin vers la base
-        const chemin = this.cheminOptimalService.trouverChemin(this.maisonModel.maison, this.robot.position, this.robot.basePosition);
-        console.log(chemin);
-        if (chemin.length === 0) {
+        const nextPosition: Position = this.cheminOptimalService.trouverPositionSuivante(this.maisonModel.maison, this.robot.position, this.robot.basePosition);
+        console.log("nextPosition :" + nextPosition);
+
+        // if (nextPosition === undefined) {
+        //   console.log("Impossible de trouver un chemin vers la base de charge!");
+        // }
+
+        // const pos = chemin[0];
+
+        if (nextPosition === undefined) {
           console.log("Impossible de trouver un chemin vers la base de charge!");
-        }
-
-        const pos = chemin[0];
-
-        if (pos === undefined) {
           observer.complete();
           return;
 
         } else {
           // Suivre le chemin
-          this.robot = this.deplacer(pos);
+          this.robot = this.deplacer(nextPosition);
           observer.next(this.robot);
         }
       }, 500); // Émet une nouvelle valeur toutes les 280ms
