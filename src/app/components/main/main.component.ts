@@ -14,6 +14,7 @@ import { RobotAspiratorModel } from '../../classes/models/robot-aspirator-model'
 import { MessageService } from '../../services/message-service/message.service';
 import { RobotAspiratorService } from '../../services/robot-actions/robot-aspirator/robot-aspirator/robot-aspirator/robot-aspirator/robot-aspirator.service';
 import { RobotAspiratorWithNextPositionService } from '../../services/robot-actions/robot-aspirator-with-next-position/robot-aspirator-with-next-position.service';
+import { RobotAspiratorDataService } from '../../services/robot-aspirator-data/robot-aspirator-data.service';
 
 @Component({
   selector: 'app-main',
@@ -31,6 +32,7 @@ export class MainComponent implements AfterViewInit, OnInit {
   private robotModelsTab: RobotAspiratorModel[];
 
   constructor(private messageService: MessageService, private maisonService: MaisonService,
+    private robotAspiratorDataService: RobotAspiratorDataService,
     private robotAspiratorService: RobotAspiratorService, private robotAspiratorWithNextPositionService: RobotAspiratorWithNextPositionService) {
     console.log("MaisonComponent constructor()");
 
@@ -76,7 +78,7 @@ export class MainComponent implements AfterViewInit, OnInit {
 
     // if (this.robot1Model.isRobotStarted === false) {
     // setTimeout(() => {
-    this.robotModelsTab = { ...this.robotAspiratorWithNextPositionService.getRobotsParams() };
+    this.robotModelsTab = { ...this.robotAspiratorDataService.getRobotsParams() };
 
     for (let robotIndex in this.robotModelsTab) {
       const robotBasePosition: Position = { ...this.robotModelsTab[robotIndex].basePosition };

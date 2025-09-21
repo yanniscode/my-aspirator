@@ -33,6 +33,10 @@ export class CheminOptimalService {
     }
   }
 
+  // pour la version 1 de l'algo - RobotAspiratorWithNextPositionService :
+  public trouverPositionSuivante(maison: Cell[][], depart: Position, fin: Position): Position {
+    return this.trouverChemin(maison, depart, fin)[0];
+  }
 
   // Algorithme A* pour trouver le chemin optimal
   public trouverChemin(maison: Cell[][], depart: Position, fin: Position): Position[] {
