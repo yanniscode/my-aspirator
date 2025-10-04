@@ -6,8 +6,8 @@ import { MessageService } from '../../services/message-service/message.service';
 import { RobotAspiratorModel } from '../../classes/models/robot-aspirator-model';
 import { MaisonModel } from '../../classes/models/maison-model';
 import { CheminOptimalService } from '../../services/algo-services/chemin-optimal.service';
-import { RobotAspiratorService } from '../../services/robot-actions/robot-aspirator/robot-aspirator/robot-aspirator/robot-aspirator/robot-aspirator.service';
-import { RobotAspiratorWithNextPositionService } from '../../services/robot-actions/robot-aspirator-with-next-position/robot-aspirator-with-next-position.service';
+import { RobotAspiratorWithNextPositionsTabService } from '../../services/robot-actions-service/robot-aspirator-with-next-positions-tab-service/robot-aspirator/robot-aspirator/robot-aspirator-with-next-positions-tab-service/robot-aspirator-with-next-positions-tab.service';
+import { RobotAspiratorWithNextPositionService } from '../../services/robot-actions-service/robot-aspirator-with-next-position-service/robot-aspirator-with-next-position.service';
 import { RobotServiceDtoOut } from '../../classes/dtos/robot-service-dto-out';
 
 @Component({
@@ -15,7 +15,7 @@ import { RobotServiceDtoOut } from '../../classes/dtos/robot-service-dto-out';
   templateUrl: './robot-aspirator.component.html',
   styleUrl: './robot-aspirator.component.css',
   encapsulation: ViewEncapsulation.None,
-  providers: [RobotAspiratorService, RobotAspiratorWithNextPositionService, CheminOptimalService] // Chaque instance aura son propre service
+  providers: [RobotAspiratorWithNextPositionsTabService, RobotAspiratorWithNextPositionService, CheminOptimalService] // Chaque instance aura son propre service
 })
 export class RobotAspiratorComponent implements OnDestroy {
 
@@ -42,7 +42,7 @@ export class RobotAspiratorComponent implements OnDestroy {
     }
   }
 
-  constructor(private messageService: MessageService, private robotAspiratorService: RobotAspiratorService) {
+  constructor(private messageService: MessageService, private robotAspiratorService: RobotAspiratorWithNextPositionsTabService) {
     // this.robotModel = new RobotAspiratorModel();
     this.robotOutputModel = new RobotAspiratorModel();
   }

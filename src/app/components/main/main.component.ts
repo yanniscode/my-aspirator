@@ -12,9 +12,9 @@ import { MaisonModel } from '../../classes/models/maison-model';
 import { Position } from '../../classes/models/position';
 import { RobotAspiratorModel } from '../../classes/models/robot-aspirator-model';
 import { MessageService } from '../../services/message-service/message.service';
-import { RobotAspiratorService } from '../../services/robot-actions/robot-aspirator/robot-aspirator/robot-aspirator/robot-aspirator/robot-aspirator.service';
-import { RobotAspiratorWithNextPositionService } from '../../services/robot-actions/robot-aspirator-with-next-position/robot-aspirator-with-next-position.service';
-import { RobotAspiratorDataService } from '../../services/robot-aspirator-data/robot-aspirator-data.service';
+import { RobotAspiratorWithNextPositionsTabService } from '../../services/robot-actions-service/robot-aspirator-with-next-positions-tab-service/robot-aspirator/robot-aspirator/robot-aspirator-with-next-positions-tab-service/robot-aspirator-with-next-positions-tab.service';
+import { RobotAspiratorWithNextPositionService } from '../../services/robot-actions-service/robot-aspirator-with-next-position-service/robot-aspirator-with-next-position.service';
+import { RobotAspiratorDataService } from '../../services/robot-aspirator-data-service/robot-aspirator-data.service';
 
 @Component({
   selector: 'app-main',
@@ -22,7 +22,7 @@ import { RobotAspiratorDataService } from '../../services/robot-aspirator-data/r
   templateUrl: './main.component.html',
   styleUrl: './main.component.css',
   encapsulation: ViewEncapsulation.None,
-  providers: [RobotAspiratorService, RobotAspiratorWithNextPositionService] // TODO: Chaque instance aura son propre service -> TODO: MaisonService
+  providers: [RobotAspiratorWithNextPositionsTabService, RobotAspiratorWithNextPositionService] // TODO: Chaque instance aura son propre service -> TODO: MaisonService
 })
 export class MainComponent implements AfterViewInit, OnInit {
   // instantiation du composants enfant
@@ -33,7 +33,7 @@ export class MainComponent implements AfterViewInit, OnInit {
 
   constructor(private messageService: MessageService, private maisonService: MaisonService,
     private robotAspiratorDataService: RobotAspiratorDataService,
-    private robotAspiratorService: RobotAspiratorService, private robotAspiratorWithNextPositionService: RobotAspiratorWithNextPositionService) {
+    private robotAspiratorWithNextPositionsTabService: RobotAspiratorWithNextPositionsTabService, private robotAspiratorWithNextPositionService: RobotAspiratorWithNextPositionService) {
     console.log("MaisonComponent constructor()");
 
     // initialisation des params de la maison

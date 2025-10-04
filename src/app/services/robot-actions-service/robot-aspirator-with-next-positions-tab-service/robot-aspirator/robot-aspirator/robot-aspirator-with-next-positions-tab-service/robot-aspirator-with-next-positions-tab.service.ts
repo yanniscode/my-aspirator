@@ -10,7 +10,7 @@ import { CheminOptimalService } from "../../../../../algo-services/chemin-optima
 import { MessageService } from "../../../../../message-service/message.service";
 
 @Injectable() // Pas de providedIn: 'root' car on veut une instance du service par composant appelant RobotAspiratorComponent, pas un singleton
-export class RobotAspiratorService {
+export class RobotAspiratorWithNextPositionsTabService {
 
   // Nécessaire pour l'animation (écoute d'observable avec rxjs)
   private subscription?: Subscription;
