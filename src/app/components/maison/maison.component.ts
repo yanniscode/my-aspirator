@@ -162,7 +162,7 @@ export class MaisonComponent implements OnDestroy, OnInit {
     if (this.robotAspiratorChildComponents.length) {
 
       for (let robotIndex in this.robotModelsTab) {
-        const robotModelInput: RobotAspiratorModel = this.robotAspiratorChildComponents.get(Number(robotIndex))!.robotPause();
+        const robotModelInput: RobotAspiratorModel = this.robotAspiratorChildComponents.get(Number(robotIndex))!.robotPauseV1();
         robotModelInput.isRobotStarted = false;
 
         this.robotModelsTab[robotIndex] = robotModelInput;

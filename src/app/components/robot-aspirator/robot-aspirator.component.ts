@@ -32,72 +32,47 @@ export class RobotAspiratorComponent implements OnDestroy {
 
   // nécessaire pour l'animation (écoute d'observables avec rxjs)
   private updateSubscriptionNettoyer!: Subscription;
-  // private updateSubscriptionRetourABase!: Subscription; // TODO supprimer
 
   ngOnDestroy(): void {
-    this.robotOutputModel = this.robotAspiratorService.onPauseRobotService();
+    this.robotOutputModel = this.robotAspiratorWithNextPositionsTabService.onPauseRobotService();
     if (this.subscription) {
       this.log("RobotAspiratorComponent - ngOnDestroy unsubscribe !");
       this.subscription.unsubscribe();
     }
   }
 
-  constructor(private messageService: MessageService, private robotAspiratorService: RobotAspiratorWithNextPositionsTabService) {
-    // this.robotModel = new RobotAspiratorModel();
+  constructor(private messageService: MessageService,
+    private robotAspiratorWithNextPositionService: RobotAspiratorWithNextPositionService,
+    private robotAspiratorWithNextPositionsTabService: RobotAspiratorWithNextPositionsTabService) {
     this.robotOutputModel = new RobotAspiratorModel();
   }
 
-  public robotPause(): RobotAspiratorModel {
+  public robotPauseV1(): RobotAspiratorModel {
     console.log("RobotAspiratorComponent - robotPause");
-    // V2:
-    this.robotOutputModel = this.robotAspiratorService.onPauseRobotService();
-
-    // V1 et V2:
     // console.log(this.subscription);
     if (this.subscription) {
       this.subscription.unsubscribe();
     }
-    // V1:
-    // if (this.updateSubscriptionNettoyer) {
-    //   this.updateSubscriptionNettoyer.unsubscribe();
-    // }
+    if (this.updateSubscriptionNettoyer) {
+      this.updateSubscriptionNettoyer.unsubscribe();
+    }
     return this.robotOutputModel;
   }
 
-  // // Impotation de l'algo V1 - test
-  // public startRobot(maisonModelInput: MaisonModel, robotModelInput: RobotAspiratorModel): RobotAspiratorModel {
-  //   console.log("RobotAspiratorComponent - startRobot()");
+  public robotPauseV2(): RobotAspiratorModel {
+    console.log("RobotAspiratorComponent - robotPause");
+    this.robotOutputModel = this.robotAspiratorWithNextPositionsTabService.onPauseRobotService();
+    // console.log(this.subscription);
+    if (this.subscription) {
+      this.subscription.unsubscribe();
+    }
 
-  //   this.maisonModel = { ...maisonModelInput };
-  //   console.log("this.maisonModel :");
-  //   MaisonModel.logger(this.maisonModel);
-
-  //   console.log("robotModelInput");
-  //   RobotAspiratorModel.logger(robotModelInput);
-
-  //   console.log("this.robotOutputModel avant modif :");
-  //   RobotAspiratorModel.logger(this.robotOutputModel);
-  //   this.robotOutputModel = { ...robotModelInput };
-  //   console.log("this.robotOutputModel après modif :");
-  //   RobotAspiratorModel.logger(this.robotOutputModel);
-
-  //   // si on clique plusieurs fois sur start, la souscription existe et est ouverte, donc on ne resouscrit pas
-  //   // ou bien : si on re-start après mise en pause, la souscription existe à l'état closed, on la réinitialise ici
-  //   console.log(this.subscription);
-  //   if (!this.subscription || this.subscription.closed) {
-  //     this.subscription = new Subscription();
-
-  //     // sous-appel de méthode, car :
-  //     // un robot pourrait avoir d'autres spécialités que de passer l'aspi
-  //     this.robotOutputModel = this.startAspiratorRobot();
-  //   }
-  //   return this.robotOutputModel;
-  // }
-
+    return this.robotOutputModel;
+  }
 
   // ********************
 
-  // Version Algo 2 - ok
+  // Version Algo 1 et 2
   public startRobot(maisonModelInput: MaisonModel, robotModelInput: RobotAspiratorModel): RobotAspiratorModel {
     console.log("RobotAspiratorComponent - startRobot()");
 
@@ -122,104 +97,95 @@ export class RobotAspiratorComponent implements OnDestroy {
 
       // sous-appel de méthode, car :
       // un robot pourrait avoir d'autres spécialités que de passer l'aspi
-      this.startAspiratorRobot();
+      this.robotOutputModel = this.startRobotAspiratorWithNextPositionService();
     }
     return this.robotOutputModel;
   }
 
-  // // algo V1 :
-  // public startAspiratorRobot(): void {
-  //   // si l'on préfère afficher le robot seulement après clic sur start:
-  //   console.log("Début du nettoyage");
+  // algo V1 :
+  private startRobotAspiratorWithNextPositionService(): RobotAspiratorModel {
+    // si l'on préfère afficher le robot seulement après clic sur start:
+    console.log("Début du nettoyage");
 
-  //   // this.maisonModel = { ...maisonModelInput };
+    // this.maisonModel = { ...maisonModelInput };
 
-  //   // this.robotModel = { ...robotModelInput };
-  //   // this.robotModel.isRobotStarted = true;
+    if (!this.robotOutputModel.isRobotStarted) { // TODO: test
+      return this.robotOutputModel;
+    }
 
-  //   if (!this.robotOutputModel.isRobotStarted) { // TODO: test
-  //     return;
-  //   }
+    // algo principal de nettoyage de la maison
+    this.subscription = this.robotAspiratorWithNextPositionService.nettoyer(this.maisonModel, this.robotOutputModel).subscribe({
+      next: (robotOutputModel: RobotAspiratorModel) => {
+        console.log("updateSubscriptionNettoyer next()");
 
-  //   // algo principal de nettoyage de la maison
-  //   this.subscription = this.robotAspiratorWithNextPositionService.nettoyer(this.maisonModel, this.robotOutputModel).subscribe({
-  //     next: (robotOutputModel: RobotAspiratorModel) => {
-  //       console.log("updateSubscriptionNettoyer next()");
+        this.robotOutputModel = { ...robotOutputModel };
 
-  //       this.robotOutputModel = { ...robotOutputModel };
-  //       // this.robotOutputModel.lastPosition = { ...robotOutputModel.lastPosition };
-  //       // this.robotOutputModel.position = { ...robotOutputModel.position };
-  //       // this.robotOutputModel.batterie = robotOutputModel.batterie;
+        // console.log(this.robotOutputModel.lastPosition.x.toString());
+        // console.log(this.robotOutputModel.lastPosition.y.toString());
+        // console.log(this.robotOutputModel.position.x.toString());
+        // console.log(this.robotOutputModel.position.y.toString());
 
-  //       console.log(this.robotOutputModel.lastPosition.x.toString());
-  //       console.log(this.robotOutputModel.lastPosition.y.toString());
-  //       console.log(this.robotOutputModel.position.x.toString());
-  //       console.log(this.robotOutputModel.position.y.toString());
+        // Si le retour à la base n'est pas activé:
+        if (!this.robotOutputModel.isRobotReturningToBase) {
+          // MAJ de la vue:
+          this.updateRobot();
+        }
+      },
+      error: (err: string) => {
+        console.log('Erreur nettoyer: ' + err);
+      },
+      complete: () => {
+        console.log('complete nettoyer: Nettoyage ok !');
 
-  //       // Si le retour à la base n'est pas activé:
-  //       if (!this.robotOutputModel.isRobotReturningToBase) {
-  //         // MAJ de la vue:
-  //         this.updateRobot();
-  //       }
-  //     },
-  //     error: (err: string) => {
-  //       console.log('Erreur nettoyer: ' + err);
-  //     },
-  //     complete: () => {
-  //       console.log('complete nettoyer: Nettoyage ok !');
+        this.subscription!.unsubscribe();
+        // Retourner à la base de charge
+        console.log(`Batterie: ${this.robotOutputModel.batterie}%. Retour à la base.`);
 
-  //       this.subscription!.unsubscribe();
-  //       // Retourner à la base de charge
-  //       console.log(`Batterie: ${this.robotOutputModel.batterie}%. Retour à la base.`);
+        this.robotOutputModel.isRobotReturningToBase = true;
 
-  //       this.robotOutputModel.isRobotReturningToBase = true;
+        // puis on souscrit à retournerALaBase
+        this.subscription = this.robotAspiratorWithNextPositionService.retournerALaBase(this.maisonModel, this.robotOutputModel).subscribe({
+          next: (robotOutputModel: RobotAspiratorModel) => {
+            console.log('next retournerALaBase...');
 
-  //       // puis on souscrit à retournerALaBase
-  //       this.subscription = this.robotAspiratorWithNextPositionService.retournerALaBase(this.maisonModel, this.robotOutputModel).subscribe({
-  //         next: (robotOutputModel: RobotAspiratorModel) => {
-  //           console.log('next retournerALaBase...');
+            this.robotOutputModel = { ...robotOutputModel };
 
-  //           this.robotOutputModel = { ...robotOutputModel };
-  //           // this.robotOutputModel.lastPosition = { ...robotOutputModel.lastPosition };
-  //           // this.robotOutputModel.position = { ...robotOutputModel.position };
-  //           // this.robotOutputModel.batterie = robotOutputModel.batterie;
+            // console.log(this.robotOutputModel.lastPosition.x.toString());
+            // console.log(this.robotOutputModel.lastPosition.y.toString());
+            // console.log(this.robotOutputModel.position.x.toString());
+            // console.log(this.robotOutputModel.position.y.toString());
 
-  //           console.log(this.robotOutputModel.lastPosition.x.toString());
-  //           console.log(this.robotOutputModel.lastPosition.y.toString());
-  //           console.log(this.robotOutputModel.position.x.toString());
-  //           console.log(this.robotOutputModel.position.y.toString());
+            // MAJ de la vue:
+            this.updateRobot();
+          },
+          error: (err: string) => {
+            console.log('Erreur retournerALaBase: ' + err);
+          },
+          complete: () => {
+            console.log('complete retournerALaBase: ok !');
+            this.robotOutputModel.isRobotStarted = false;
+            // this.startIntro();
+            this.subscription!.unsubscribe();
 
-  //           // MAJ de la vue:
-  //           this.updateRobot();
-  //         },
-  //         error: (err: string) => {
-  //           console.log('Erreur retournerALaBase: ' + err);
-  //         },
-  //         complete: () => {
-  //           console.log('complete retournerALaBase: ok !');
-  //           this.robotOutputModel.isRobotStarted = false;
-  //           // this.startIntro();
-  //           this.subscription!.unsubscribe();
+            if (this.robotOutputModel.position.x === this.robotOutputModel.basePosition.x && this.robotOutputModel.position.y === this.robotOutputModel.basePosition.y
+            ) {
+              this.robotOutputModel = this.robotPauseV1();
+            }
+          }
+        });
+      }
+    });
 
-  //           if (this.robotOutputModel.position.x === this.robotOutputModel.basePosition.x && this.robotOutputModel.position.y === this.robotOutputModel.basePosition.y
-  //           ) {
-  //             this.robotOutputModel = this.robotPause();
-  //           }
-  //         }
-  //       });
-  //     }
-  //   });
-
-  //   return;
-  // }
+    return this.robotOutputModel;
+  }
 
 
 
   // Algo V2 ok - méthode qui fait le lien avec le service du robot aspirateur
-  private startAspiratorRobot(): RobotAspiratorModel {
+  private startRobotAspiratorWithNextPositionsTabService(): RobotAspiratorModel {
     console.log("RobotAspiratorComponent startAspiratorRobot robot");
 
-    this.subscription = this.robotAspiratorService.onStartNettoyer(this.maisonModel, this.robotOutputModel).subscribe({
+    this.subscription = this.robotAspiratorWithNextPositionsTabService.onStartNettoyer(this.maisonModel, this.robotOutputModel).subscribe({
       next: (robotServiceDtoOut: RobotServiceDtoOut) => {
         console.log('next startAspiratorRobot...');
         console.log("robotOutputModel avant modif:");
@@ -260,7 +226,7 @@ export class RobotAspiratorComponent implements OnDestroy {
 
         if (this.robotOutputModel.position.x === this.robotOutputModel.basePosition.x && this.robotOutputModel.position.y === this.robotOutputModel.basePosition.y
         ) {
-          this.robotPause();
+          this.robotPauseV2();
         }
       }
     });
@@ -272,7 +238,7 @@ export class RobotAspiratorComponent implements OnDestroy {
 
   // v1 et v2:
   // lien du composant enfant > parent pour la vue
-  public updateRobot(): void {
+  private updateRobot(): void {
     // RobotAspiratorModel.logger(this.robotOutputModel);
     this.robotUpdateModel.emit(this.robotOutputModel);
   }
