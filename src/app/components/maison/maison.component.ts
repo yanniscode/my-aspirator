@@ -26,7 +26,7 @@ import { MaisonService } from '../../services/maison-service/maison.service';
     trigger('moveRobot1', [
       state('*', style({
         transform: 'translate({{ x }}px, {{ y }}px)'
-      }), { params: { x: 0, y: 0 + 82 } }), // décalage de Y de 32 pour le robot
+      }), { params: { x: -100, y: 0 + 82 } }), // décalage de Y de 32 pour le robot
       transition('* <=> *', [
         animate('300ms ease-in-out') // 400 = moins que l'intervalle au niveau service pour anim plus régulière
       ]),
@@ -34,7 +34,23 @@ import { MaisonService } from '../../services/maison-service/maison.service';
     trigger('moveRobot2', [
       state('*', style({
         transform: 'translate({{ x }}px, {{ y }}px)'
-      }), { params: { x: 450, y: 0 + 82 } }), // décalage de Y de 32 pour le robot
+      }), { params: { x: 550, y: 0 + 82 } }), // décalage de Y de 32 pour le robot
+      transition('* <=> *', [
+        animate('300ms ease-in-out') // 400 = moins que l'intervalle au niveau service pour anim plus régulière
+      ]),
+    ]),
+    trigger('moveRobot3', [
+      state('*', style({
+        transform: 'translate({{ x }}px, {{ y }}px)'
+      }), { params: { x: 500, y: 350 + 82 } }), // décalage de Y de 32 pour le robot
+      transition('* <=> *', [
+        animate('300ms ease-in-out') // 400 = moins que l'intervalle au niveau service pour anim plus régulière
+      ]),
+    ]),
+    trigger('moveRobot4', [
+      state('*', style({
+        transform: 'translate({{ x }}px, {{ y }}px)'
+      }), { params: { x: -100, y: 350 + 82 } }), // décalage de Y de 32 pour le robot
       transition('* <=> *', [
         animate('300ms ease-in-out') // 400 = moins que l'intervalle au niveau service pour anim plus régulière
       ]),
@@ -56,13 +72,19 @@ export class MaisonComponent implements OnDestroy, OnInit {
   public moveTrigger1: number;
 
   // *** ROBOT 2:
-  // Variables pour la mise à jour de la Vue (public car appelées par le template)
-  // Position robot 2
   public aspiroX2: number;
-  // ajout d'un décalage du robot au départ  Y += 82px:
   public aspiroY2: number;
-  // pour mettre à jour l'animation du déplacement du robot
   public moveTrigger2: number;
+
+  // *** ROBOT 3:
+  public aspiroX3: number;
+  public aspiroY3: number;
+  public moveTrigger3: number;
+
+  // *** ROBOT 4:
+  public aspiroX4: number;
+  public aspiroY4: number;
+  public moveTrigger4: number;
 
   private robotModelsTab: RobotAspiratorModel[];
 
@@ -108,7 +130,6 @@ export class MaisonComponent implements OnDestroy, OnInit {
     this.maisonViewModel.obstacles = [];
     this.maisonViewModel.isNettoyageComplete = false;
 
-    this.robotModelsTab = [];
     this.aspiroX1 = 0;
     this.aspiroY1 = 0 + 82;
     this.moveTrigger1 = 0;
@@ -116,6 +137,16 @@ export class MaisonComponent implements OnDestroy, OnInit {
     this.aspiroX2 = 450;
     this.aspiroY2 = 0 + 82;
     this.moveTrigger2 = 0;
+
+    this.aspiroX3 = 450;
+    this.aspiroY3 = 350 + 82;
+    this.moveTrigger3 = 0;
+
+    this.aspiroX4 = 0;
+    this.aspiroY4 = 350 + 82;
+    this.moveTrigger4 = 0;
+
+    this.robotModelsTab = [];
   }
 
   public construireMaison(maisonModel: MaisonModel): void {
@@ -189,11 +220,19 @@ export class MaisonComponent implements OnDestroy, OnInit {
     } else if (robotUpdateModel.robotName === "robot2") {
       this.aspiroX2 += aspiroDirX;
       this.aspiroY2 += aspiroDirY;
+    } else if (robotUpdateModel.robotName === "robot3") {
+      this.aspiroX3 += aspiroDirX;
+      this.aspiroY3 += aspiroDirY;
+    } else if (robotUpdateModel.robotName === "robot4") {
+      this.aspiroX4 += aspiroDirX;
+      this.aspiroY4 += aspiroDirY;
     }
 
     // nécessaire pour la fluidité de l'animation
     this.moveTrigger1++;
     this.moveTrigger2++;
+    this.moveTrigger3++;
+    this.moveTrigger4++;
   }
 
   private log(message: string): void {

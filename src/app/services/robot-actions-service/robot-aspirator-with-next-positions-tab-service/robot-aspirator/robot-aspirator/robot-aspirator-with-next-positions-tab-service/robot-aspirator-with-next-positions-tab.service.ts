@@ -231,6 +231,9 @@ export class RobotAspiratorWithNextPositionsTabService {
 
       console.log("cheminRestant :");
       console.log(cheminRestant);
+      console.log(cheminRestant[0]);
+      console.log(cheminRestant[0].x);
+      console.log(cheminRestant[0].y);
 
       if (cheminRestant.length === 0) {
         this.maisonModel.isNettoyageComplete = true;
@@ -254,6 +257,7 @@ export class RobotAspiratorWithNextPositionsTabService {
     console.log("########## processNextMove");
 
     console.log("*** cheminRestant : ***");
+    console.log(cheminRestant[0]);
     console.log(cheminRestant[0]?.x);
     console.log(cheminRestant[0]?.y);
 
@@ -361,8 +365,8 @@ export class RobotAspiratorWithNextPositionsTabService {
     const distance = this.cheminOptimalService.distance(position, this.robot.basePosition);
     console.log("distance minimale de la base = " + distance);
 
-    // Ajouter une marge de sécurité
-    return (distance * this.robot.consommationParMouvement) * 1.2;
+    // Ajouter une marge de sécurité : valeur à ajuster si le robot reste bloqué (ex: consommationParMouvement = 1.2, robot4 : batterie = 20)
+    return (distance * this.robot.consommationParMouvement) * 1.5;
   }
 
   public log(message: string) {

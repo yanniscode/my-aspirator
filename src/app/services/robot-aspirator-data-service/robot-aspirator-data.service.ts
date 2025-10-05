@@ -37,22 +37,17 @@ export class RobotAspiratorDataService {
     console.log(robot1Model);
 
     // robot2 test
-    // 1 - Récupération des datas :
     robotName = "robot2";
-    // TODO: possible récupération des données dans des objets JSON / appels HTTP
     basePosition = { x: 9, y: 0 };
-    // Au départ, le robot est à la base:
     lastPosition = { ...basePosition };
     position = { ...basePosition };
     batterie = 60;
     isRobotStarted = false;
     isRobotReturningToBase = false;
 
-    // 2 - Instanciation du RobotAspiratorModel:
     let robot2Model = new RobotAspiratorModel();
     robot2Model.robotName = robotName;
     robot2Model.basePosition = { ...basePosition };
-    // Au départ, le robot est à la base:
     robot2Model.lastPosition = { ...lastPosition };
     robot2Model.position = { ...position };
     robot2Model.batterie = batterie;
@@ -61,7 +56,46 @@ export class RobotAspiratorDataService {
 
     console.log(robot2Model);
 
-    // TODO: pour tester avec 1 ou 2 robots, ajouter ici
-    return [robot1Model, robot2Model];
+    // robot3 test
+    robotName = "robot3";
+    basePosition = { x: 9, y: 7 };
+    lastPosition = { ...basePosition };
+    position = { ...basePosition };
+    batterie = 20;
+    isRobotStarted = false;
+    isRobotReturningToBase = false;
+
+    let robot3Model = new RobotAspiratorModel();
+    robot3Model.robotName = robotName;
+    robot3Model.basePosition = { ...basePosition };
+    robot3Model.lastPosition = { ...lastPosition };
+    robot3Model.position = { ...position };
+    robot3Model.batterie = batterie;
+    robot3Model.isRobotStarted = isRobotStarted;
+    robot3Model.isRobotReturningToBase = isRobotReturningToBase;
+
+    console.log(robot3Model);
+
+    // robot3 test
+    robotName = "robot4";
+    basePosition = { x: 0, y: 7 };
+    lastPosition = { ...basePosition };
+    position = { ...basePosition };
+    batterie = 20;
+    isRobotStarted = false;
+    isRobotReturningToBase = false;
+
+    let robot4Model = new RobotAspiratorModel();
+    robot4Model.robotName = robotName;
+    robot4Model.basePosition = { ...basePosition };
+    robot4Model.lastPosition = { ...lastPosition };
+    robot4Model.position = { ...position };
+    robot4Model.batterie = batterie;
+    robot4Model.isRobotStarted = isRobotStarted;
+    robot4Model.isRobotReturningToBase = isRobotReturningToBase;
+
+    console.log(robot4Model);
+
+    return [robot1Model, robot2Model, robot3Model, robot4Model];
   }
 }
