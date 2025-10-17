@@ -4,23 +4,17 @@
 }
 
 .robot-view-container {
-    grid-area: overlap; /* important pour la disposition du robot */
     width: 50px;
     height: 50px;
-    /* background-color: red; */ /* pour tests */
-    /* border-radius: 50%; */
 }
 
-.maison {
-    background-color: #ffae2b;
-    display: flex; /* pour centrage de la maison */
-    align-items: center;
-    height: 450px;
-    position:relative;
-}
-
-.table-maison .p-datatable {
-    display: unset;
+.maison,
+.robot-view-container {
+    /* superposition des robots et de la maison */
+    grid-area: 1 / 1;
+    /*
+        background-color: #ffae2b; // TODO: déplacer dans le parent ? (couleur jaune)
+    */
 }
 
 .tr-maison {
@@ -37,4 +31,11 @@
     text-align: center !important;
     border-style: none !important;
     padding: 0rem 0.5rem !important;
+}
+
+.app-robot-aspirator {
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
