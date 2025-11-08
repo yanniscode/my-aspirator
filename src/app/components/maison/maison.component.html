@@ -1,42 +1,52 @@
 <div class="game-container">
 
-    <div class="maison">
-        <p-table [value]="this.maisonViewModel.maison" @maisonAnimation class="table-maison" cellspacing="0"
-            cellpadding="0">
-            <ng-template pTemplate="body" let-rowData>
-                <tr class="tr-maison">
-                    <!-- TODO: placer le robot ici ?? -->
-                    <td *ngFor="let cell of rowData" class="td-maison">
-                        <img *ngIf="cell.cellStack[0].type === 'O'" src="/assets/texture-non-visitee.png" alt='O' />
-                        <img *ngIf="cell.cellStack[0].type === 'X'" src="/assets/texture-mur.png" alt='X' />
-                        <img *ngIf="cell.cellStack[0].type === 'B'" src="/assets/texture-base.png" alt='B' />
-                        <img *ngIf="cell.cellStack[0].type === '_'" src="/assets/texture-visitee.png" alt='_' />
-                    </td>
-                </tr>
-            </ng-template>
-        </p-table>
-    </div>
+  <div class="maison">
+    <p-table [value]="this.maisonViewModel.maison" @maisonAnimation class="table-maison" cellspacing="0"
+      cellpadding="0">
+      <ng-template pTemplate="body" let-rowData>
+        <tr class="tr-maison">
+          <!-- TODO: placer le robot ici ?? -->
+          @for (cell of rowData; track cell) {
+            <td class="td-maison">
+              @if (cell.cellStack[0].type === 'O') {
+                <img src="/assets/texture-non-visitee.png" alt='O' />
+              }
+              @if (cell.cellStack[0].type === 'X') {
+                <img src="/assets/texture-mur.png" alt='X' />
+              }
+              @if (cell.cellStack[0].type === 'B') {
+                <img src="/assets/texture-base.png" alt='B' />
+              }
+              @if (cell.cellStack[0].type === '_') {
+                <img src="/assets/texture-visitee.png" alt='_' />
+              }
+            </td>
+          }
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
 
-    <!-- TODO: pour l'intro: condition d'affichage du robot, toujours présent actuellement -->
-    <div class="robot-view-container" [@moveRobot1]="{ value: moveTrigger1, params: { x: aspiroX1, y: aspiroY1 } }">
-        <!-- (click)="toggleAnimation()" -->
-        <app-robot-aspirator class="app-robot-aspirator"
-            (robotUpdateModel)="handleRobotUpdate($event)"></app-robot-aspirator>
-        <p style="font-weight:bold; font-size:8px; color:orangered;">AspiroMan 1</p>
-    </div>
-    <div class="robot-view-container" [@moveRobot2]="{ value: moveTrigger2, params: { x: aspiroX2, y: aspiroY2 } }">
-        <app-robot-aspirator class="app-robot-aspirator"
-            (robotUpdateModel)="handleRobotUpdate($event)"></app-robot-aspirator>
-        <p style="font-weight:bold; font-size:8px; color:yellow;">AspiroMan 2</p>
-    </div>
-    <div class="robot-view-container" [@moveRobot3]="{ value: moveTrigger3, params: { x: aspiroX3, y: aspiroY3 } }">
-        <app-robot-aspirator class="app-robot-aspirator"
-            (robotUpdateModel)="handleRobotUpdate($event)"></app-robot-aspirator>
-        <p style="font-weight:bold; font-size:8px; color:green;">AspiroMan 3</p>
-    </div>
-    <div class="robot-view-container" [@moveRobot4]="{ value: moveTrigger4, params: { x: aspiroX4, y: aspiroY4 } }">
-        <app-robot-aspirator class="app-robot-aspirator"
-            (robotUpdateModel)="handleRobotUpdate($event)"></app-robot-aspirator>
-        <p style="font-weight:bold; font-size:8px; color:blue;">AspiroMan 4</p>
-    </div>
+  <!-- TODO: pour l'intro: condition d'affichage du robot, toujours présent actuellement -->
+  <div class="robot-view-container" [@moveRobot1]="{ value: moveTrigger1, params: { x: aspiroX1, y: aspiroY1 } }">
+    <!-- (click)="toggleAnimation()" -->
+    <app-robot-aspirator class="app-robot-aspirator"
+    (robotUpdateModel)="handleRobotUpdate($event)"></app-robot-aspirator>
+    <p style="font-weight:bold; font-size:8px; color:orangered;">AspiroMan 1</p>
+  </div>
+  <div class="robot-view-container" [@moveRobot2]="{ value: moveTrigger2, params: { x: aspiroX2, y: aspiroY2 } }">
+    <app-robot-aspirator class="app-robot-aspirator"
+    (robotUpdateModel)="handleRobotUpdate($event)"></app-robot-aspirator>
+    <p style="font-weight:bold; font-size:8px; color:yellow;">AspiroMan 2</p>
+  </div>
+  <div class="robot-view-container" [@moveRobot3]="{ value: moveTrigger3, params: { x: aspiroX3, y: aspiroY3 } }">
+    <app-robot-aspirator class="app-robot-aspirator"
+    (robotUpdateModel)="handleRobotUpdate($event)"></app-robot-aspirator>
+    <p style="font-weight:bold; font-size:8px; color:green;">AspiroMan 3</p>
+  </div>
+  <div class="robot-view-container" [@moveRobot4]="{ value: moveTrigger4, params: { x: aspiroX4, y: aspiroY4 } }">
+    <app-robot-aspirator class="app-robot-aspirator"
+    (robotUpdateModel)="handleRobotUpdate($event)"></app-robot-aspirator>
+    <p style="font-weight:bold; font-size:8px; color:blue;">AspiroMan 4</p>
+  </div>
 </div>

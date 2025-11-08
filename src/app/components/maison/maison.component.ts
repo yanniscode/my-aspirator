@@ -1,5 +1,5 @@
 import { trigger, transition, style, animate, state } from '@angular/animations';
-import { NgFor, NgIf } from '@angular/common';
+
 import { Component, ViewEncapsulation, OnDestroy, OnInit, ViewChildren, QueryList } from '@angular/core';
 
 import { TableModule } from "primeng/table";
@@ -12,7 +12,7 @@ import { MaisonService } from '../../services/maison-service/maison.service';
 
 @Component({
   selector: 'app-maison',
-  imports: [NgFor, NgIf, TableModule, RobotAspiratorComponent],
+  imports: [TableModule, RobotAspiratorComponent],
   templateUrl: './maison.component.html',
   styleUrl: './maison.component.css',
   encapsulation: ViewEncapsulation.None,

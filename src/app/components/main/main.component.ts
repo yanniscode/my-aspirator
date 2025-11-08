@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, AfterViewInit, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
@@ -18,7 +18,7 @@ import { RobotAspiratorDataService } from '../../services/robot-aspirator-data-s
 
 @Component({
   selector: 'app-main',
-  imports: [CommonModule, FormsModule, TableModule, MessagesComponent, MaisonComponent],
+  imports: [FormsModule, TableModule, MessagesComponent, MaisonComponent],
   templateUrl: './main.component.html',
   styleUrl: './main.component.css',
   encapsulation: ViewEncapsulation.None,
