@@ -34,6 +34,7 @@ export class RobotAspiratorComponent implements OnDestroy {
   private updateSubscriptionNettoyer!: Subscription;
 
   ngOnDestroy(): void {
+    // Appel du service 2 RobotAspiratorWithNextPositionsTabService :
     this.robotOutputModel = this.robotAspiratorWithNextPositionsTabService.onPauseRobotService();
     if (this.subscription) {
       this.log("RobotAspiratorComponent - ngOnDestroy unsubscribe !");
@@ -41,6 +42,12 @@ export class RobotAspiratorComponent implements OnDestroy {
     }
   }
 
+  //  Alternative: on peut appeler le service de recherche 1 robotAspiratorWithNextPositionService ou service 2 RobotAspiratorWithNextPositionsTabService :
+  //  le service 1 permet au robot de trouver sa position suivante et réitère la recherche de case à nettoyer à chaque tour
+  //  (préférable si plusieurs robots pour éviter qu'ils ne prennent le même chemin)
+  //  le service 2 ne réitère la recherche de nouvelle position à nettoyer qu'après avoir été jusqu'à sa prochaine case à nettoyer (préférable si le robot est seul)
+  //  TODO:
+  // revoir l'algo car cela ne suffit pas : les robots continuent de se suivre > option à voir: créer un paramètre case réservée dans la maison
   constructor(private messageService: MessageService,
     private robotAspiratorWithNextPositionService: RobotAspiratorWithNextPositionService,
     private robotAspiratorWithNextPositionsTabService: RobotAspiratorWithNextPositionsTabService) {
@@ -61,6 +68,7 @@ export class RobotAspiratorComponent implements OnDestroy {
 
   public robotPauseV2(): RobotAspiratorModel {
     console.log("RobotAspiratorComponent - robotPause");
+    // Appel du service 2 RobotAspiratorWithNextPositionsTabService :
     this.robotOutputModel = this.robotAspiratorWithNextPositionsTabService.onPauseRobotService();
     // console.log(this.subscription);
     if (this.subscription) {
@@ -102,7 +110,7 @@ export class RobotAspiratorComponent implements OnDestroy {
     return this.robotOutputModel;
   }
 
-  // algo V1 :
+  // Algo V1 ok - méthode qui fait le lien avec le service 1 du robot aspirateur
   private startRobotAspiratorWithNextPositionService(): RobotAspiratorModel {
     // si l'on préfère afficher le robot seulement après clic sur start:
     console.log("Début du nettoyage");
@@ -114,6 +122,7 @@ export class RobotAspiratorComponent implements OnDestroy {
     }
 
     // algo principal de nettoyage de la maison
+    // Appel du service 1 RobotAspiratorWithNextPositionService :
     this.subscription = this.robotAspiratorWithNextPositionService.nettoyer(this.maisonModel, this.robotOutputModel).subscribe({
       next: (robotOutputModel: RobotAspiratorModel) => {
         console.log("updateSubscriptionNettoyer next()");
@@ -144,6 +153,7 @@ export class RobotAspiratorComponent implements OnDestroy {
         this.robotOutputModel.isRobotReturningToBase = true;
 
         // puis on souscrit à retournerALaBase
+        // Appel du service 1 RobotAspiratorWithNextPositionService :
         this.subscription = this.robotAspiratorWithNextPositionService.retournerALaBase(this.maisonModel, this.robotOutputModel).subscribe({
           next: (robotOutputModel: RobotAspiratorModel) => {
             console.log('next retournerALaBase...');
@@ -181,10 +191,11 @@ export class RobotAspiratorComponent implements OnDestroy {
 
 
 
-  // Algo V2 ok - méthode qui fait le lien avec le service du robot aspirateur
+  // Algo V2 ok - méthode qui fait le lien avec le service 2 du robot aspirateur
   private startRobotAspiratorWithNextPositionsTabService(): RobotAspiratorModel {
     console.log("RobotAspiratorComponent startAspiratorRobot robot");
 
+    // Appel du service 2 RobotAspiratorWithNextPositionsTabService :
     this.subscription = this.robotAspiratorWithNextPositionsTabService.onStartNettoyer(this.maisonModel, this.robotOutputModel).subscribe({
       next: (robotServiceDtoOut: RobotServiceDtoOut) => {
         console.log('next startAspiratorRobot...');
