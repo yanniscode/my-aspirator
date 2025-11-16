@@ -46,7 +46,7 @@ export class RobotAspiratorWithNextPositionService {
 
         // si toutes les cellules accessibles sont visitées, on logge simplement
         if (this.toutEstNettoye()) {
-          console.log("Toutes les zones accessibles sont nettoyées");
+          this.log("Toutes les zones accessibles sont nettoyées");
         }
         // Chercher la prochaine cellule non visitée et s'y diriger
         const prochaineCellule = this.cheminOptimalService.trouverProchaineDestination(this.maisonModel.maison, this.robot.position);
@@ -60,7 +60,7 @@ export class RobotAspiratorWithNextPositionService {
           console.log("nextPosition :" + nextPosition);
 
           if (nextPosition === undefined) {
-            console.log("Impossible de trouver un chemin vers la destination");
+            this.log("Impossible de trouver un chemin vers la destination");
             observer.complete();
             return;
           }
@@ -74,7 +74,7 @@ export class RobotAspiratorWithNextPositionService {
 
         } else {
           // Si aucune cellule n'est trouvée, retourner à la base
-          console.log("Aucune cellule accessible non visitée trouvée");
+          this.log("Aucune cellule accessible non visitée trouvée");
           // on force ici la fin de l'observable
           observer.complete();
           return;
@@ -101,7 +101,7 @@ export class RobotAspiratorWithNextPositionService {
       // intervalle pour réactualiser le chemin et la position
       const intervalId = setInterval(() => {
 
-        console.log("Retour à la base de charge");
+        this.log("Retour à la base de charge");
         console.log("intervalId = " + intervalId);
 
         // Trouver le chemin vers la base
@@ -109,7 +109,7 @@ export class RobotAspiratorWithNextPositionService {
         console.log("nextPosition :" + nextPosition);
 
         if (nextPosition === undefined) {
-          console.log("Impossible de trouver un chemin vers la base de charge!");
+          this.log("Impossible de trouver un chemin vers la base de charge!");
           observer.complete();
           return;
 
@@ -130,7 +130,7 @@ export class RobotAspiratorWithNextPositionService {
 
   // V1 :
   // Déplacer le robot à une position spécifique
-  public deplacer(nextPosition: Position): RobotAspiratorModel {
+  private deplacer(nextPosition: Position): RobotAspiratorModel {
     console.log(nextPosition);
     // nécessaire vérification de isRobotStarted dans la fonction synchrone appelée par une observable,
     // pour éviter de nouveaux tours de boucle à cause de la présence de setInterval() dans la fonction nettoyer()
@@ -138,7 +138,7 @@ export class RobotAspiratorWithNextPositionService {
       return this.robot;
     }
     else if (this.robotMustStop(nextPosition)) {
-      console.log("Le robot ne peut aller plus loin : batterie insuffisante !");
+      this.log("Le robot ne peut aller plus loin : batterie insuffisante !");
 
       this.robot.isRobotReturningToBase = true;
       RobotAspiratorModel.logger(this.robot);
@@ -153,19 +153,9 @@ export class RobotAspiratorWithNextPositionService {
     // Réduire la batterie
     this.robot.batterie -= this.robot.consommationParMouvement;
 
-    console.log(`Déplacement vers (${this.robot.position.x}, ${this.robot.position.y}). Batterie: ${this.robot.batterie.toFixed(1)}%`);
+    this.log(`Déplacement vers (${this.robot.position.x}, ${this.robot.position.y}). Batterie: ${this.robot.batterie.toFixed(1)}%`);
 
     return this.robot;
-
-    // TODO: PB pause (position visited) ??
-    // Marquer la cellule comme visitée
-    // const delayed$ = timer(280);
-    // delayed$.subscribe(() => {
-    //   console.log("position.x = "+ position.x);
-    //   console.log("position.y = "+ position.y);
-    //   AppComponent.maison[position.y][position.x].cellStack[0].visited = true;
-    //   AppComponent.maison[position.y][position.x].cellStack[0].type = '_';
-    // });
   }
 
 
@@ -176,7 +166,7 @@ export class RobotAspiratorWithNextPositionService {
 
   // V2
   // Estimer l'énergie nécessaire au robot pour retourner à la base
-  public energieNecessairePourRetour(position: Position): number {
+  private energieNecessairePourRetour(position: Position): number {
     // Estimer la distance jusqu'à la base
     const distance = this.cheminOptimalService.distance(position, this.robot.basePosition);
     console.log("distance minimale de la base = " + distance);
@@ -187,7 +177,7 @@ export class RobotAspiratorWithNextPositionService {
 
   // V2
   // Vérifier si toutes les cellules accessibles ont été visitées
-  public toutEstNettoye(): boolean {
+  private toutEstNettoye(): boolean {
     for (let i = 0; i < this.maisonModel.maison.length; i++) {
       for (let j = 0; j < this.maisonModel.maison[i].length; j++) {
         const cell: Cell = this.maisonModel.maison[i][j];
@@ -199,7 +189,7 @@ export class RobotAspiratorWithNextPositionService {
     return true;
   }
 
-  public log(message: string) {
+  private log(message: string) {
     this.messageService.add(`RobotAspiratorBService: ${message}`);
   }
 }
