@@ -115,7 +115,7 @@ export class RobotAspiratorWithNextPositionService {
 
         } else {
           // Suivre le chemin
-          this.robot = this.deplacer(nextPosition);
+          this.robot = { ...this.deplacer(nextPosition) };
           observer.next(this.robot);
         }
       }, 500); // Émet une nouvelle valeur toutes les 280ms
