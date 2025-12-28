@@ -172,12 +172,12 @@ export class RobotAspiratorDataService implements OnDestroy {
         // this.onRobotPause();
       }
 
-      // TODO: condition sur arrivée à la base du robot : stop
+      // TODO: mise en pause par robot à l'arrivée à la base du robot : stop
       if (robot.position.x === robot.basePosition.x && robot.position.y === robot.basePosition.y
       ) {
         robot.isRobotStarted = false;
         this.stopMovingRobot(robot.robotName, robot.position, robot.isRobotReturningToBase);
-        // this.robotPauseV1();
+        // this.onRobotPause();
       }
     });
   }

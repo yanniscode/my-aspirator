@@ -259,6 +259,6 @@ export class CheminOptimalService {
   }
 
   private log(message: string) {
-    this.messageService.add(`RobotAspiratorBService: ${message}`);
+    this.messageService.add(`CheminOptimalService: ${message}`);
   }
 }
