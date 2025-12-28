@@ -130,8 +130,8 @@ export class RobotAspiratorDataService implements OnDestroy {
 
     console.log(robot4Model);
 
-    // return [robot1Model, robot2Model, robot3Model, robot4Model];
-    return [robot1Model, robot2Model, robot3Model];
+    return [robot1Model, robot2Model, robot3Model, robot4Model];
+    // return [robot1Model];
   }
 
   public startRobotsMapInterval(maisonModel: MaisonModel): void {
@@ -230,7 +230,7 @@ export class RobotAspiratorDataService implements OnDestroy {
   public getRobotSignal(robotName: string): Signal<RobotAspiratorModel> | undefined {
     console.log("RobotAspiratorDataService - getRobotSignal()");
 
-    const robotSignal = this.robotSignals.get(robotName);
+    const robotSignal: WritableSignal<RobotAspiratorModel> | undefined = this.robotSignals.get(robotName);
     return robotSignal?.asReadonly();
   }
 
@@ -240,7 +240,7 @@ export class RobotAspiratorDataService implements OnDestroy {
   public getRobot(robotName: string): RobotAspiratorModel {
     console.log("RobotAspiratorDataService - getRobot()");
 
-    const signal = this.robotSignals.get(robotName);
+    const signal: WritableSignal<RobotAspiratorModel> | undefined = this.robotSignals.get(robotName);
     return signal ? signal() : new RobotAspiratorModel();
   }
 
@@ -251,6 +251,7 @@ export class RobotAspiratorDataService implements OnDestroy {
     console.log("RobotAspiratorDataService - moveRobot()");
 
     const robotSignal: WritableSignal<RobotAspiratorModel> | undefined = this.robotSignals.get(robotName);
+
     if (robotSignal) {
       // Update des données du robot:
       robotSignal.update(robot => ({
@@ -275,6 +276,7 @@ export class RobotAspiratorDataService implements OnDestroy {
     console.log("RobotAspiratorDataService - stopMovingRobot()");
 
     const robotSignal = this.robotSignals.get(robotName);
+
     if (robotSignal) {
       const robot = robotSignal();
       robotSignal.set({
@@ -316,7 +318,7 @@ export class RobotAspiratorDataService implements OnDestroy {
     }
 
     // Toujours récupérer la version actuelle du signal
-    let robot: RobotAspiratorModel = robotSignal();
+    const robot: RobotAspiratorModel = robotSignal();
 
     // si le robot revient à la base
     if (robot.isRobotReturningToBase) {
@@ -377,7 +379,7 @@ export class RobotAspiratorDataService implements OnDestroy {
     }
 
     // Toujours récupérer la version actuelle du signal
-    let robot: RobotAspiratorModel = robotSignal();
+    const robot: RobotAspiratorModel = robotSignal();
 
     // intervalle pour réactualiser le chemin et la position
     console.log("Retour à la base de charge");
@@ -401,7 +403,7 @@ export class RobotAspiratorDataService implements OnDestroy {
   private deplacer(robotName: string, nextPosition: Position): void {
     console.log("RobotAspiratorDataService - deplacer()");
 
-    const robotSignal = this.robotSignals.get(robotName);
+    const robotSignal: WritableSignal<RobotAspiratorModel> | undefined = this.robotSignals.get(robotName);
 
     if (!robotSignal) {
       console.error(`Signal du robot ${robotName} introuvable`);
@@ -409,7 +411,7 @@ export class RobotAspiratorDataService implements OnDestroy {
     }
 
     // Toujours récupérer la version actuelle
-    const robot = robotSignal();
+    const robot: RobotAspiratorModel = robotSignal();
 
     // nécessaire vérification de isRobotStarted dans la fonction synchrone appelée par une observable,
     // pour éviter de nouveaux tours de boucle à cause de la présence de setInterval() dans la fonction nettoyer()
