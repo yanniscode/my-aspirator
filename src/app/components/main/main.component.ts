@@ -1,4 +1,4 @@
-import { Component, AfterViewInit, OnDestroy, OnInit, ViewChild, ViewEncapsulation, inject, Signal, computed, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnDestroy, ViewChild, ViewEncapsulation, inject, Signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
 
@@ -63,32 +63,6 @@ export class MainComponent implements OnDestroy {
     });
   }
 
-  // TODO: utiliser pour init de la maison, ou bien fait dans ngOnInit + initDatas() ??
-  // ngOnInit(): void {
-  //   console.log('MainComponent - ngOnInit() - maisonChildComponent:', this.maisonChildComponent);
-
-  //   // // Attendre que la vue soit complètement initialisée
-  //   // setTimeout(() => {
-  //   //   // if (this.maisonChildComponent) {
-  //   //   this.initDatas();
-  //   //   // }
-  //   // });
-  // }
-
-  // TODO: utiliser pour init de la maison, ou bien fait dans ngOnInit + initDatas() ??
-  // ngAfterViewInit(): void {
-  //   console.log('MainComponent - ngAfterViewInit maisonChildComponent:', this.maisonChildComponent);
-  //   // setTimeout() pour éviter l'erreur: "ExpressionChangedAfterItHasBeenCheckedError: Expression has changed after it was checked.""
-  //   setTimeout(() => {
-  //     if (this.maisonChildComponent) {
-  //       // this.maisonModel = { ...this.maisonService.getMaisonParams() };
-  //       // this.maisonChildComponent.construireMaison(this.maisonModel);
-
-  //       this.initDatas();
-  //     }
-  //   });
-  // }
-
   ngOnDestroy(): void {
     console.log('MainComponent - ngOnDestroy()');
     console.log(`🧹 Nettoyage du composant Maison - ${this.robotModelsTab.length} robots`);
@@ -123,17 +97,17 @@ export class MainComponent implements OnDestroy {
   private createRobotSignal(robotName: string): void {
     console.log("MainComponent - createRobotSignal()");
 
-    const robotSignal = computed(() => {
+    const robotSignal: Signal<RobotAspiratorModel | undefined> = computed(() => {
       console.log("createRobotSignal - computed()");
 
       // TODO: Mise à jour de la vue ici... correct ? marche
-      const robot = this.robotAspiratorDataService.getRobot(robotName);
+      const robot: RobotAspiratorModel = this.robotAspiratorDataService.getRobot(robotName);
 
       // Maj actualisée de la position du robot + des cases de la maison
       this.maisonChildComponent.updateRobotView(robot);
-      this.maisonService.updateMaisonCells(this.maisonModel, robot.lastPosition);
+      this.maisonService.updateMaisonCellules(this.maisonModel, robot.lastPosition);
 
-      const signal = this.robotAspiratorDataService.getRobotSignal(robotName);
+      const signal: Signal<RobotAspiratorModel> | undefined = this.robotAspiratorDataService.getRobotSignal(robotName);
       return signal ? signal() : undefined;
     });
     if (!robotSignal) return;
@@ -141,10 +115,19 @@ export class MainComponent implements OnDestroy {
     this.robotDataViewSignals.set(robotName, robotSignal);
   }
 
+  /**
+  * Récupère le signal d'un robot pour le template
+  */
+  public getRobotDataView(robotName: string): Signal<RobotAspiratorModel | undefined> {
+    console.log("MaisonComponent - getRobotDataView()");
+
+    return this.robotDataViewSignals.get(robotName) || computed(() => undefined);
+  }
+
   public pause(): void {
     console.log("MaisonComponent - pause");
 
-    // TODO: la maison met en pause ses composants enfant (robots)
+    // TODO: obsolète - la maison met en pause ses composants enfant (robots)
     // this.maisonChildComponent.onMaisonPause(this.robotModelsTab);
     if (this.isRobotMapStarted) {
       this.robotAspiratorDataService.onRobotPause();
@@ -164,15 +147,6 @@ export class MainComponent implements OnDestroy {
     } else {
       console.log("(re)démarrage impossible");
     }
-  }
-
-  /**
-  * Récupère le signal d'un robot pour le template
-  */
-  public getRobotDataView(robotName: string): Signal<RobotAspiratorModel | undefined> {
-    console.log("MaisonComponent - getRobotDataView()");
-
-    return this.robotDataViewSignals.get(robotName) || computed(() => undefined);
   }
 
   private log(message: string) {

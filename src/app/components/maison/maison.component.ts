@@ -1,6 +1,6 @@
 import { trigger, transition, style, animate, state } from '@angular/animations';
 
-import { Component, ViewEncapsulation, OnDestroy, OnInit, ViewChildren, QueryList, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ViewEncapsulation, ChangeDetectionStrategy, inject } from '@angular/core';
 
 import { TableModule } from "primeng/table";
 
@@ -8,7 +8,6 @@ import { MessageService } from '../../services/message-service/message.service';
 import { MaisonModel } from '../../classes/models/maison-model';
 import { RobotAspiratorComponent } from "../robot-aspirator/robot-aspirator.component";
 import { RobotAspiratorModel } from '../../classes/models/robot-aspirator-model';
-import { MaisonService } from '../../services/maison-service/maison.service';
 
 @Component({
   selector: 'app-maison',
@@ -59,8 +58,9 @@ import { MaisonService } from '../../services/maison-service/maison.service';
     ])
   ]
 })
-export class MaisonComponent implements OnDestroy, OnInit {
-  @ViewChildren(RobotAspiratorComponent) robotAspiratorChildComponents!: QueryList<RobotAspiratorComponent>;
+export class MaisonComponent {
+
+  private messageService = inject(MessageService);
 
   // variable de template binding:
   public maisonViewModel: MaisonModel;
@@ -88,7 +88,7 @@ export class MaisonComponent implements OnDestroy, OnInit {
   public aspiroY4: number;
   public moveTrigger4: number;
 
-  constructor(private messageService: MessageService, private maisonService: MaisonService) {
+  constructor() {
     console.log("MaisonComponent - constructor()");
 
     this.maisonViewModel = new MaisonModel();
@@ -114,74 +114,11 @@ export class MaisonComponent implements OnDestroy, OnInit {
     this.moveTrigger4 = 0;
   }
 
-  ngOnDestroy(): void {
-    console.log("MaisonComponent - ngOnDestroy()");
-
-    // TODO: gérer destruction du composant enfant + service ?
-    // Se désabonner pour éviter les fuites de mémoire
-    // for (let robotIndex in this.robotModelsTab) {
-    //   const robotSubscription = this?.robotAspiratorChildComponents?.get(Number(robotIndex))?.subscription;
-    //   // Note: on vérifie null et undefined avec "!="
-    //   if (robotSubscription != null) {
-    //     robotSubscription.unsubscribe();
-    //   }
-    // }
-  }
-
-  ngOnInit(): void {
-    console.log("MaisonComponent - ngOnInit()");
-    console.log('Nombre de robots:', this.robotAspiratorChildComponents?.length);
-  }
-
   public construireMaison(maisonModel: MaisonModel): void {
     console.log("MaisonComponent - construireMaison()");
 
     // instanciation de la maison pour la Vue (composant MaisonComponent) :
     this.maisonViewModel = { ...maisonModel };
-  }
-
-  public onMaisonPause(robotModelsTabInput: RobotAspiratorModel[]): void {
-    console.log("MaisonComponent - onMaisonPause()");
-
-    const robotModelsTab = { ...robotModelsTabInput };
-
-    if (this.robotAspiratorChildComponents.length) {
-      for (let robotIndex in robotModelsTab) {
-
-        const robotModel: RobotAspiratorModel = { ...robotModelsTab[robotIndex] };
-
-        this.robotAspiratorChildComponents.get(Number(robotIndex))!.robotPauseV1();
-        robotModel.isRobotStarted = false;
-      }
-    }
-  }
-
-  public onMaisonStart(maisonModel: MaisonModel, robotModelsTabInput: RobotAspiratorModel[]): void {
-    console.log("MaisonComponent - onMaisonStart()");
-
-    // console.log("robotModelsTabInput[0]");
-    // RobotAspiratorModel.logger(robotModelsTabInput[0]);
-
-    const robotModelsTab = { ...robotModelsTabInput };
-
-    console.log("robotModelsTab[0]");
-    RobotAspiratorModel.logger(robotModelsTab[0]);
-
-    if (this.robotAspiratorChildComponents.length) {
-
-      for (let robotIndex in robotModelsTab) {
-        const robotModel: RobotAspiratorModel = { ...robotModelsTab[robotIndex] };
-
-        // Seulement si le robot est à l'arrêt:
-        if (!robotModel.isRobotStarted) {
-          // Le robot démarre
-          robotModel.isRobotStarted = true;
-
-          // TODO: ne plus utiliser cette méthode avec les signaux (MainComponent devra gérer directement le robot)
-          // this.robotAspiratorChildComponents.get(Number(robotIndex))!.startRobot(maisonModel, robotModel);
-        }
-      }
-    }
   }
 
   // TODO: pour version avec signaux: déplacer dans Main ou composant Robot ?

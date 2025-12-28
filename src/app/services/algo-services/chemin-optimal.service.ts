@@ -1,12 +1,15 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 
 import { Cell } from '../../classes/models/cell';
 import { Position } from '../../classes/models/position';
+import { MessageService } from '../message-service/message.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CheminOptimalService {
+
+  private messageService: MessageService = inject(MessageService);
 
   constructor() { }
 
@@ -40,7 +43,7 @@ export class CheminOptimalService {
   }
 
   // Algorithme A* pour trouver le chemin optimal
-  public trouverChemin(maison: Cell[][], depart: Position, fin: Position): Position[] {
+  private trouverChemin(maison: Cell[][], depart: Position, fin: Position): Position[] {
     // console.log("CheminOptimalService - trouverChemin()");
 
     // Structure pour représenter un nœud dans l'algorithme A*
@@ -198,7 +201,7 @@ export class CheminOptimalService {
   }
 
   // Méthode pour reconstruire le chemin
-  public reconstruireChemin(position: Position, cameFrom: Map<string, Position>, current: Position): Position[] {
+  private reconstruireChemin(position: Position, cameFrom: Map<string, Position>, current: Position): Position[] {
     // console.log("CheminOptimalService - reconstruireChemin()");
 
     const chemin: Position[] = [];
@@ -253,5 +256,9 @@ export class CheminOptimalService {
     // console.log("CheminOptimalService - distance()");
 
     return Math.abs(a.x - b.x) + Math.abs(a.y - b.y); // Distance de Manhattan
+  }
+
+  private log(message: string) {
+    this.messageService.add(`RobotAspiratorBService: ${message}`);
   }
 }

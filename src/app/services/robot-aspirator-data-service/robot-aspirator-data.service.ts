@@ -11,8 +11,8 @@ import { MessageService } from '../message-service/message.service';
 })
 export class RobotAspiratorDataService implements OnDestroy {
 
-  private messageService: MessageService;
-  private cheminOptimalService: CheminOptimalService;
+  private messageService: MessageService = inject(MessageService);
+  private cheminOptimalService: CheminOptimalService = inject(CheminOptimalService);
 
   // Signal en lecture seule pour l'extérieur du service
   private readonly robotSignals = new Map<string, WritableSignal<RobotAspiratorModel>>();
@@ -23,9 +23,6 @@ export class RobotAspiratorDataService implements OnDestroy {
 
   constructor() {
     console.log("RobotAspiratorDataService - constructor()");
-
-    this.messageService = inject(MessageService);
-    this.cheminOptimalService = inject(CheminOptimalService);
 
     this.maisonModel = new MaisonModel();
   }
@@ -305,7 +302,7 @@ export class RobotAspiratorDataService implements OnDestroy {
 
   // Algo V1
   // Fonction principale pour nettoyer la maison
-  public nettoyer(maisonModelInput: MaisonModel, robotModelInput: RobotAspiratorModel): void {
+  private nettoyer(maisonModelInput: MaisonModel, robotModelInput: RobotAspiratorModel): void {
     console.log("RobotAspiratorDataService - nettoyer()");
 
     this.maisonModel = maisonModelInput;
@@ -366,7 +363,7 @@ export class RobotAspiratorDataService implements OnDestroy {
 
   // algo V1
   // Retourner à la base de charge
-  public retournerALaBase(maisonModelInput: MaisonModel, robotModelInput: RobotAspiratorModel): void {
+  private retournerALaBase(maisonModelInput: MaisonModel, robotModelInput: RobotAspiratorModel): void {
     console.log("RobotAspiratorDataService - retournerALaBase()");
 
     this.maisonModel = maisonModelInput;
@@ -454,7 +451,7 @@ export class RobotAspiratorDataService implements OnDestroy {
   /**
 * Nettoyage complet du service
 */
-  onRobotPause(): void {
+  public onRobotPause(): void {
     console.log("RobotAspiratorDataService - onRobotPause()");
 
     if (this.intervalId) {

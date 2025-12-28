@@ -1,13 +1,16 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 
 import { MaisonModel } from '../../classes/models/maison-model';
 import { CellElement } from '../../classes/models/cellElement';
 import { Position } from '../../classes/models/position';
+import { MessageService } from '../message-service/message.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class MaisonService {
+
+  private messageService = inject(MessageService);
 
   constructor() { }
 
@@ -82,8 +85,8 @@ export class MaisonService {
   }
 
   // TODO: pour version Signaux: utiliser des signaux ici ?
-  public updateMaisonCells(maisonModel: MaisonModel, lastPosition: Position): void {
-    console.log("MaisonComponent - updateMaisonCells()");
+  public updateMaisonCellules(maisonModel: MaisonModel, lastPosition: Position): void {
+    console.log("MaisonComponent - updateMaisonCellules()");
 
     console.log("lastPosition.x = " + lastPosition.x);
     console.log("lastPosition.y = " + lastPosition.y);
@@ -99,5 +102,9 @@ export class MaisonService {
       lastVisitedCell.visited = true;
       lastVisitedCell.type = '_';
     }
+  }
+
+  private log(message: string) {
+    this.messageService.add(`MaisonComponent: ${message}`);
   }
 }
