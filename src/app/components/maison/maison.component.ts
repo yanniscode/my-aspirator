@@ -1,6 +1,6 @@
 import { trigger, transition, style, animate, state } from '@angular/animations';
 
-import { Component, ViewEncapsulation, OnDestroy, OnInit, ViewChildren, QueryList } from '@angular/core';
+import { Component, ViewEncapsulation, OnDestroy, OnInit, ViewChildren, QueryList, ChangeDetectionStrategy } from '@angular/core';
 
 import { TableModule } from "primeng/table";
 
@@ -12,9 +12,11 @@ import { MaisonService } from '../../services/maison-service/maison.service';
 
 @Component({
   selector: 'app-maison',
+  standalone: true,
   imports: [TableModule, RobotAspiratorComponent],
   templateUrl: './maison.component.html',
   styleUrl: './maison.component.css',
+  changeDetection: ChangeDetectionStrategy.Default,
   encapsulation: ViewEncapsulation.None,
   animations: [
     trigger('maisonAnimation', [
@@ -60,6 +62,7 @@ import { MaisonService } from '../../services/maison-service/maison.service';
 export class MaisonComponent implements OnDestroy, OnInit {
   @ViewChildren(RobotAspiratorComponent) robotAspiratorChildComponents!: QueryList<RobotAspiratorComponent>;
 
+  // variable de template binding:
   public maisonViewModel: MaisonModel;
 
   // *** ROBOT 1:
@@ -85,43 +88,8 @@ export class MaisonComponent implements OnDestroy, OnInit {
   public aspiroY4: number;
   public moveTrigger4: number;
 
-  private robotModelsTab: RobotAspiratorModel[];
-
-  // TODO: supprimer si non nécessaire
-  // test du déplacement au clic
-  // toggleAnimation() {
-  //   console.log("toogle anim");
-  //   this.aspiroDirX = 50;
-  //   this.aspiroDirY = 0;
-  //   this.aspiroX += this.aspiroDirX;
-  //   this.aspiroY += this.aspiroDirY;
-
-  //   console.log(this.aspiroX);
-  //   console.log(this.aspiroY);
-  //   this.moveTrigger++;
-  // }
-
-  ngOnDestroy(): void {
-    console.log("MaisonComponent ngOnDestroy()");
-
-    // TODO: gérer destruction du composant enfant + service ?
-    // Se désabonner pour éviter les fuites de mémoire
-    for (let robotIndex in this.robotModelsTab) {
-      const robotSubscription = this?.robotAspiratorChildComponents?.get(Number(robotIndex))?.subscription;
-      // Note: on vérifie null et undefined avec "!="
-      if (robotSubscription != null) {
-        robotSubscription.unsubscribe();
-      }
-    }
-  }
-
-  ngOnInit(): void {
-    console.log("MaisonComponent ngOnInit()");
-    console.log('Nombre de robots:', this.robotAspiratorChildComponents?.length);
-  }
-
   constructor(private messageService: MessageService, private maisonService: MaisonService) {
-    console.log("MaisonComponent constructor()");
+    console.log("MaisonComponent - constructor()");
 
     this.maisonViewModel = new MaisonModel();
     this.maisonViewModel.largeurMaison = 10;
@@ -144,66 +112,81 @@ export class MaisonComponent implements OnDestroy, OnInit {
     this.aspiroX4 = 0;
     this.aspiroY4 = 350;
     this.moveTrigger4 = 0;
+  }
 
-    this.robotModelsTab = [];
+  ngOnDestroy(): void {
+    console.log("MaisonComponent - ngOnDestroy()");
+
+    // TODO: gérer destruction du composant enfant + service ?
+    // Se désabonner pour éviter les fuites de mémoire
+    // for (let robotIndex in this.robotModelsTab) {
+    //   const robotSubscription = this?.robotAspiratorChildComponents?.get(Number(robotIndex))?.subscription;
+    //   // Note: on vérifie null et undefined avec "!="
+    //   if (robotSubscription != null) {
+    //     robotSubscription.unsubscribe();
+    //   }
+    // }
+  }
+
+  ngOnInit(): void {
+    console.log("MaisonComponent - ngOnInit()");
+    console.log('Nombre de robots:', this.robotAspiratorChildComponents?.length);
   }
 
   public construireMaison(maisonModel: MaisonModel): void {
-    // instanciation de la maisonpour la Vue (composant maison) :
+    console.log("MaisonComponent - construireMaison()");
+
+    // instanciation de la maison pour la Vue (composant MaisonComponent) :
     this.maisonViewModel = { ...maisonModel };
   }
 
-  public onMaisonPause(robotModelsTabInput: RobotAspiratorModel[]): RobotAspiratorModel[] {
-    this.robotModelsTab = robotModelsTabInput;
+  public onMaisonPause(robotModelsTabInput: RobotAspiratorModel[]): void {
+    console.log("MaisonComponent - onMaisonPause()");
 
-    console.log("MaisonComponent maisonPause()");
+    const robotModelsTab = { ...robotModelsTabInput };
 
     if (this.robotAspiratorChildComponents.length) {
+      for (let robotIndex in robotModelsTab) {
 
-      for (let robotIndex in this.robotModelsTab) {
-        const robotModelInput: RobotAspiratorModel = this.robotAspiratorChildComponents.get(Number(robotIndex))!.robotPauseV1();
-        robotModelInput.isRobotStarted = false;
+        const robotModel: RobotAspiratorModel = { ...robotModelsTab[robotIndex] };
 
-        this.robotModelsTab[robotIndex] = robotModelInput;
+        this.robotAspiratorChildComponents.get(Number(robotIndex))!.robotPauseV1();
+        robotModel.isRobotStarted = false;
       }
     }
-    return this.robotModelsTab;
   }
 
-  public onMaisonStart(maisonModel: MaisonModel, robotModelsTabInput: RobotAspiratorModel[]): RobotAspiratorModel[] {
-    this.robotModelsTab = robotModelsTabInput;
+  public onMaisonStart(maisonModel: MaisonModel, robotModelsTabInput: RobotAspiratorModel[]): void {
+    console.log("MaisonComponent - onMaisonStart()");
 
-    console.log("MaisonComponent onMaisonStart()");
-    console.log("robotModelsTabInput[0]");
-    RobotAspiratorModel.logger(robotModelsTabInput[0]);
+    // console.log("robotModelsTabInput[0]");
+    // RobotAspiratorModel.logger(robotModelsTabInput[0]);
+
+    const robotModelsTab = { ...robotModelsTabInput };
+
+    console.log("robotModelsTab[0]");
+    RobotAspiratorModel.logger(robotModelsTab[0]);
+
     if (this.robotAspiratorChildComponents.length) {
 
-      for (let robotIndex in this.robotModelsTab) {
-        const robotModel: RobotAspiratorModel = this.robotModelsTab[robotIndex];
+      for (let robotIndex in robotModelsTab) {
+        const robotModel: RobotAspiratorModel = { ...robotModelsTab[robotIndex] };
+
         // Seulement si le robot est à l'arrêt:
         if (!robotModel.isRobotStarted) {
           // Le robot démarre
           robotModel.isRobotStarted = true;
-          this.robotModelsTab[robotIndex] = this.robotAspiratorChildComponents.get(Number(robotIndex))!.startRobot(maisonModel, robotModel);
+
+          // TODO: ne plus utiliser cette méthode avec les signaux (MainComponent devra gérer directement le robot)
+          // this.robotAspiratorChildComponents.get(Number(robotIndex))!.startRobot(maisonModel, robotModel);
         }
       }
     }
-    return this.robotModelsTab;
   }
 
-  // méthode pour récupérer la nouvelle valeur du Robot depuis le composant enfant et mettre à jour la vue (Robot et Maison)
-  public handleRobotUpdate(robotUpdateModel: RobotAspiratorModel): void {
-    console.log("MaisonComponent handleRobotUpdate()");
-    RobotAspiratorModel.logger(robotUpdateModel);
-
-    if (robotUpdateModel.batterie >= 0) { // >= pour prendre en compte le dernier mouvement
-      this.updateRobotView(robotUpdateModel);
-      this.maisonService.updateMaisonCells(this.maisonViewModel, robotUpdateModel.lastPosition);
-    }
-  }
-
-  private updateRobotView(robotUpdateModel: RobotAspiratorModel): void {
-    console.log("MaisonComponent updateRobotView()");;
+  // TODO: pour version avec signaux: déplacer dans Main ou composant Robot ?
+  public updateRobotView(robotUpdateModel: RobotAspiratorModel): void {
+    console.log("MaisonComponent - updateRobotView()");
 
     const aspiroDirX = (robotUpdateModel.position.x - robotUpdateModel.lastPosition.x) === 1 ? 50 :
       (robotUpdateModel.position.x - robotUpdateModel.lastPosition.x) === -1 ? -50 : 0;

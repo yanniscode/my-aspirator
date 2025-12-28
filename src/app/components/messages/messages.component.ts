@@ -10,6 +10,7 @@ import { MessageService } from '../../services/message-service/message.service';
 })
 export class MessagesComponent {
 
-  constructor(public messageService: MessageService) {}
-
+  constructor(public messageService: MessageService) {
+    console.log("MessagesComponent - constructor()");
+  }
 }

@@ -12,6 +12,7 @@ export class MaisonService {
   constructor() { }
 
   public getMaisonParams(): MaisonModel {
+    console.log("MaisonComponent - getMaisonParams()");
 
     // TODO: possible récupération des données dans des objets JSON / appels HTTP
     // Création des paramètres de la maison
@@ -37,7 +38,7 @@ export class MaisonService {
   }
 
   private creerMaison(maisonModel: MaisonModel): MaisonModel {
-    console.log("MaisonComponent creerMaison()");
+    console.log("MaisonComponent - creerMaison()");
 
     for (let y = 0; y < maisonModel.hauteurMaison; y++) {
       // x = la largeur de la maison
@@ -61,6 +62,7 @@ export class MaisonService {
     }
 
     // Ajouter les obstacles 'X' à la maison
+    // TODO: pour version Signaux: utiliser des signaux ici ?
     maisonModel.obstacles.forEach(obs => {
       if (obs.x >= 0 && obs.x < maisonModel.largeurMaison && obs.y >= 0 && obs.y < maisonModel.hauteurMaison) {
         maisonModel.maison[obs.y][obs.x].cellStack[0].type = 'X';
@@ -70,14 +72,19 @@ export class MaisonService {
     return maisonModel;
   }
 
+  // TODO: pour version Signaux: utiliser des signaux ici ?
   public updateMaisonConfig(maisonModel: MaisonModel, robotBasePosition: Position): MaisonModel {
+    console.log("MaisonComponent - updateMaisonConfig()");
+
     // On ajoute la base de chaque robot:
     maisonModel.maison[robotBasePosition.y][robotBasePosition.x].cellStack[0].type = 'B';
     return maisonModel;
   }
 
+  // TODO: pour version Signaux: utiliser des signaux ici ?
   public updateMaisonCells(maisonModel: MaisonModel, lastPosition: Position): void {
-    console.log("MaisonComponent updateMaisonView()");
+    console.log("MaisonComponent - updateMaisonCells()");
+
     console.log("lastPosition.x = " + lastPosition.x);
     console.log("lastPosition.y = " + lastPosition.y);
 

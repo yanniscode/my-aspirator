@@ -30,3 +30,25 @@
 
     </div>
 </div>
+
+<div class="maison-container">
+    <h2>Main Test Signaux avec {{ robotModelsTab.length }} robots</h2>
+
+    @for (robotModels of robotModelsTab; track robotModels) {
+    <div class="robot-card">
+        @if (getRobotDataView(robotModels.robotName)(); as robot) {
+        <h3>🤖 {{ robot.robotName }}</h3>
+        <div class="robot-info">
+            <p>🔋 Batterie: {{ robot.batterie }}%</p>
+            <p>📍 Last Position: ({{ robot.lastPosition.x | number:'1.1-1' }}, {{ robot.lastPosition.y | number:'1.1-1'
+                }})
+            <p>📍 Position: ({{ robot.position.x | number:'1.1-1' }}, {{ robot.position.y | number:'1.1-1' }})
+            </p>
+            <p>⚡ Status: {{ robot.batterie > 0 ? 'Actif' : 'Inactif' }}</p>
+        </div>
+        } @else {
+        <p>⚠️ Robot {{ robotModels }} non trouvé</p>
+        }
+    </div>
+    }
+</div>

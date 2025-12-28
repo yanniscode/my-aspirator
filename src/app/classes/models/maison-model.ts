@@ -9,10 +9,17 @@ export class MaisonModel {
     public isNettoyageComplete: boolean;
 
     constructor() {
-        this.maison = [];
+        this.maison = [
+            [
+                new Cell(),
+            ]
+        ];
+
         this.largeurMaison = 0;
         this.hauteurMaison = 0
-        this.obstacles = [];
+        this.obstacles = [
+            new Position(),
+        ];
         this.isNettoyageComplete = false;
     }
 

@@ -20,12 +20,16 @@ export class RobotAspiratorWithNextPositionsTabService {
   private robotServiceDtoOut: RobotServiceDtoOut;
 
   constructor(private messageService: MessageService, private cheminOptimalService: CheminOptimalService) {
+    console.log("RobotAspiratorWithNextPositionsTabService - constructor()");
+
     this.maisonModel = new MaisonModel();
     this.robot = new RobotAspiratorModel();
     this.robotServiceDtoOut = new RobotServiceDtoOut();
   }
 
   public onPauseRobotService(): RobotAspiratorModel {
+    console.log("RobotAspiratorWithNextPositionsTabService - onPauseRobotService()");
+
     this.subscription?.unsubscribe();
 
     this.robot.isRobotStarted = false;
@@ -35,7 +39,7 @@ export class RobotAspiratorWithNextPositionsTabService {
 
   // Fonction principale pour nettoyer la maison
   public onStartNettoyer(maisonModelInput: MaisonModel, robotInput: RobotAspiratorModel): Observable<RobotServiceDtoOut> {
-    console.log("RobotAspiratorService onStartNettoyer()");
+    console.log("RobotAspiratorWithNextPositionsTabService - onStartNettoyer()");
 
     this.maisonModel = { ...maisonModelInput };
 
@@ -67,6 +71,8 @@ export class RobotAspiratorWithNextPositionsTabService {
   }
 
   private nettoyerAvecControleSouscription(observer: Subscriber<RobotServiceDtoOut>): void {
+    console.log("RobotAspiratorWithNextPositionsTabService - nettoyerAvecControleSouscription()");
+
     console.log("Début du nettoyage");
     console.log(`Batterie: ${this.robot.batterie}%.`);
 
@@ -153,7 +159,8 @@ export class RobotAspiratorWithNextPositionsTabService {
   }
 
   private retournerALaBaseSouscription(observer: Subscriber<RobotServiceDtoOut>): void {
-    console.log("retournerALaBaseSouscription() - this.robot datas début:");
+    console.log("RobotAspiratorWithNextPositionsTabService - retournerALaBaseSouscription()");
+    console.log("this.robot datas début:");
     RobotAspiratorModel.logger(this.robot);
 
     // On n'active pas ici le flag annulant la recherche d'un nouveau chemin
@@ -217,6 +224,7 @@ export class RobotAspiratorWithNextPositionsTabService {
     nextPathStopSearchFlag: boolean,
     intervalMs: number = 600
   ): Observable<RobotServiceDtoOut> {
+    console.log("RobotAspiratorWithNextPositionsTabService - nettoyerAvecControle()");
 
     this.maisonModel.isNettoyageComplete = false;
 
@@ -225,7 +233,7 @@ export class RobotAspiratorWithNextPositionsTabService {
 
     // Empêcher la recherche d'un nouveau chemin si le robot doit rentrer à la base par manque d'énergie
     if (!nextPathStopSearchFlag) {
-      cheminRestant = this.cheminOptimalService.calculateNextPath(
+      cheminRestant = this.cheminOptimalService.calculerCheminSuivant(
         this.robot.isRobotReturningToBase, this.maisonModel.maison, this.robot.basePosition, this.robot.position
       );
 
@@ -242,7 +250,7 @@ export class RobotAspiratorWithNextPositionsTabService {
 
     // Utiliser un timer régulier pour l'animation
     return timer(0, intervalMs).pipe(
-      map(() => this.processNextMove(cheminRestant)),
+      map(() => this.declencherMouvementSuivant(cheminRestant)),
       takeWhile(result => !result.isNettoyageComplete && this.robot.batterie > 0, true), // TODO: revoir conditions + à quoi sert true ?
       tap({
         next: (robotServiceDtoResult: RobotServiceDtoOut) => {
@@ -253,8 +261,8 @@ export class RobotAspiratorWithNextPositionsTabService {
     );
   }
 
-  private processNextMove(cheminRestant: Position[]): RobotServiceDtoOut {
-    console.log("########## processNextMove");
+  private declencherMouvementSuivant(cheminRestant: Position[]): RobotServiceDtoOut {
+    console.log("RobotAspiratorWithNextPositionsTabService - declencherMouvementSuivant()");
 
     console.log("*** cheminRestant : ***");
     console.log(cheminRestant[0]);
@@ -306,7 +314,7 @@ export class RobotAspiratorWithNextPositionsTabService {
     // Sinon si le chemin actuel est terminé, chercher la prochaine destination
     // (cette action est valable seulement si ce n'est pas un retour à la base)
     else if (cheminRestant.length === 0 && this.robot.isRobotReturningToBase === false) {
-      cheminRestant = this.cheminOptimalService.calculateNextPath(false, this.maisonModel.maison, this.robot.basePosition, this.robot.position);
+      cheminRestant = this.cheminOptimalService.calculerCheminSuivant(false, this.maisonModel.maison, this.robot.basePosition, this.robot.position);
       // Si aucune nouvelle destination n'est trouvée, le netttoyage est complet :
       if (cheminRestant.length === 0) {
         console.log("Aucun chemin trouvé !")
@@ -342,6 +350,7 @@ export class RobotAspiratorWithNextPositionsTabService {
   }
 
   private updateRobotServiceDtoOut(lastPosition: Position, position: Position): void {
+    console.log("RobotAspiratorWithNextPositionsTabService - updateRobotServiceDtoOut()");
 
     console.log(`Déplacement vers (${lastPosition.x}, ${position.y}). Batterie: ${this.robot.batterie.toFixed(1)}%`);
 
@@ -355,12 +364,16 @@ export class RobotAspiratorWithNextPositionsTabService {
   }
 
   private robotMustStop(position: Position): boolean {
+    console.log("RobotAspiratorWithNextPositionsTabService - robotMustStop");
+
     return (position && this.robot.batterie <= this.energieNecessairePourRetour(position)) ?
       true : false;
   }
 
   // Estimer l'énergie nécessaire au robot pour retourner à la base
   private energieNecessairePourRetour(position: Position): number {
+    console.log("RobotAspiratorWithNextPositionsTabService - energieNecessairePourRetour()");
+
     // Estimer la distance jusqu'à la base
     const distance = this.cheminOptimalService.distance(position, this.robot.basePosition);
     console.log("distance minimale de la base = " + distance);
@@ -370,6 +383,6 @@ export class RobotAspiratorWithNextPositionsTabService {
   }
 
   public log(message: string) {
-    this.messageService.add(`RobotAspiratorService: ${message}`);
+    this.messageService.add(`RobotAspiratorWithNextPositionsTabService: ${message}`);
   }
 }

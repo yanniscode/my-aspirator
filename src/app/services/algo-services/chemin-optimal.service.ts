@@ -10,7 +10,9 @@ export class CheminOptimalService {
 
   constructor() { }
 
-  public calculateNextPath(isRetourAlaBase: boolean, maison: Cell[][], basePosition: Position, position: Position): Position[] {
+  public calculerCheminSuivant(isRetourAlaBase: boolean, maison: Cell[][], basePosition: Position, position: Position): Position[] {
+    console.log("CheminOptimalService - calculerCheminSuivant()");
+
     const prochaineCellule = this.trouverProchaineDestination(maison, position);
     // console.log(prochaineCellule);
 
@@ -23,23 +25,24 @@ export class CheminOptimalService {
       // console.log(chemin);
 
       return chemin.map(pos => ({ ...pos }));
-      // console.log(this.cheminRestant);
-
       // console.log("Nouveau chemin calculé vers:", prochaineCellule.cellStack[0].position);
     } else {
       console.log("RobotAspiratorService - Aucune cellule accessible non visitée trouvée");
-      // this.isNettoyageComplete = true;
       return [];
     }
   }
 
   // pour la version 1 de l'algo - RobotAspiratorWithNextPositionService :
   public trouverPositionSuivante(maison: Cell[][], depart: Position, fin: Position): Position {
+    // console.log("CheminOptimalService - trouverPositionSuivante()");
+
     return this.trouverChemin(maison, depart, fin)[0];
   }
 
   // Algorithme A* pour trouver le chemin optimal
   public trouverChemin(maison: Cell[][], depart: Position, fin: Position): Position[] {
+    // console.log("CheminOptimalService - trouverChemin()");
+
     // Structure pour représenter un nœud dans l'algorithme A*
     interface Node {
       position: Position;
@@ -154,6 +157,8 @@ export class CheminOptimalService {
 
   // Trouver la prochaine cellule accessible non visitée la plus proche
   public trouverProchaineDestination(maison: Cell[][], position: Position): Cell | null {
+    // console.log("CheminOptimalService - trouverProchaineDestination()");
+
     // Utiliser un algorithme de recherche en largeur (BFS) pour trouver la cellule non visitée la plus proche
     const queue: { cell: Cell; distance: number }[] = [];
     const visited: Set<string> = new Set();
@@ -194,6 +199,8 @@ export class CheminOptimalService {
 
   // Méthode pour reconstruire le chemin
   public reconstruireChemin(position: Position, cameFrom: Map<string, Position>, current: Position): Position[] {
+    // console.log("CheminOptimalService - reconstruireChemin()");
+
     const chemin: Position[] = [];
     let currentPos = current;
     const positionKey = (pos: Position): string => `${pos.x},${pos.y}`;
@@ -215,6 +222,8 @@ export class CheminOptimalService {
 
   // Obtenir les cellules adjacentes à une position
   private obtenirCellulesAdjacentes(maison: Cell[][], position: Position): Cell[] {
+    // console.log("CheminOptimalService - obtenirCellulesAdjacentes()");
+
     const directions = [
       { dx: 0, dy: -1 }, // Nord
       { dx: 1, dy: 0 },  // Est
@@ -241,6 +250,8 @@ export class CheminOptimalService {
 
   // Calculer la distance entre deux positions (heuristique pour A*)
   public distance(a: Position, b: Position): number {
+    // console.log("CheminOptimalService - distance()");
+
     return Math.abs(a.x - b.x) + Math.abs(a.y - b.y); // Distance de Manhattan
   }
 }

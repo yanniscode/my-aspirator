@@ -1,5 +1,4 @@
-
-import { Component, AfterViewInit, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import { Component, AfterViewInit, OnDestroy, OnInit, ViewChild, ViewEncapsulation, inject, Signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
 
@@ -9,95 +8,171 @@ import { MaisonComponent } from '../maison/maison.component';
 import { MessagesComponent } from '../messages/messages.component';
 
 import { MaisonModel } from '../../classes/models/maison-model';
-import { Position } from '../../classes/models/position';
 import { RobotAspiratorModel } from '../../classes/models/robot-aspirator-model';
 import { MessageService } from '../../services/message-service/message.service';
 import { RobotAspiratorWithNextPositionsTabService } from '../../services/robot-actions-service/robot-aspirator-with-next-positions-tab-service/robot-aspirator/robot-aspirator/robot-aspirator-with-next-positions-tab-service/robot-aspirator-with-next-positions-tab.service';
-import { RobotAspiratorWithNextPositionService } from '../../services/robot-actions-service/robot-aspirator-with-next-position-service/robot-aspirator-with-next-position.service';
 import { RobotAspiratorDataService } from '../../services/robot-aspirator-data-service/robot-aspirator-data.service';
+import { DecimalPipe } from '@angular/common';
+import { Position } from '../../classes/models/position';
 
 @Component({
   selector: 'app-main',
-  imports: [FormsModule, TableModule, MessagesComponent, MaisonComponent],
+  standalone: true,
+  imports: [FormsModule, TableModule, MessagesComponent, MaisonComponent,
+    DecimalPipe,
+  ],
   templateUrl: './main.component.html',
   styleUrl: './main.component.css',
   encapsulation: ViewEncapsulation.None,
-  providers: [RobotAspiratorWithNextPositionsTabService, RobotAspiratorWithNextPositionService] // TODO: Chaque instance aura son propre service -> TODO: MaisonService
+  changeDetection: ChangeDetectionStrategy.Default, // ATTENTION: ChangeDetectionStrategy.OnPush pourrait poser problème lors de l'affichage de la maison en intro
+  providers: [RobotAspiratorWithNextPositionsTabService]
 })
-export class MainComponent implements AfterViewInit, OnInit {
+export class MainComponent implements OnDestroy {
+
   // instantiation du composants enfant
   @ViewChild(MaisonComponent) maisonChildComponent!: MaisonComponent;
 
-  public maisonModel: MaisonModel;
-  private robotModelsTab: RobotAspiratorModel[];
+  private messageService = inject(MessageService);
+  private maisonService = inject(MaisonService);
+  private robotAspiratorDataService = inject(RobotAspiratorDataService);
 
-  constructor(private messageService: MessageService, private maisonService: MaisonService,
-    private robotAspiratorDataService: RobotAspiratorDataService,
-    private robotAspiratorWithNextPositionsTabService: RobotAspiratorWithNextPositionsTabService, private robotAspiratorWithNextPositionService: RobotAspiratorWithNextPositionService) {
-    console.log("MaisonComponent constructor()");
+  public maisonModel: MaisonModel;
+  public robotModelsTab: RobotAspiratorModel[];
+
+  // Map pour stocker les signaux computed de chaque robot à afficher
+  private robotDataViewSignals = new Map<string, Signal<RobotAspiratorModel | undefined>>();
+
+  private isRobotMapStarted: boolean = false;
+
+  constructor() {
+    console.log("MainComponent constructor()");
 
     // initialisation des params de la maison
-    this.maisonModel = new MaisonModel();
-    this.maisonModel.largeurMaison = 10;
-    this.maisonModel.hauteurMaison = 8;
-    this.maisonModel.obstacles = [];
-    this.maisonModel.isNettoyageComplete = false;
+    this.maisonModel = { ...this.maisonService.getMaisonParams() };
 
-    // initialisation des robots:
-    this.robotModelsTab = [];
-  }
+    // initialisation des params du ou des robots
+    this.robotModelsTab = [...this.robotAspiratorDataService.getRobotsParams()];
 
-  ngOnInit(): void {
-    console.log('MainComponent ngOnInit() maisonComponent:', this.maisonChildComponent);
+    this.isRobotMapStarted = false;
 
     // Attendre que la vue soit complètement initialisée
-
-    // setTimeout(() => {
-    //   if (this.maisonChildComponent) {
-    //     this.startIntro();
-    //   }
-    // }, 100);
-  }
-
-  ngAfterViewInit() {
-    console.log('MainComponent ngAfterViewInit() maisonComponent:', this.maisonChildComponent);
-    // setTimeout() pour éviter l'erreur: "ExpressionChangedAfterItHasBeenCheckedError: Expression has changed after it was checked.""
     setTimeout(() => {
-      if (this.maisonChildComponent) {
-        this.startIntro();
-      }
-    }, 0);
+      // if (this.maisonChildComponent) {
+      this.initDatas();
+      // }
+    });
   }
 
-  public startIntro(): void {
-    console.log("MainComponent startIntro()");
+  // TODO: utiliser pour init de la maison, ou bien fait dans ngOnInit + initDatas() ??
+  // ngOnInit(): void {
+  //   console.log('MainComponent - ngOnInit() - maisonChildComponent:', this.maisonChildComponent);
 
-    this.maisonModel = { ...this.maisonService.getMaisonParams() };
+  //   // // Attendre que la vue soit complètement initialisée
+  //   // setTimeout(() => {
+  //   //   // if (this.maisonChildComponent) {
+  //   //   this.initDatas();
+  //   //   // }
+  //   // });
+  // }
+
+  // TODO: utiliser pour init de la maison, ou bien fait dans ngOnInit + initDatas() ??
+  // ngAfterViewInit(): void {
+  //   console.log('MainComponent - ngAfterViewInit maisonChildComponent:', this.maisonChildComponent);
+  //   // setTimeout() pour éviter l'erreur: "ExpressionChangedAfterItHasBeenCheckedError: Expression has changed after it was checked.""
+  //   setTimeout(() => {
+  //     if (this.maisonChildComponent) {
+  //       // this.maisonModel = { ...this.maisonService.getMaisonParams() };
+  //       // this.maisonChildComponent.construireMaison(this.maisonModel);
+
+  //       this.initDatas();
+  //     }
+  //   });
+  // }
+
+  ngOnDestroy(): void {
+    console.log('MainComponent - ngOnDestroy()');
+    console.log(`🧹 Nettoyage du composant Maison - ${this.robotModelsTab.length} robots`);
+
+    this.robotModelsTab.forEach(robotModel => {
+      this.robotAspiratorDataService.unregisterRobotFromList(robotModel.robotName);
+    });
+    this.robotDataViewSignals.clear();
+  }
+
+  // Ancienne méthode : startIntro()
+  private initDatas(): void {
+    console.log("MaisonComponent - initDatas()");
 
     this.maisonChildComponent.construireMaison(this.maisonModel);
 
-    // if (this.robot1Model.isRobotStarted === false) {
-    // setTimeout(() => {
-    this.robotModelsTab = { ...this.robotAspiratorDataService.getRobotsParams() };
+    this.robotModelsTab.forEach((robotModel: RobotAspiratorModel) => {
+      const robotBasePosition: Position = { ...robotModel.basePosition };
 
-    for (let robotIndex in this.robotModelsTab) {
-      const robotBasePosition: Position = { ...this.robotModelsTab[robotIndex].basePosition };
+      // 1/ ajout du robot à la liste:
+      this.robotAspiratorDataService.registerRobotInList(robotModel);
+      // 2/ créer un signal computed pour chaque robot
+      this.createRobotSignal(robotModel.robotName);
 
       this.maisonModel = { ...this.maisonService.updateMaisonConfig(this.maisonModel, robotBasePosition) };
-    }
-    // }, 1000);
-    // }
+    });
+  }
+
+  /**
+  * Crée un signal computed pour un robot spécifique dans la classe appelant le service
+  */
+  private createRobotSignal(robotName: string): void {
+    console.log("MainComponent - createRobotSignal()");
+
+    const robotSignal = computed(() => {
+      console.log("createRobotSignal - computed()");
+
+      // TODO: Mise à jour de la vue ici... correct ? marche
+      const robot = this.robotAspiratorDataService.getRobot(robotName);
+
+      // Maj actualisée de la position du robot + des cases de la maison
+      this.maisonChildComponent.updateRobotView(robot);
+      this.maisonService.updateMaisonCells(this.maisonModel, robot.lastPosition);
+
+      const signal = this.robotAspiratorDataService.getRobotSignal(robotName);
+      return signal ? signal() : undefined;
+    });
+    if (!robotSignal) return;
+
+    this.robotDataViewSignals.set(robotName, robotSignal);
   }
 
   public pause(): void {
-    console.log("pause()");
-    // TODO: la maison se charge de mettre en pause ses composant enfant (robots)
-    this.robotModelsTab = this.maisonChildComponent.onMaisonPause(this.robotModelsTab);
+    console.log("MaisonComponent - pause");
+
+    // TODO: la maison met en pause ses composants enfant (robots)
+    // this.maisonChildComponent.onMaisonPause(this.robotModelsTab);
+    if (this.isRobotMapStarted) {
+      this.robotAspiratorDataService.onRobotPause();
+      this.isRobotMapStarted = false;
+    } else {
+      console.log("robot(s) actuellement en pause");
+    }
   }
 
   public start(): void {
-    console.log("start()");
-    this.robotModelsTab = this.maisonChildComponent.onMaisonStart(this.maisonModel, this.robotModelsTab);
+    console.log("MaisonComponent - start()");
+
+    // Démarrage avec des signaux:
+    if (!this.isRobotMapStarted) {
+      this.robotAspiratorDataService.startRobotsMapInterval(this.maisonModel);
+      this.isRobotMapStarted = true;
+    } else {
+      console.log("(re)démarrage impossible");
+    }
+  }
+
+  /**
+  * Récupère le signal d'un robot pour le template
+  */
+  public getRobotDataView(robotName: string): Signal<RobotAspiratorModel | undefined> {
+    console.log("MaisonComponent - getRobotDataView()");
+
+    return this.robotDataViewSignals.get(robotName) || computed(() => undefined);
   }
 
   private log(message: string) {

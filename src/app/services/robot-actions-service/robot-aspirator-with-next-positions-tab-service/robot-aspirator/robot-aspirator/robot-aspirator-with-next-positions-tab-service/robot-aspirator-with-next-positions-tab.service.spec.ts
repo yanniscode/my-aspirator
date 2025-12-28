@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { RobotAspiratorWithNextPositionsTabService } from './robot-aspirator-with-next-positions-tab.service';
 
-describe('RobotAspiratorService', () => {
+describe('RobotAspiratorWithNextPositionsTabService', () => {
   let service: RobotAspiratorWithNextPositionsTabService;
 
   beforeEach(() => {
