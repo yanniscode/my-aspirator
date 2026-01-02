@@ -1,20 +1,30 @@
+/* .content { */
 .game-container {
-    display: grid;
-    grid-template-areas: "overlap";
+    background-color: #752713;
+    text-align: center;
+    color: #0071e6;
+    width: 100%;
 }
 
-.robot-view-container {
+/* .robot-view-container {
     width: 50px;
     height: 50px;
+} */
+
+.maison {
+    position: relative;
+    display: flex;
+    pointer-events: none;
+    background-color: #ffae2b;
+    /* justify-content: space-evenly; */
+    height: 500px;
+    /* height: 60vh; */
 }
 
-.maison,
-.robot-view-container {
-    /* superposition des robots et de la maison */
-    grid-area: 1 / 1;
-    /*
-        background-color: #ffae2b; // TODO: déplacer dans le parent ? (couleur jaune)
-    */
+.table-maison {
+    position: absolute;
+    padding-top: 50px;
+    /* padding-top: 8vh; */
 }
 
 .tr-maison {
@@ -29,13 +39,16 @@
     width: 50px;
     height: 50px;
     text-align: center !important;
+    /* test d'une surcharge non prise en compte, ici, car pas !important : */
+    border-color: var(--p-datatable-body-cell-border-color);
+    border-width: 0 0 0px 0 !important;
     border-style: none !important;
     padding: 0rem 0.5rem !important;
 }
 
-.app-robot-aspirator {
+/* .app-robot-aspirator {
     height: 50px;
     display: flex;
     align-items: center;
     justify-content: center;
-}
+} */

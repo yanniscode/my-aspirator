@@ -104,7 +104,10 @@ export class MainComponent implements OnDestroy {
       const robot: RobotAspiratorModel = this.robotAspiratorDataService.getRobot(robotName);
 
       // Maj actualisée de la position du robot + des cases de la maison
-      this.maisonChildComponent.updateRobotView(robot);
+      // TODO: remplacer cet appel pour NG Animation par nouvel update de position du robot avec canvas
+      this.maisonChildComponent.updateMaisonWithRobot(robot);
+      // this.maisonChildComponent.updateRobotView(robot);
+
       this.maisonService.updateMaisonCellules(this.maisonModel, robot.lastPosition);
 
       const signal: Signal<RobotAspiratorModel> | undefined = this.robotAspiratorDataService.getRobotSignal(robotName);
@@ -116,7 +119,7 @@ export class MainComponent implements OnDestroy {
   }
 
   /**
-  * Récupère le signal d'un robot pour le template
+  * Getter sur le signal d'un robot pour le template
   */
   public getRobotDataView(robotName: string): Signal<RobotAspiratorModel | undefined> {
     console.log("MaisonComponent - getRobotDataView()");

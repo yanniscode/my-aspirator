@@ -130,8 +130,8 @@ export class RobotAspiratorDataService implements OnDestroy {
 
     console.log(robot4Model);
 
-    return [robot1Model, robot2Model, robot3Model, robot4Model];
-    // return [robot1Model];
+    // return [robot1Model, robot2Model, robot3Model, robot4Model];
+    return [robot1Model];
   }
 
   public startRobotsMapInterval(maisonModel: MaisonModel): void {

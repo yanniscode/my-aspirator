@@ -1,3 +1,16 @@
-<div class="robot">
-    <img #aspiratorImage src="/assets/megaman.png" alt='R' />
+<div class="robot" [style.width.px]="aspiroSizeInput" [style.height.px]="aspiroSizeInput" [style.left.px]="aspiroXInput"
+  [style.top.px]="aspiroYInput">
+  <!-- <div class="robot" [style.left.px]="robotInput.position.x * aspiroSizeInput"
+  [style.top.px]="robotInput.position.y * aspiroSizeInput" [style.width.px]="aspiroSizeInput"
+  [style.height.px]="aspiroSizeInput"> -->
+  <!-- [style.transform]="'translate(' + robotInput.position.x + 'px, '+robotInput.position.y+'px)'" -->
+
+  <!-- <div class="robot"> -->
+  <!-- ici pour canvas: style="display: none -->
+  <img #aspiratorImage src="/assets/megaman.png" alt='R' />
+  <!--    <img #aspiratorImage src="/assets/megaman.png" alt='R' />-->
+
+  <!-- TODO: faire passer les données dans le composant pour récupérer les infos : robot.name... -->
+  <!-- <div class="robot-label">{{robot.robotName}}</div> -->
+  <div class="robot-label">AspiroMan 1</div>
 </div>

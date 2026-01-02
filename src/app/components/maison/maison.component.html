@@ -22,19 +22,30 @@
             }
           </td>
           }
+
+          <!-- TODO: test VERSION CANVAS ANIMATION - nouvel emplacement -->
+          <app-robot-aspirator [aspiroSizeInput]="aspiroViewSize" [aspiroXInput]="aspiroViewX"
+            [aspiroYInput]="aspiroViewY" (imageReady)="onImageReady($event)"></app-robot-aspirator>
         </tr>
       </ng-template>
     </p-table>
-  </div>
 
-  <!-- TODO: pour version avec signaux: déplacer le robot dans MainComponent -->
-  <!-- TODO: pour l'intro: condition d'affichage du robot, toujours présent actuellement -->
-  <div class="robot-view-container" [@moveRobot1]="{ value: moveTrigger1, params: { x: aspiroX1, y: aspiroY1 } }">
-    <!-- (click)="toggleAnimation()" -->
-    <app-robot-aspirator class="app-robot-aspirator"></app-robot-aspirator>
-    <p style="font-weight:bold; font-size:8px; color:orangered;">AspiroMan 1</p>
+    <canvas #maisonCanvas class="table-maison" width="500" height="400"></canvas>
+    <!-- test VERSION CANVAS ANIMATION Ancien emplacement : -->
+    <!-- <app-robot-aspirator class="app-robot-aspirator" [robotInput]="robotViewModel" [aspiroSizeInput]="aspiroViewSize"
+      (imageReady)="onImageReady($event)"></app-robot-aspirator> -->
+
+    <!-- <p style="font-weight:bold; font-size:8px; color:orangered;">AspiroMan 1</p> -->
   </div>
-  <div class="robot-view-container" [@moveRobot2]="{ value: moveTrigger2, params: { x: aspiroX2, y: aspiroY2 } }">
+  <!-- ancienne VERSION CANVAS ANIMATION-->
+  <!-- <div class="robot-view-container">
+      <app-robot-aspirator class="app-robot-aspirator" (imageReady)="onImageReady($event)"
+        (robotUpdateModel)="handleRobotUpdate($event)"></app-robot-aspirator>
+    </div> -->
+
+  <!-- VERSION NG ANIMATION-->
+  <!-- <div class="robot-view-container" [@moveRobot1]="{ value: moveTrigger1, params: { x: aspiroX, y: aspiroY } }"> -->
+  <!-- <div class="robot-view-container" [@moveRobot2]="{ value: moveTrigger2, params: { x: aspiroX2, y: aspiroY2 } }">
     <app-robot-aspirator class="app-robot-aspirator"></app-robot-aspirator>
     <p style="font-weight:bold; font-size:8px; color:yellow;">AspiroMan 2</p>
   </div>
@@ -45,5 +56,5 @@
   <div class="robot-view-container" [@moveRobot4]="{ value: moveTrigger4, params: { x: aspiroX4, y: aspiroY4 } }">
     <app-robot-aspirator class="app-robot-aspirator"></app-robot-aspirator>
     <p style="font-weight:bold; font-size:8px; color:blue;">AspiroMan 4</p>
-  </div>
+  </div> -->
 </div>
