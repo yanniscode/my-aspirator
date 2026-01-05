@@ -413,9 +413,9 @@ export class RobotAspiratorDataService implements OnDestroy {
     // Toujours récupérer la version actuelle
     const robot: RobotAspiratorModel = robotSignal();
 
+    // TODO: garder avec signaux ?? simplifier conditions ?
     // nécessaire vérification de isRobotStarted dans la fonction synchrone appelée par une observable,
     // pour éviter de nouveaux tours de boucle à cause de la présence de setInterval() dans la fonction nettoyer()
-    // TODO: garder avec signaux ?? simplifier conditions ?
     if (robot.isRobotStarted === false) {
       // TODO: utiliser méthode stopMovingRobot ??
       // TODO: utiliser false / true ??

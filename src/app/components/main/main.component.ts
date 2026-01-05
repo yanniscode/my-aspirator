@@ -1,4 +1,4 @@
-import { Component, OnDestroy, ViewChild, ViewEncapsulation, inject, Signal, computed, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnDestroy, ViewChild, ViewEncapsulation, inject, Signal, computed, ChangeDetectionStrategy, effect, signal, AfterContentInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
 
@@ -27,9 +27,8 @@ import { Position } from '../../classes/models/position';
   changeDetection: ChangeDetectionStrategy.Default, // ATTENTION: ChangeDetectionStrategy.OnPush pourrait poser problème lors de l'affichage de la maison en intro
   providers: [RobotAspiratorWithNextPositionsTabService]
 })
-export class MainComponent implements OnDestroy {
-
-  // instantiation du composants enfant
+export class MainComponent implements AfterContentInit, OnDestroy {
+  // instantiation de composant enfant
   @ViewChild(MaisonComponent) maisonChildComponent!: MaisonComponent;
 
   private messageService = inject(MessageService);
@@ -44,94 +43,112 @@ export class MainComponent implements OnDestroy {
 
   private isRobotMapStarted: boolean = false;
 
+  // attendre l'initialisation des robots avant de déclencher effect()
+  private areRobotsInitialized = signal(false);
+
   constructor() {
-    console.log("MainComponent constructor()");
+    console.log("MainComponent - constructor()");
 
-    // initialisation des params de la maison
+    // initialisation des params de la maison et des robots
     this.maisonModel = { ...this.maisonService.getMaisonParams() };
-
-    // initialisation des params du ou des robots
     this.robotModelsTab = [...this.robotAspiratorDataService.getRobotsParams()];
 
     this.isRobotMapStarted = false;
 
-    // Attendre que la vue soit complètement initialisée
-    setTimeout(() => {
-      // if (this.maisonChildComponent) {
-      this.initDatas();
-      // }
+    effect(() => {
+      // Réagir à TOUS les robots
+      console.log("MainComponent constructor() - effect()");
+
+      // N'exécuter que si initialisé - nécessaire pour déclencher l'animation du déplacement (marche pas sans, actuellement)
+      if (!this.areRobotsInitialized()) return;
+
+      this.updateAllRobotViews();
     });
+  }
+
+  private updateAllRobotViews(): void {
+    console.log('MainComponent - updateAllRobotViews()');
+
+    this.robotDataViewSignals.forEach((robotSignal) => {
+      const robot = robotSignal();
+      if (robot) {
+        console.log(robot);
+        this.updateView(robot);
+      }
+    });
+  }
+
+  // évite une ExpressionChangedAfterItHasBeenCheckedError
+  ngAfterContentInit(): void {
+    console.log('MainComponent - ngAfterContentInit()');
+
+    // mini-delai pour attendre la fin de l'initialisation de l'enfant MaisonComponent
+    setTimeout(() => {
+      this.maisonChildComponent.construireMaison(this.maisonModel);
+    });
+    this.initRobotsDatas();
+
+    this.areRobotsInitialized.set(true);
   }
 
   ngOnDestroy(): void {
     console.log('MainComponent - ngOnDestroy()');
-    console.log(`🧹 Nettoyage du composant Maison - ${this.robotModelsTab.length} robots`);
-
     this.robotModelsTab.forEach(robotModel => {
       this.robotAspiratorDataService.unregisterRobotFromList(robotModel.robotName);
     });
+    console.log(`Nettoyage du composant Maison - ${this.robotModelsTab.length} robots`);
+
     this.robotDataViewSignals.clear();
   }
 
-  // Ancienne méthode : startIntro()
-  private initDatas(): void {
-    console.log("MaisonComponent - initDatas()");
-
-    this.maisonChildComponent.construireMaison(this.maisonModel);
+  private initRobotsDatas(): void {
+    console.log("MainComponent - initRobotsDatas()");
 
     this.robotModelsTab.forEach((robotModel: RobotAspiratorModel) => {
-      const robotBasePosition: Position = { ...robotModel.basePosition };
-
       // 1/ ajout du robot à la liste:
       this.robotAspiratorDataService.registerRobotInList(robotModel);
       // 2/ créer un signal computed pour chaque robot
       this.createRobotSignal(robotModel.robotName);
-
+      // 3/ Ajout de la base du robot dans la Maison
+      const robotBasePosition: Position = { ...robotModel.basePosition };
       this.maisonModel = { ...this.maisonService.updateMaisonConfig(this.maisonModel, robotBasePosition) };
     });
   }
 
   /**
-  * Crée un signal computed pour un robot spécifique dans la classe appelant le service
+  * Crée un signal computed pour un robot spécifique dans le composant appelant le service
   */
   private createRobotSignal(robotName: string): void {
     console.log("MainComponent - createRobotSignal()");
 
-    const robotSignal: Signal<RobotAspiratorModel | undefined> = computed(() => {
-      console.log("createRobotSignal - computed()");
-
-      // TODO: Mise à jour de la vue ici... correct ? marche
-      const robot: RobotAspiratorModel = this.robotAspiratorDataService.getRobot(robotName);
-
-      // Maj actualisée de la position du robot + des cases de la maison
-      // TODO: remplacer cet appel pour NG Animation par nouvel update de position du robot avec canvas
-      this.maisonChildComponent.updateMaisonWithRobot(robot);
-      // this.maisonChildComponent.updateRobotView(robot);
-
-      this.maisonService.updateMaisonCellules(this.maisonModel, robot.lastPosition);
-
-      const signal: Signal<RobotAspiratorModel> | undefined = this.robotAspiratorDataService.getRobotSignal(robotName);
-      return signal ? signal() : undefined;
-    });
+    const robotSignal: Signal<RobotAspiratorModel> | undefined = this.robotAspiratorDataService.getRobotSignal(robotName);
     if (!robotSignal) return;
 
     this.robotDataViewSignals.set(robotName, robotSignal);
   }
 
   /**
-  * Getter sur le signal d'un robot pour le template
+  * Update de la vue (maison et robots)
+  */
+  private updateView(robot: RobotAspiratorModel): void {
+    console.log("MainComponent - updateView()");
+
+    this.maisonChildComponent.updateMaisonWithRobot(robot);
+    this.maisonService.updateMaisonCellules(this.maisonModel, robot.lastPosition);
+  }
+
+  /**
+  * Getter sur le signal d'un robot : utilisé par le template
   */
   public getRobotDataView(robotName: string): Signal<RobotAspiratorModel | undefined> {
-    console.log("MaisonComponent - getRobotDataView()");
+    console.log("MainComponent - getRobotDataView()");
 
     return this.robotDataViewSignals.get(robotName) || computed(() => undefined);
   }
 
   public pause(): void {
-    console.log("MaisonComponent - pause");
+    console.log("MainComponent - pause");
 
-    // TODO: obsolète - la maison met en pause ses composants enfant (robots)
-    // this.maisonChildComponent.onMaisonPause(this.robotModelsTab);
     if (this.isRobotMapStarted) {
       this.robotAspiratorDataService.onRobotPause();
       this.isRobotMapStarted = false;
@@ -141,7 +158,7 @@ export class MainComponent implements OnDestroy {
   }
 
   public start(): void {
-    console.log("MaisonComponent - start()");
+    console.log("MainComponent - start()");
 
     // Démarrage avec des signaux:
     if (!this.isRobotMapStarted) {

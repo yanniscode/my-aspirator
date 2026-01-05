@@ -5,7 +5,6 @@
       cellpadding="0">
       <ng-template pTemplate="body" let-rowData>
         <tr class="tr-maison">
-          <!-- TODO: placer le robot ici ?? -->
           @for (cell of rowData; track cell) {
           <td class="td-maison">
             @if (cell.cellStack[0].type === 'O') {
@@ -22,7 +21,6 @@
             }
           </td>
           }
-
           <!-- TODO: test VERSION CANVAS ANIMATION - nouvel emplacement -->
           <app-robot-aspirator [aspiroSizeInput]="aspiroViewSize" [aspiroXInput]="aspiroViewX"
             [aspiroYInput]="aspiroViewY" (imageReady)="onImageReady($event)"></app-robot-aspirator>
@@ -34,14 +32,8 @@
     <!-- test VERSION CANVAS ANIMATION Ancien emplacement : -->
     <!-- <app-robot-aspirator class="app-robot-aspirator" [robotInput]="robotViewModel" [aspiroSizeInput]="aspiroViewSize"
       (imageReady)="onImageReady($event)"></app-robot-aspirator> -->
-
     <!-- <p style="font-weight:bold; font-size:8px; color:orangered;">AspiroMan 1</p> -->
   </div>
-  <!-- ancienne VERSION CANVAS ANIMATION-->
-  <!-- <div class="robot-view-container">
-      <app-robot-aspirator class="app-robot-aspirator" (imageReady)="onImageReady($event)"
-        (robotUpdateModel)="handleRobotUpdate($event)"></app-robot-aspirator>
-    </div> -->
 
   <!-- VERSION NG ANIMATION-->
   <!-- <div class="robot-view-container" [@moveRobot1]="{ value: moveTrigger1, params: { x: aspiroX, y: aspiroY } }"> -->

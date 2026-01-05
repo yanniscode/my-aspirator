@@ -2,7 +2,6 @@ import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, EventEmi
 
 import { MessageService } from '../../services/message-service/message.service';
 import { CommonModule } from '@angular/common';
-import { RobotAspiratorModel } from '../../classes/models/robot-aspirator-model';
 
 @Component({
   selector: 'app-robot-aspirator',
@@ -19,7 +18,6 @@ export class RobotAspiratorComponent implements AfterViewInit, OnChanges {
   private messageService: MessageService = inject(MessageService);
 
   // TODO: faire passer datas du parent:
-  // @Input() robotInput!: RobotAspiratorModel;
   @Input() aspiroSizeInput!: number;
   @Input() aspiroXInput!: number;
   @Input() aspiroYInput!: number;
@@ -40,15 +38,8 @@ export class RobotAspiratorComponent implements AfterViewInit, OnChanges {
     // console.log("RobotAspiratorComponent - ngOnChanges()");
 
     // console.log(this.robotInput);
-    // console.log(this.robotInput.lastPosition.x);
-    // console.log(this.robotInput.lastPosition.y);
-    // console.log(this.robotInput.position.x);
-    // console.log(this.robotInput.position.y);
-
-    // console.log(this.aspiroXInput);
-    // console.log(this.aspiroYInput);
-
     // console.log(this.aspiroSizeInput);
+    // console.log(this.aspiroXInput);
   }
 
   private log(message: string) {
