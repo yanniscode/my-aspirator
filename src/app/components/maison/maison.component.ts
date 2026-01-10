@@ -190,25 +190,30 @@ export class MaisonComponent implements OnDestroy {
 
   //   this.counter.set(0);
 
-    this.drawCanvasInterval = interval(1)
-      .pipe(
-        take(50), // Prend exactement 50 valeurs (0 à 49)
-        takeUntil(this.destroy$)
-      )
-      .subscribe(value => {
-        this.counter.set(value);
-        console.log(this.counter());
-        this.drawCanvasElements();
-      });
-  }
+  //   this.drawCanvasInterval = interval(1)
+  //     .pipe(
+  //       take(50), // Prend exactement 50 valeurs (0 à 49)
+  //       takeUntil(this.destroy$)
+  //     )
+  //     .subscribe(value => {
+  //       this.counter.set(value);
+  //       console.log(this.counter());
+  //       this.drawCanvasElements();
+  //     });
+  // }
 
-  // **********
+  // V2: test animation précise mais plus lente (risque de décallage du robot avec les positions visitées)
+  private startDrawCanvasTimer(): void {
+    console.log("MaisonComponent - startDrawCanvasTimer()");
 
-  // // V2: test animation précise mais plus lente (risque de décallage du robot avec les positions visitées)
-  // private startDrawCanvasTimer(): void {
-  //   console.log('Timer started');
-  //   const startTime = performance.now();
-  //   let count = 0;
+    if (this.isRunning) return; // Éviter les doublons
+
+    console.log('Timer started');
+    console.log('requestAnimationFrame existe ?', typeof requestAnimationFrame); // ✅ Devrait afficher "function"
+
+    this.isRunning = true;
+    const startTime = performance.now();
+    let count = 0;
 
     const animate = (currentTime: number) => {
       if (!this.isRunning) return; // Vérifier si l'animation doit continuer
