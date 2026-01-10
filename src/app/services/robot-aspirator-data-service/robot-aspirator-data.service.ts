@@ -19,7 +19,8 @@ export class RobotAspiratorDataService implements OnDestroy {
 
   private maisonModel: MaisonModel;
 
-  private intervalId?: number;
+  // type recommandé ici: ReturnType<typeof setInterval>
+  private intervalId?: ReturnType<typeof setInterval>;
 
   constructor() {
     console.log("RobotAspiratorDataService - constructor()");
@@ -152,7 +153,7 @@ export class RobotAspiratorDataService implements OnDestroy {
 
     this.maisonModel = maisonModel;
 
-    this.intervalId = window.setInterval(() => {
+    this.intervalId = setInterval(() => {
       // Version Map de robots
       this.updateAllRobots();
     }, 500);
