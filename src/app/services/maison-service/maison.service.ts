@@ -40,6 +40,35 @@ export class MaisonService {
     return maisonModel = { ...this.creerMaison(maisonModel) };
   }
 
+  // TODO: pour version Signaux: utiliser des signaux ici ?
+  public updateMaisonConfig(maisonModel: MaisonModel, robotBasePosition: Position): MaisonModel {
+    console.log("MaisonComponent - updateMaisonConfig()");
+
+    // On ajoute la base de chaque robot:
+    maisonModel.maison[robotBasePosition.y][robotBasePosition.x].cellStack[0].type = 'B';
+    return maisonModel;
+  }
+
+  // TODO: pour version Signaux: utiliser des signaux ici ?
+  public updateMaisonCellules(maisonModel: MaisonModel, lastPosition: Position): void {
+    console.log("MaisonComponent - updateMaisonCellules()");
+
+    console.log("lastPosition.x = " + lastPosition.x);
+    console.log("lastPosition.y = " + lastPosition.y);
+
+    // Vérification des null et undefined
+    if (lastPosition.x == null || lastPosition.y == null) {
+      return;
+    }
+    // on ne veut pas que la case de la base soit modifiée:
+    const lastVisitedCell: CellElement = maisonModel.maison[lastPosition.y][lastPosition.x].cellStack[0];
+
+    if (lastVisitedCell.type !== 'B') {
+      lastVisitedCell.visited = true;
+      lastVisitedCell.type = '_';
+    }
+  }
+
   private creerMaison(maisonModel: MaisonModel): MaisonModel {
     console.log("MaisonComponent - creerMaison()");
 
@@ -73,35 +102,6 @@ export class MaisonService {
     });
 
     return maisonModel;
-  }
-
-  // TODO: pour version Signaux: utiliser des signaux ici ?
-  public updateMaisonConfig(maisonModel: MaisonModel, robotBasePosition: Position): MaisonModel {
-    console.log("MaisonComponent - updateMaisonConfig()");
-
-    // On ajoute la base de chaque robot:
-    maisonModel.maison[robotBasePosition.y][robotBasePosition.x].cellStack[0].type = 'B';
-    return maisonModel;
-  }
-
-  // TODO: pour version Signaux: utiliser des signaux ici ?
-  public updateMaisonCellules(maisonModel: MaisonModel, lastPosition: Position): void {
-    console.log("MaisonComponent - updateMaisonCellules()");
-
-    console.log("lastPosition.x = " + lastPosition.x);
-    console.log("lastPosition.y = " + lastPosition.y);
-
-    // Vérification des null et undefined
-    if (lastPosition.x == null || lastPosition.y == null) {
-      return;
-    }
-    // on ne veut pas que la case de la base soit modifiée:
-    const lastVisitedCell: CellElement = maisonModel.maison[lastPosition.y][lastPosition.x].cellStack[0];
-
-    if (lastVisitedCell.type !== 'B') {
-      lastVisitedCell.visited = true;
-      lastVisitedCell.type = '_';
-    }
   }
 
   private log(message: string) {

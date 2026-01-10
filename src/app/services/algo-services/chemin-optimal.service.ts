@@ -35,11 +35,60 @@ export class CheminOptimalService {
     }
   }
 
+  // Trouver la prochaine cellule accessible non visitée la plus proche
+  public trouverProchaineDestination(maison: Cell[][], position: Position): Cell | null {
+    // console.log("CheminOptimalService - trouverProchaineDestination()");
+
+    // Utiliser un algorithme de recherche en largeur (BFS) pour trouver la cellule non visitée la plus proche
+    const queue: { cell: Cell; distance: number }[] = [];
+    const visited: Set<string> = new Set();
+
+    const positionKey = `${position.x},${position.y}`;
+    visited.add(positionKey);
+
+    // Ajouter les cellules adjacentes à la position actuelle
+    this.obtenirCellulesAdjacentes(maison, position).forEach(cell => {
+      queue.push({ cell, distance: 1 });
+      visited.add(`${cell.cellStack[0].position.x},${cell.cellStack[0].position.y}`);
+    });
+
+    while (queue.length > 0) {
+      const { cell, distance } = queue.shift()!;
+
+      // Si la cellule n'est pas visitée et n'est pas un obstacle, la retourner
+      if (!cell.cellStack[0].visited && cell.cellStack[0].type !== 'X' && cell.cellStack[0].type !== 'B') {
+        return cell;
+      }
+
+      // Si la distance est trop grande, ne pas continuer la recherche
+      if (distance > 20) { // Une limite arbitraire pour éviter une boucle infinie
+        continue;
+      }
+
+      // Ajouter les cellules adjacentes à la file d'attente
+      this.obtenirCellulesAdjacentes(maison, cell.cellStack[0].position).forEach(adjacentCell => {
+        const key = `${adjacentCell.cellStack[0].position.x},${adjacentCell.cellStack[0].position.y}`;
+        if (!visited.has(key)) {
+          queue.push({ cell: adjacentCell, distance: distance + 1 });
+          visited.add(key);
+        }
+      });
+    }
+    return null; // Aucune cellule non visitée accessible trouvée
+  }
+
   // pour la version 1 de l'algo - RobotAspiratorWithNextPositionService :
   public trouverPositionSuivante(maison: Cell[][], depart: Position, fin: Position): Position {
     // console.log("CheminOptimalService - trouverPositionSuivante()");
 
     return this.trouverChemin(maison, depart, fin)[0];
+  }
+
+  // Calculer la distance entre deux positions (heuristique pour A*)
+  public distance(a: Position, b: Position): number {
+    // console.log("CheminOptimalService - distance()");
+
+    return Math.abs(a.x - b.x) + Math.abs(a.y - b.y); // Distance de Manhattan
   }
 
   // Algorithme A* pour trouver le chemin optimal
@@ -158,48 +207,6 @@ export class CheminOptimalService {
     return [];
   }
 
-  // Trouver la prochaine cellule accessible non visitée la plus proche
-  public trouverProchaineDestination(maison: Cell[][], position: Position): Cell | null {
-    // console.log("CheminOptimalService - trouverProchaineDestination()");
-
-    // Utiliser un algorithme de recherche en largeur (BFS) pour trouver la cellule non visitée la plus proche
-    const queue: { cell: Cell; distance: number }[] = [];
-    const visited: Set<string> = new Set();
-
-    const positionKey = `${position.x},${position.y}`;
-    visited.add(positionKey);
-
-    // Ajouter les cellules adjacentes à la position actuelle
-    this.obtenirCellulesAdjacentes(maison, position).forEach(cell => {
-      queue.push({ cell, distance: 1 });
-      visited.add(`${cell.cellStack[0].position.x},${cell.cellStack[0].position.y}`);
-    });
-
-    while (queue.length > 0) {
-      const { cell, distance } = queue.shift()!;
-
-      // Si la cellule n'est pas visitée et n'est pas un obstacle, la retourner
-      if (!cell.cellStack[0].visited && cell.cellStack[0].type !== 'X' && cell.cellStack[0].type !== 'B') {
-        return cell;
-      }
-
-      // Si la distance est trop grande, ne pas continuer la recherche
-      if (distance > 20) { // Une limite arbitraire pour éviter une boucle infinie
-        continue;
-      }
-
-      // Ajouter les cellules adjacentes à la file d'attente
-      this.obtenirCellulesAdjacentes(maison, cell.cellStack[0].position).forEach(adjacentCell => {
-        const key = `${adjacentCell.cellStack[0].position.x},${adjacentCell.cellStack[0].position.y}`;
-        if (!visited.has(key)) {
-          queue.push({ cell: adjacentCell, distance: distance + 1 });
-          visited.add(key);
-        }
-      });
-    }
-    return null; // Aucune cellule non visitée accessible trouvée
-  }
-
   // Méthode pour reconstruire le chemin
   private reconstruireChemin(position: Position, cameFrom: Map<string, Position>, current: Position): Position[] {
     // console.log("CheminOptimalService - reconstruireChemin()");
@@ -249,13 +256,6 @@ export class CheminOptimalService {
       }
     });
     return cellules;
-  }
-
-  // Calculer la distance entre deux positions (heuristique pour A*)
-  public distance(a: Position, b: Position): number {
-    // console.log("CheminOptimalService - distance()");
-
-    return Math.abs(a.x - b.x) + Math.abs(a.y - b.y); // Distance de Manhattan
   }
 
   private log(message: string) {

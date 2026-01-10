@@ -41,6 +41,19 @@ export class RobotAspiratorDataService implements OnDestroy {
     console.log('Service de robots arrêté');
   }
 
+  /**
+* Nettoyage complet du service
+*/
+  public onRobotPause(): void {
+    console.log("RobotAspiratorDataService - onRobotPause()");
+
+    if (this.intervalId) {
+      clearInterval(this.intervalId);
+      this.intervalId = undefined;
+    }
+    console.log('Service de robots mis en pause');
+  }
+
   // TODO: refacto dans service robot-data
   public getRobotsParams(): RobotAspiratorModel[] {
     console.log("RobotAspiratorDataService - getRobotsParams()");
@@ -145,43 +158,6 @@ export class RobotAspiratorDataService implements OnDestroy {
     }, 500);
   }
 
-  // mise à jour de la map() de robots:
-  private updateAllRobots(): void {
-    console.log("RobotAspiratorDataService - updateAllRobots()");
-    console.log(this.robotSignals);
-
-    this.robotSignals.forEach((robotSignal: WritableSignal<RobotAspiratorModel>) => {
-      // Mettre à jour isRobotStarted et décrémenter la batterie
-      robotSignal.update(robot => ({
-        ...robot,
-        isRobotStarted: true,
-        // batterie: robot.batterie > 0 ? robot.batterie - robot.consommationParMouvement : 0
-      }));
-
-      // Récupérer le robot mis à jour pour nettoyer
-      const robot: RobotAspiratorModel = robotSignal();
-
-      // TODO: garder condition ici ??
-      if (robot.batterie > 0) {
-        this.nettoyer(this.maisonModel, robot);
-
-        console.log(`Robot ${robot.robotName} mis à jour - Batterie: ${robot.batterie}%`);
-      } else {
-        console.log(`Le robot ne peut pas démarrer - Batterie: ${robot.batterie}%`);
-        robot.isRobotStarted = false;
-        // this.onRobotPause();
-      }
-
-      // TODO: mise en pause par robot à l'arrivée à la base du robot : stop
-      if (robot.position.x === robot.basePosition.x && robot.position.y === robot.basePosition.y
-      ) {
-        robot.isRobotStarted = false;
-        this.stopMovingRobot(robot.robotName, robot.position, robot.isRobotReturningToBase);
-        // this.onRobotPause();
-      }
-    });
-  }
-
   /**
   * Enregistre un nouveau robot dans la liste avec une position initiale
   */
@@ -242,6 +218,43 @@ export class RobotAspiratorDataService implements OnDestroy {
 
     const signal: WritableSignal<RobotAspiratorModel> | undefined = this.robotSignals.get(robotName);
     return signal ? signal() : new RobotAspiratorModel();
+  }
+
+  // mise à jour de la map() de robots:
+  private updateAllRobots(): void {
+    console.log("RobotAspiratorDataService - updateAllRobots()");
+    console.log(this.robotSignals);
+
+    this.robotSignals.forEach((robotSignal: WritableSignal<RobotAspiratorModel>) => {
+      // Mettre à jour isRobotStarted et décrémenter la batterie
+      robotSignal.update(robot => ({
+        ...robot,
+        isRobotStarted: true,
+        // batterie: robot.batterie > 0 ? robot.batterie - robot.consommationParMouvement : 0
+      }));
+
+      // Récupérer le robot mis à jour pour nettoyer
+      const robot: RobotAspiratorModel = robotSignal();
+
+      // TODO: garder condition ici ??
+      if (robot.batterie > 0) {
+        this.nettoyer(this.maisonModel, robot);
+
+        console.log(`Robot ${robot.robotName} mis à jour - Batterie: ${robot.batterie}%`);
+      } else {
+        console.log(`Le robot ne peut pas démarrer - Batterie: ${robot.batterie}%`);
+        robot.isRobotStarted = false;
+        // this.onRobotPause();
+      }
+
+      // TODO: mise en pause par robot à l'arrivée à la base du robot : stop
+      if (robot.position.x === robot.basePosition.x && robot.position.y === robot.basePosition.y
+      ) {
+        robot.isRobotStarted = false;
+        this.stopMovingRobot(robot.robotName, robot.position, robot.isRobotReturningToBase);
+        // this.onRobotPause();
+      }
+    });
   }
 
   /**
@@ -449,19 +462,6 @@ export class RobotAspiratorDataService implements OnDestroy {
   //   this.stopMoving();
   //   return;
   // }
-
-  /**
-* Nettoyage complet du service
-*/
-  public onRobotPause(): void {
-    console.log("RobotAspiratorDataService - onRobotPause()");
-
-    if (this.intervalId) {
-      clearInterval(this.intervalId);
-      this.intervalId = undefined;
-    }
-    console.log('Service de robots mis en pause');
-  }
 
   // TODO: refacto dans service algo ?
   private robotDoitRentrerALaBase(batterie: number, position: Position, basePosition: Position, consommationParMouvement: number): boolean {

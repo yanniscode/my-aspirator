@@ -36,6 +36,7 @@ export class MainComponent implements AfterContentInit, OnDestroy {
   private robotAspiratorDataService = inject(RobotAspiratorDataService);
 
   public maisonModel: MaisonModel;
+
   public robotModelsTab: RobotAspiratorModel[];
 
   // Map pour stocker les signaux computed de chaque robot à afficher
@@ -56,28 +57,15 @@ export class MainComponent implements AfterContentInit, OnDestroy {
     this.isRobotMapStarted = false;
 
     effect(() => {
-      // Réagir à TOUS les robots
+      // Réagir aux effets de bord pour tous les robots
       console.log("MainComponent constructor() - effect()");
 
       // N'exécuter que si initialisé - nécessaire pour déclencher l'animation du déplacement (marche pas sans, actuellement)
       if (!this.areRobotsInitialized()) return;
 
-      this.updateAllRobotViews();
+      this.updateAllRobotsViews();
     });
   }
-
-  private updateAllRobotViews(): void {
-    console.log('MainComponent - updateAllRobotViews()');
-
-    this.robotDataViewSignals.forEach((robotSignal) => {
-      const robot = robotSignal();
-      if (robot) {
-        console.log(robot);
-        this.updateView(robot);
-      }
-    });
-  }
-
   // évite une ExpressionChangedAfterItHasBeenCheckedError
   ngAfterContentInit(): void {
     console.log('MainComponent - ngAfterContentInit()');
@@ -99,6 +87,39 @@ export class MainComponent implements AfterContentInit, OnDestroy {
     console.log(`Nettoyage du composant Maison - ${this.robotModelsTab.length} robots`);
 
     this.robotDataViewSignals.clear();
+  }
+
+  public pause(): void {
+    console.log("MainComponent - pause");
+
+    if (this.isRobotMapStarted) {
+      this.robotAspiratorDataService.onRobotPause();
+      this.isRobotMapStarted = false;
+    } else {
+      console.log("robot(s) actuellement en pause");
+    }
+  }
+
+  public start(): void {
+    console.log("MainComponent - start()");
+
+    // Démarrage avec des signaux:
+    if (!this.isRobotMapStarted) {
+      this.robotAspiratorDataService.startRobotsMapInterval(this.maisonModel);
+      this.isRobotMapStarted = true;
+    } else {
+      console.log("(re)démarrage impossible");
+    }
+  }
+
+  // TODO: voir si doublon avec le getter su service data ?
+  /**
+  * Getter local sur le signal d'un robot : utilisé par le template
+  */
+  public getRobotDataView(robotName: string): Signal<RobotAspiratorModel | undefined> {
+    console.log("MainComponent - getRobotDataView()");
+
+    return this.robotDataViewSignals.get(robotName) || computed(() => undefined);
   }
 
   private initRobotsDatas(): void {
@@ -128,45 +149,28 @@ export class MainComponent implements AfterContentInit, OnDestroy {
   }
 
   /**
-  * Update de la vue (maison et robots)
+  * Lancement de l'update de la vue pour la liste de robots
   */
-  private updateView(robot: RobotAspiratorModel): void {
-    console.log("MainComponent - updateView()");
+  private updateAllRobotsViews(): void {
+    console.log('MainComponent - updateAllRobotsViews()');
 
-    this.maisonChildComponent.updateMaisonWithRobot(robot);
-    this.maisonService.updateMaisonCellules(this.maisonModel, robot.lastPosition);
+    this.robotDataViewSignals.forEach((robotSignal) => {
+      const robot = robotSignal();
+      if (robot) {
+        console.log(robot);
+        this.performViewUpdate(robot);
+      }
+    });
   }
 
   /**
-  * Getter sur le signal d'un robot : utilisé par le template
+  * Update de la vue (maison et robots)
   */
-  public getRobotDataView(robotName: string): Signal<RobotAspiratorModel | undefined> {
-    console.log("MainComponent - getRobotDataView()");
+  private performViewUpdate(robot: RobotAspiratorModel): void {
+    console.log("MainComponent - performViewUpdate()");
 
-    return this.robotDataViewSignals.get(robotName) || computed(() => undefined);
-  }
-
-  public pause(): void {
-    console.log("MainComponent - pause");
-
-    if (this.isRobotMapStarted) {
-      this.robotAspiratorDataService.onRobotPause();
-      this.isRobotMapStarted = false;
-    } else {
-      console.log("robot(s) actuellement en pause");
-    }
-  }
-
-  public start(): void {
-    console.log("MainComponent - start()");
-
-    // Démarrage avec des signaux:
-    if (!this.isRobotMapStarted) {
-      this.robotAspiratorDataService.startRobotsMapInterval(this.maisonModel);
-      this.isRobotMapStarted = true;
-    } else {
-      console.log("(re)démarrage impossible");
-    }
+    this.maisonChildComponent.updateMaisonWithRobot(robot);
+    this.maisonService.updateMaisonCellules(this.maisonModel, robot.lastPosition);
   }
 
   private log(message: string) {

@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, EventEmitter, inject, Input, OnChanges, Output, ViewChild, ViewEncapsulation } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, EventEmitter, inject, Input, Output, ViewChild, ViewEncapsulation } from '@angular/core';
 
 import { MessageService } from '../../services/message-service/message.service';
 import { CommonModule } from '@angular/common';
@@ -12,7 +12,7 @@ import { CommonModule } from '@angular/common';
   changeDetection: ChangeDetectionStrategy.Default,
   encapsulation: ViewEncapsulation.None,
 })
-export class RobotAspiratorComponent implements AfterViewInit, OnChanges {
+export class RobotAspiratorComponent implements AfterViewInit {
   @ViewChild('aspiratorImage', { static: false }) aspiratorImage!: ElementRef<HTMLImageElement>;
 
   private messageService: MessageService = inject(MessageService);
@@ -34,13 +34,13 @@ export class RobotAspiratorComponent implements AfterViewInit, OnChanges {
     this.imageReady.emit(this.aspiratorImage.nativeElement);
   }
 
-  ngOnChanges() {
-    // console.log("RobotAspiratorComponent - ngOnChanges()");
+  // ngOnChanges() {
+  //   console.log("RobotAspiratorComponent - ngOnChanges()");
 
-    // console.log(this.robotInput);
-    // console.log(this.aspiroSizeInput);
-    // console.log(this.aspiroXInput);
-  }
+  //   console.log(this.robotInput);
+  //   console.log(this.aspiroSizeInput);
+  //   console.log(this.aspiroXInput);
+  // }
 
   private log(message: string) {
     this.messageService.add(`RobotAspiratorComponent: ${message}`);

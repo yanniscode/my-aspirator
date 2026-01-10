@@ -1,5 +1,3 @@
-import { trigger, transition, style, animate } from '@angular/animations';
-
 import { Component, ViewEncapsulation, ChangeDetectionStrategy, inject, ViewChild, ElementRef, OnDestroy, signal } from '@angular/core';
 
 import { TableModule } from "primeng/table";
@@ -20,15 +18,16 @@ import { interval, Subject, Subscription, take, takeUntil } from 'rxjs';
   styleUrl: './maison.component.css',
   changeDetection: ChangeDetectionStrategy.Default,
   encapsulation: ViewEncapsulation.None,
-  animations: [
-    // TODO: supprimer car obsolète
-    trigger('maisonAnimation', [
-      transition(':enter', [
-        style({ opacity: 0 }),
-        animate('1500ms ease-out', style({ opacity: 1 }))
-      ])
-    ]),
-  ]
+  // TODO: remplacer animation d'intro
+  // animations: [
+  //   // TODO: supprimer car obsolète
+  //   trigger('maisonAnimation', [
+  //     transition(':enter', [
+  //       style({ opacity: 0 }),
+  //       animate('1500ms ease-out', style({ opacity: 1 }))
+  //     ])
+  //   ]),
+  // ]
 })
 export class MaisonComponent implements OnDestroy {
   @ViewChild('maisonCanvas', { static: true }) maisonCanvas!: ElementRef<HTMLCanvasElement>;
@@ -126,13 +125,6 @@ export class MaisonComponent implements OnDestroy {
     // this.moveTrigger4 = 0;
   }
 
-  public construireMaison(maisonModel: MaisonModel): void {
-    console.log("MaisonComponent - construireMaison()");
-
-    // instanciation de la maison pour la Vue (composant MaisonComponent) :
-    this.maisonViewModel = { ...maisonModel };
-  }
-
   ngOnDestroy(): void {
     console.log("MaisonComponent - ngOnDestroy()");
 
@@ -143,6 +135,13 @@ export class MaisonComponent implements OnDestroy {
 
   public onMaisonPause(): void {
     console.log("MaisonComponent - onMaisonPause()");
+  }
+
+  public construireMaison(maisonModel: MaisonModel): void {
+    console.log("MaisonComponent - construireMaison()");
+
+    // instanciation de la maison pour la Vue (composant MaisonComponent) :
+    this.maisonViewModel = { ...maisonModel };
   }
 
   /**
@@ -201,7 +200,7 @@ export class MaisonComponent implements OnDestroy {
 
   // **********
 
-  // V2: TODO ?? A utiliser sur autre version nécessitant IA plus précise ? test animation précise (décallage produit avec les positions visitées)
+  // // V2: test animation précise mais plus lente (risque de décallage du robot avec les positions visitées)
   // private startDrawCanvasTimer(): void {
   //   console.log('Timer started');
   //   const startTime = performance.now();
