@@ -67,7 +67,11 @@ export class MaisonComponent implements OnDestroy {
 
   public robotViewModel: RobotAspiratorModel;
 
+  // variables pour l'animation des robots
   private counter = signal(0);
+  private animationId?: number;
+  private isRunning = false;
+
   private destroy$ = new Subject<void>();
   private drawCanvasInterval: Subscription = new Subscription();
 
@@ -181,10 +185,10 @@ export class MaisonComponent implements OnDestroy {
   }
 
   // V1:
-  private startDrawCanvasTimer(): void {
-    console.log("MaisonComponent - startDrawCanvasTimer()");
+  // private startDrawCanvasTimer(): void {
+  //   console.log("MaisonComponent - startDrawCanvasTimer()");
 
-    this.counter.set(0);
+  //   this.counter.set(0);
 
     this.drawCanvasInterval = interval(1)
       .pipe(
@@ -206,26 +210,37 @@ export class MaisonComponent implements OnDestroy {
   //   const startTime = performance.now();
   //   let count = 0;
 
-  //   const animate = (currentTime: number) => {
-  //     const elapsed = currentTime - startTime;
-  //     const frame = Math.floor(elapsed);
+    const animate = (currentTime: number) => {
+      if (!this.isRunning) return; // Vérifier si l'animation doit continuer
 
-  //     count++;
-  //     console.log(`Frame: ${frame}, Iteration: ${count}`);
+      const elapsed = currentTime - startTime;
+      const frame = Math.floor(elapsed);
+      count++;
+      console.log(`Frame: ${frame}, Iteration: ${count}`);
 
-  //     this.counter.set(frame);
-  //     this.drawCanvasElements();
+      this.counter.set(count); // ✅ Utiliser count au lieu de frame pour régularité
+      this.drawCanvasElements();
 
-  //     if (count < 50) {
-  //       requestAnimationFrame(animate); // Continue l'animation
-  //     } else {
-  //       console.log('Animation terminée');
-  //       this.ngOnDestroy();
-  //     }
-  //   };
+      if (count < 50) { // attention à setInterval() de 1000 au moins sinon retard du robot sur l'algo de déplacement
+        // actuellement, fonctionne même si erreur "requestAnimationFrame introuvabl" dans VSCodium
+        this.animationId = requestAnimationFrame(animate); // ✅ Stocker l'ID
+      } else {
+        console.log('Animation terminée');
+        this.stopAnimation(); // ✅ Utiliser stopAnimation au lieu de ngOnDestroy
+      }
+    };
 
-  //   requestAnimationFrame(animate);
-  // }
+    this.animationId = requestAnimationFrame(animate);
+  }
+
+  stopAnimation(): void {
+    console.log('Animation stopped');
+    this.isRunning = false;
+    if (this.animationId !== undefined) {
+      cancelAnimationFrame(this.animationId);
+      this.animationId = undefined;
+    }
+  }
 
   private drawCanvasElements() {
     console.log("MaisonComponent - drawCanvasElements()");

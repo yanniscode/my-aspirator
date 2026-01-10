@@ -156,7 +156,7 @@ export class RobotAspiratorDataService implements OnDestroy {
     this.intervalId = setInterval(() => {
       // Version Map de robots
       this.updateAllRobots();
-    }, 500);
+    }, 1000);
   }
 
   /**
