@@ -54,6 +54,7 @@ export class MaisonComponent implements OnDestroy {
   private aspiroDirX = 0;
   private aspiroDirY = 0;
 
+  public aspiroViewName = "";
   // Positions du robot pour la vue (en px, cette fois !)
   public aspiroViewX = 0;
   public aspiroViewY = 0;
@@ -178,6 +179,7 @@ export class MaisonComponent implements OnDestroy {
 
     this.robotViewModel = { ...robotUpdateModel };
 
+    this.aspiroViewName = this.robotViewModel.robotName;
     this.setAspiroPosition(this.robotViewModel);
     this.setAspiroDirection(this.robotViewModel);
 

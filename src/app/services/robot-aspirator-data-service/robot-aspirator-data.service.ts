@@ -63,7 +63,7 @@ export class RobotAspiratorDataService implements OnDestroy {
     // robot1 test
     // 1 - Récupération des datas :
     // TODO: possible récupération des données dans des objets JSON / appels HTTP
-    let robotName = "robot1";
+    let robotName = "Aspiroman 1";
     let basePosition = { x: 0, y: 0 };
     // au départ, le robot est à la base:
     let lastPosition = { ...basePosition };
@@ -86,7 +86,7 @@ export class RobotAspiratorDataService implements OnDestroy {
     console.log(robot1Model);
 
     // robot2 test
-    robotName = "robot2";
+    robotName = "Aspiroman 2";
     basePosition = { x: 9, y: 0 };
     lastPosition = { ...basePosition };
     position = { ...basePosition };
@@ -106,7 +106,7 @@ export class RobotAspiratorDataService implements OnDestroy {
     console.log(robot2Model);
 
     // robot3 test
-    robotName = "robot3";
+    robotName = "Aspiroman 3";
     basePosition = { x: 9, y: 7 };
     lastPosition = { ...basePosition };
     position = { ...basePosition };
@@ -126,7 +126,7 @@ export class RobotAspiratorDataService implements OnDestroy {
     console.log(robot3Model);
 
     // robot3 test
-    robotName = "robot4";
+    robotName = "Aspiroman 4";
     basePosition = { x: 0, y: 7 };
     lastPosition = { ...basePosition };
     position = { ...basePosition };

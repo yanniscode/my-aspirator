@@ -18,14 +18,19 @@ export class RobotAspiratorComponent implements AfterViewInit {
   private messageService: MessageService = inject(MessageService);
 
   // TODO: faire passer datas du parent:
-  @Input() aspiroSizeInput!: number;
-  @Input() aspiroXInput!: number;
-  @Input() aspiroYInput!: number;
+  @Input() aspiroSizeInput: number;
+  @Input() aspiroName: string;
+  @Input() aspiroXInput: number;
+  @Input() aspiroYInput: number;
 
   @Output() public imageReady = new EventEmitter<HTMLImageElement>();
 
   constructor() {
     console.log("RobotAspiratorComponent - constructor()");
+    this.aspiroSizeInput = 0;
+    this.aspiroName = "";
+    this.aspiroXInput = -1;
+    this.aspiroYInput = -1;
   }
 
   ngAfterViewInit() {
@@ -37,7 +42,7 @@ export class RobotAspiratorComponent implements AfterViewInit {
   // ngOnChanges() {
   //   console.log("RobotAspiratorComponent - ngOnChanges()");
 
-  //   console.log(this.robotInput);
+  //   console.log(this.aspiroName);
   //   console.log(this.aspiroSizeInput);
   //   console.log(this.aspiroXInput);
   // }
