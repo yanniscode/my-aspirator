@@ -184,7 +184,7 @@ export class MaisonComponent implements OnDestroy {
     this.startDrawCanvasTimer();
   }
 
-  // V1:
+  // // V1:
   // private startDrawCanvasTimer(): void {
   //   console.log("MaisonComponent - startDrawCanvasTimer()");
 

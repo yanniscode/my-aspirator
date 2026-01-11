@@ -42,8 +42,9 @@ export class RobotAspiratorDataService implements OnDestroy {
     console.log('Service de robots arrêté');
   }
 
+  // TODO: arrêt à revoir si plusieurs robobs (car stop global de l'animation ici, même au retour à la base d'un seul robot)
   /**
-* Nettoyage complet du service
+* Nettoyage complet du service (animation où tous les robots s'arrête)
 */
   public onRobotPause(): void {
     console.log("RobotAspiratorDataService - onRobotPause()");
@@ -156,7 +157,7 @@ export class RobotAspiratorDataService implements OnDestroy {
     this.intervalId = setInterval(() => {
       // Version Map de robots
       this.updateAllRobots();
-    }, 1000);
+    }, 1000); // TODO: 600ms possible si V1 de startDrawCanvasTimer, pas moins de 1000ms si V2 (voir comment aller plus vite en V2)
   }
 
   /**
@@ -245,15 +246,17 @@ export class RobotAspiratorDataService implements OnDestroy {
       } else {
         console.log(`Le robot ne peut pas démarrer - Batterie: ${robot.batterie}%`);
         robot.isRobotStarted = false;
-        // this.onRobotPause();
+        // TODO ?? utiliser stopMovingRobot() pour plusieurs robots ??
+        // this.stopMovingRobot(robot.robotName, robot.position, robot.isRobotReturningToBase);
+        this.onRobotPause();
       }
 
       // TODO: mise en pause par robot à l'arrivée à la base du robot : stop
       if (robot.position.x === robot.basePosition.x && robot.position.y === robot.basePosition.y
       ) {
         robot.isRobotStarted = false;
+        // ne pas utiliser onRobotPause() ici, sinon pas de retour à la base:
         this.stopMovingRobot(robot.robotName, robot.position, robot.isRobotReturningToBase);
-        // this.onRobotPause();
       }
     });
   }
@@ -404,6 +407,8 @@ export class RobotAspiratorDataService implements OnDestroy {
 
     if (nextPosition === undefined) {
       console.log("Impossible de trouver un chemin vers la base de charge!");
+      // important de passer onRobotPause() pour stopper l'animation globale:
+      this.onRobotPause();
       return;
     } else {
       // Suivre le chemin
@@ -457,12 +462,6 @@ export class RobotAspiratorDataService implements OnDestroy {
 
     console.log(`Déplacement vers (${robot.position.x}, ${robot.position.y}). Batterie: ${robot.batterie.toFixed(1)}%`);
   }
-
-  // TODO: méthode de pause - obso ??
-  // public onRobotPause() {
-  //   this.stopMoving();
-  //   return;
-  // }
 
   // TODO: refacto dans service algo ?
   private robotDoitRentrerALaBase(batterie: number, position: Position, basePosition: Position, consommationParMouvement: number): boolean {
