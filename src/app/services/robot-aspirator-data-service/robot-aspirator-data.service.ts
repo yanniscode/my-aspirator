@@ -69,7 +69,7 @@ export class RobotAspiratorDataService implements OnDestroy {
     let lastPosition = { ...basePosition };
     let position = { ...basePosition };
     let coordinate = { x: 0, y: 0 };
-    let batterie = 50;
+    let batterie = 5;
     let isRobotStarted = false;
     let isRobotReturningToBase = false;
 
@@ -324,7 +324,7 @@ export class RobotAspiratorDataService implements OnDestroy {
   /**
 * Déplace un robot à un point (px) de coordonnée spécifique dans l'espace (canvas)
 */
-  public moveRobotOnView(robotName: string, newCoordinate: Position): void {
+  public moveRobotView(robotName: string, newCoordinate: Position): void {
     console.log("RobotAspiratorDataService - moveRobotOnView()");
 
     const robotSignal: WritableSignal<RobotAspiratorModel> | undefined = this.robotSignals.get(robotName);
@@ -337,7 +337,7 @@ export class RobotAspiratorDataService implements OnDestroy {
       }));
 
       const updatedRobot: RobotAspiratorModel = robotSignal();
-      console.log(`Robot ${robotName} déplacé sur le canvas à (${updatedRobot.coordinate.x}, ${updatedRobot.coordinate.y})`);
+      console.log(`Robot ${updatedRobot.robotName} déplacé sur le canvas à (${updatedRobot.coordinate.x}, ${updatedRobot.coordinate.y})`);
     }
   }
 

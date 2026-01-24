@@ -35,9 +35,9 @@ export class MainComponent implements AfterContentInit, OnDestroy {
   private maisonService = inject(MaisonService);
   private robotAspiratorDataService = inject(RobotAspiratorDataService);
 
-  public maisonModel: MaisonModel;
+  public maisonView: MaisonModel;
 
-  public robotModelsTab: RobotAspiratorModel[];
+  public robotViewTab: RobotAspiratorModel[];
 
   // Map pour stocker les signaux computed de chaque robot à afficher
   private robotDataViewSignals = new Map<string, Signal<RobotAspiratorModel | undefined>>();
@@ -54,11 +54,7 @@ export class MainComponent implements AfterContentInit, OnDestroy {
   private aspiroDirY = 0;
 
   // variables de template binding (@input vers le composant robot):
-  private ctx!: CanvasRenderingContext2D;
-  private aspiratorImage!: HTMLImageElement;
-  private aspiratorImageLoaded = false;
   public aspiroViewSize = 50;
-  public aspiroViewName = "";
 
   // Positions du robot pour la vue (en px, cette fois !)
   // position settée avec la valeur récupérée par l'output de la Maison dans MainComponent
@@ -73,8 +69,8 @@ export class MainComponent implements AfterContentInit, OnDestroy {
     console.log("MainComponent - constructor()");
 
     // initialisation des params de la maison et des robots
-    this.maisonModel = { ...this.maisonService.getMaisonParams() };
-    this.robotModelsTab = [...this.robotAspiratorDataService.getRobotsParams()];
+    this.maisonView = { ...this.maisonService.getMaisonParams() };
+    this.robotViewTab = [...this.robotAspiratorDataService.getRobotsParams()];
 
     this.isRobotMapStarted = false;
 
@@ -95,9 +91,9 @@ export class MainComponent implements AfterContentInit, OnDestroy {
     // mini-delai pour attendre la fin de l'initialisation de l'enfant MaisonComponent
     setTimeout(() => {
       if (!this.maisonChildComponent) return;
-      this.maisonChildComponent.construireMaison(this.maisonModel);
+      this.maisonChildComponent.construireMaison(this.maisonView);
 
-      this.maisonChildComponent.onImageReady(this.imgElement);
+      // this.maisonChildComponent.onImageReady(this.imgElement);
     });
     this.initRobotsDatas();
 
@@ -106,12 +102,17 @@ export class MainComponent implements AfterContentInit, OnDestroy {
 
   ngOnDestroy(): void {
     console.log('MainComponent - ngOnDestroy()');
-    this.robotModelsTab.forEach(robotModel => {
+    this.robotViewTab.forEach(robotModel => {
       this.robotAspiratorDataService.unregisterRobotFromList(robotModel.robotName);
     });
-    console.log(`Nettoyage du composant Maison - ${this.robotModelsTab.length} robots`);
+    console.log(`Nettoyage du composant Maison - ${this.robotViewTab.length} robots`);
 
     this.robotDataViewSignals.clear();
+
+    // nettoyage de l'animation pour startDrawCanvasTimer() - V1:
+    // this.drawCanvasInterval.unsubscribe();
+    // this.destroy$.next();
+    // this.destroy$.complete();
   }
 
   public pause(): void {
@@ -130,7 +131,7 @@ export class MainComponent implements AfterContentInit, OnDestroy {
 
     // Démarrage avec des signaux:
     if (!this.isRobotMapStarted) {
-      this.robotAspiratorDataService.startRobotsMapInterval(this.maisonModel);
+      this.robotAspiratorDataService.startRobotsMapInterval(this.maisonView);
       this.isRobotMapStarted = true;
     } else {
       console.log("(re)démarrage impossible");
@@ -149,14 +150,14 @@ export class MainComponent implements AfterContentInit, OnDestroy {
   private initRobotsDatas(): void {
     console.log("MainComponent - initRobotsDatas()");
 
-    this.robotModelsTab.forEach((robotModel: RobotAspiratorModel) => {
+    this.robotViewTab.forEach((robotModel: RobotAspiratorModel) => {
       // 1/ ajout du robot à la liste:
       this.robotAspiratorDataService.registerRobotInList(robotModel);
       // 2/ créer un signal computed pour chaque robot
       this.createRobotSignal(robotModel.robotName);
       // 3/ Ajout de la base du robot dans la Maison
       const robotBasePosition: Position = { ...robotModel.basePosition };
-      this.maisonModel = { ...this.maisonService.updateMaisonConfig(this.maisonModel, robotBasePosition) };
+      this.maisonView = { ...this.maisonService.updateMaisonConfig(this.maisonView, robotBasePosition) };
     });
   }
 
@@ -194,7 +195,7 @@ export class MainComponent implements AfterContentInit, OnDestroy {
     console.log("MainComponent - performViewUpdate()");
 
     this.updateMaisonWithRobot(robot);
-    this.maisonService.updateMaisonCellules(this.maisonModel, robot.lastPosition);
+    this.maisonService.updateMaisonCellules(this.maisonView, robot.lastPosition);
   }
 
   /**
@@ -203,11 +204,10 @@ export class MainComponent implements AfterContentInit, OnDestroy {
   private updateMaisonWithRobot(robot: RobotAspiratorModel): void {
     console.log("MaisonComponent - updateMaisonWithRobot()");
 
-    this.aspiroViewName = robot.robotName;
     this.setAspiroPosition(robot);
     this.setAspiroDirection(robot);
 
-    this.startDrawCanvasTimer();
+    this.startDrawCanvasTimer(robot.robotName);
   }
 
   private setAspiroPosition(robot: RobotAspiratorModel) {
@@ -226,29 +226,11 @@ export class MainComponent implements AfterContentInit, OnDestroy {
       (this.aspiroY - robot.lastPosition.y) === -1 ? -1 : 0;
   }
 
-  // méthode de template binding
-  public handleRobotCoordinateUpdate(nextRobotCoordinate: Position): void {
-
-    const robot = this.robotAspiratorDataService.getRobot(this.aspiroViewName);
-    robot.coordinate = { ...nextRobotCoordinate };
-    this.robotAspiratorDataService.moveRobotOnView(robot.robotName, robot.coordinate);
-  }
-
-  private imgElement: HTMLImageElement = document.createElement("img");
-
-  /**
- * Output de l'enfant Robot repassé à l'enfant de MainComponent > MaisonComponent
- */
-  public onImageReady(imgElement: HTMLImageElement) {
-    console.log("MainComponent - onImageReady()");
-    this.imgElement = imgElement;
-    // attention : maisonChildComponent peut être undefined au refresh)
-    if (!this.maisonChildComponent) return;
-    this.maisonChildComponent.onImageReady(this.imgElement);
-  }
+  // TODO: instanciation pose pb ici en multibots > plus utile de le faire ici, à refacto
+  private nextCoordinate: Position = new Position(0, 0);
 
   // V2: test animation précise mais plus lente (risque de décallage du robot avec les positions visitées)
-  private startDrawCanvasTimer(): void {
+  private startDrawCanvasTimer(robotName: string): void {
     console.log("MaisonComponent - startDrawCanvasTimer()");
 
     if (this.isRunning) return; // Éviter les doublons
@@ -263,14 +245,19 @@ export class MainComponent implements AfterContentInit, OnDestroy {
     const animate = (currentTime: number) => {
       if (!this.isRunning) return; // Vérifier si l'animation doit continuer
 
-      const elapsed = currentTime - startTime;
-      const frame = Math.floor(elapsed);
+      // TODO: UTILISER elapsed ??
+      // const elapsed = currentTime - startTime;
+      // const frame = Math.floor(elapsed);
       count++;
-      console.log(`Frame: ${frame}, Iteration: ${count}`);
+      // console.log(`Frame: ${frame}, Iteration: ${count}`);
 
       if (count <= 50) { // attention à setInterval() de 1000 au moins sinon retard du robot sur l'algo de déplacement
         this.counter.set(count); // ✅ Utiliser count au lieu de frame pour régularité
-        this.maisonChildComponent.drawCanvasElements(this.aspiroDirX, this.aspiroDirY);
+
+        // utilisation de variables en px pour la vue, différente de AspiroX, qui est un index dans le tableau (maison)
+        this.nextCoordinate.x += this.aspiroDirX;
+        this.nextCoordinate.y += this.aspiroDirY;
+        this.robotAspiratorDataService.moveRobotView(robotName, this.nextCoordinate);
 
         this.animationId = requestAnimationFrame(animate); // ✅ Stocker l'id de l'animation
       } else {

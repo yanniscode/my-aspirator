@@ -1,7 +1,8 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, EventEmitter, inject, Input, OnChanges, Output, ViewChild, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, Input, OnChanges, ViewEncapsulation } from '@angular/core';
+import { CommonModule } from '@angular/common';
 
 import { MessageService } from '../../services/message-service/message.service';
-import { CommonModule } from '@angular/common';
+
 import { Position } from '../../classes/models/position';
 
 @Component({
@@ -13,29 +14,20 @@ import { Position } from '../../classes/models/position';
   changeDetection: ChangeDetectionStrategy.Default,
   encapsulation: ViewEncapsulation.None,
 })
-export class RobotAspiratorComponent implements AfterViewInit, OnChanges {
-  @ViewChild('aspiratorImage', { static: false }) aspiratorImage!: ElementRef<HTMLImageElement>;
+export class RobotAspiratorComponent implements OnChanges {
 
   private messageService: MessageService = inject(MessageService);
 
-  // TODO: faire passer datas du parent:
+  // TODO: refacto - faire passer datas à partir du service, et plus du parent:
   @Input() robotAspiroSizeInput: number;
   @Input() robotAspiroName: string;
   @Input() aspiroCoordinateInput: Position;
-
-  @Output() public imageReady = new EventEmitter<HTMLImageElement>();
 
   constructor() {
     console.log("RobotAspiratorComponent - constructor()");
     this.robotAspiroSizeInput = 0;
     this.robotAspiroName = "";
     this.aspiroCoordinateInput = new Position();
-  }
-
-  ngAfterViewInit(): void {
-    console.log("RobotAspiratorComponent - ngAfterViewInit()");
-
-    this.imageReady.emit(this.aspiratorImage.nativeElement);
   }
 
   ngOnChanges(): void {
