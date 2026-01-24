@@ -197,6 +197,119 @@ export class MainComponent implements AfterContentInit, OnDestroy {
     this.maisonService.updateMaisonCellules(this.maisonModel, robot.lastPosition);
   }
 
+  /**
+ * méthode de mise à jour de la position du robot
+ */
+  private updateMaisonWithRobot(robot: RobotAspiratorModel): void {
+    console.log("MaisonComponent - updateMaisonWithRobot()");
+
+    this.aspiroViewName = robot.robotName;
+    this.setAspiroPosition(robot);
+    this.setAspiroDirection(robot);
+
+    this.startDrawCanvasTimer();
+  }
+
+  private setAspiroPosition(robot: RobotAspiratorModel) {
+    console.log("MaisonComponent - setAspiroPosition()");
+
+    this.aspiroX = robot.position.x;
+    this.aspiroY = robot.position.y;
+  }
+
+  private setAspiroDirection(robot: RobotAspiratorModel) {
+    console.log("MaisonComponent - setAspiroDirection()");
+
+    this.aspiroDirX = (this.aspiroX - robot.lastPosition.x) === 1 ? 1 :
+      (this.aspiroX - robot.lastPosition.x) === -1 ? -1 : 0;
+    this.aspiroDirY = (this.aspiroY - robot.lastPosition.y) === 1 ? 1 :
+      (this.aspiroY - robot.lastPosition.y) === -1 ? -1 : 0;
+  }
+
+  // méthode de template binding
+  public handleRobotCoordinateUpdate(nextRobotCoordinate: Position): void {
+
+    const robot = this.robotAspiratorDataService.getRobot(this.aspiroViewName);
+    robot.coordinate = { ...nextRobotCoordinate };
+    this.robotAspiratorDataService.moveRobotOnView(robot.robotName, robot.coordinate);
+  }
+
+  private imgElement: HTMLImageElement = document.createElement("img");
+
+  /**
+ * Output de l'enfant Robot repassé à l'enfant de MainComponent > MaisonComponent
+ */
+  public onImageReady(imgElement: HTMLImageElement) {
+    console.log("MainComponent - onImageReady()");
+    this.imgElement = imgElement;
+    // attention : maisonChildComponent peut être undefined au refresh)
+    if (!this.maisonChildComponent) return;
+    this.maisonChildComponent.onImageReady(this.imgElement);
+  }
+
+  // V2: test animation précise mais plus lente (risque de décallage du robot avec les positions visitées)
+  private startDrawCanvasTimer(): void {
+    console.log("MaisonComponent - startDrawCanvasTimer()");
+
+    if (this.isRunning) return; // Éviter les doublons
+
+    console.log('Timer started');
+    console.log('requestAnimationFrame existe ?', typeof requestAnimationFrame); // ✅ Devrait afficher "function"
+
+    this.isRunning = true;
+    const startTime = performance.now();
+    let count = 0;
+
+    const animate = (currentTime: number) => {
+      if (!this.isRunning) return; // Vérifier si l'animation doit continuer
+
+      const elapsed = currentTime - startTime;
+      const frame = Math.floor(elapsed);
+      count++;
+      console.log(`Frame: ${frame}, Iteration: ${count}`);
+
+      if (count <= 50) { // attention à setInterval() de 1000 au moins sinon retard du robot sur l'algo de déplacement
+        this.counter.set(count); // ✅ Utiliser count au lieu de frame pour régularité
+        this.maisonChildComponent.drawCanvasElements(this.aspiroDirX, this.aspiroDirY);
+
+        this.animationId = requestAnimationFrame(animate); // ✅ Stocker l'id de l'animation
+      } else {
+        console.log('Animation terminée');
+        this.stopAnimation(); // ✅ Utilise stopAnimation au lieu de ngOnDestroy
+      }
+    };
+
+    this.animationId = requestAnimationFrame(animate);
+  }
+
+
+  // // V1:
+  // private startDrawCanvasTimer(): void {
+  //   console.log("MaisonComponent - startDrawCanvasTimer()");
+
+  //   this.counter.set(0);
+
+  //   this.drawCanvasInterval = interval(1)
+  //     .pipe(
+  //       take(50), // Prend exactement 50 valeurs (0 à 49)
+  //       takeUntil(this.destroy$)
+  //     )
+  //     .subscribe(value => {
+  //       this.counter.set(value);
+  //       console.log(this.counter());
+  //       this.drawCanvasElements();
+  //     });
+  // }
+
+  private stopAnimation(): void {
+    console.log('Animation stopped');
+    this.isRunning = false;
+    if (this.animationId !== undefined) {
+      cancelAnimationFrame(this.animationId);
+      this.animationId = undefined;
+    }
+  }
+
   private log(message: string) {
     this.messageService.add(`MainComponent: ${message}`);
   }

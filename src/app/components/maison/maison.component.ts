@@ -61,35 +61,6 @@ export class MaisonComponent implements OnDestroy {
   private animationId?: number;
   private isRunning = false;
 
-  private destroy$ = new Subject<void>();
-  private drawCanvasInterval: Subscription = new Subscription();
-
-
-  // *** ROBOT 1:
-  // Variables pour la mise à jour de la Vue (public car appelées par le template)
-  // Position robot 1 (en px)
-  // public aspiroX1: number;
-  // public aspiroY1: number;
-  // // pour mettre à jour l'animation du déplacement du robot
-  // public moveTrigger1: number;
-
-  // // *** ROBOT 2:
-  // public aspiroX2: number;
-  // public aspiroY2: number;
-  // public moveTrigger2: number;
-
-  // // *** ROBOT 3:
-  // public aspiroX3: number;
-  // public aspiroY3: number;
-  // public moveTrigger3: number;
-
-  // // *** ROBOT 4:
-  // public aspiroX4: number;
-  // public aspiroY4: number;
-  // public moveTrigger4: number;
-
-  // **************************
-
   constructor() {
     console.log("MaisonComponent - constructor()");
 
@@ -100,22 +71,6 @@ export class MaisonComponent implements OnDestroy {
     this.maisonViewModel.isNettoyageComplete = false;
 
     this.robotViewModel = new RobotAspiratorModel();
-
-    // this.aspiroX1 = 0;
-    // this.aspiroY1 = 0;
-    // this.moveTrigger1 = 0;
-
-    // this.aspiroX2 = 450;
-    // this.aspiroY2 = 0;
-    // this.moveTrigger2 = 0;
-
-    // this.aspiroX3 = 450;
-    // this.aspiroY3 = 350;
-    // this.moveTrigger3 = 0;
-
-    // this.aspiroX4 = 0;
-    // this.aspiroY4 = 350;
-    // this.moveTrigger4 = 0;
   }
 
   ngOnDestroy(): void {
