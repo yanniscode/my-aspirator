@@ -1,10 +1,9 @@
-import { Component, ViewEncapsulation, ChangeDetectionStrategy, inject, ViewChild, ElementRef, OnDestroy, signal } from '@angular/core';
+import { Component, ViewEncapsulation, ChangeDetectionStrategy, inject, ViewChild, ElementRef, OnDestroy, signal, output, OutputEmitterRef } from '@angular/core';
 
 import { TableModule } from "primeng/table";
 
 import { MessageService } from '../../services/message-service/message.service';
 import { MaisonModel } from '../../classes/models/maison-model';
-import { RobotAspiratorComponent } from "../robot-aspirator/robot-aspirator.component";
 import { RobotAspiratorModel } from '../../classes/models/robot-aspirator-model';
 import { Position } from '../../classes/models/position';
 import { Cell } from '../../classes/models/cell';
@@ -13,7 +12,7 @@ import { interval, Subject, Subscription, take, takeUntil } from 'rxjs';
 @Component({
   selector: 'app-maison',
   standalone: true,
-  imports: [TableModule, RobotAspiratorComponent],
+  imports: [TableModule],
   templateUrl: './maison.component.html',
   styleUrl: './maison.component.css',
   changeDetection: ChangeDetectionStrategy.Default,
@@ -42,23 +41,12 @@ export class MaisonComponent implements OnDestroy {
   private width = 500;
   private height = 400;
 
-  // variable de template binding (@input vers le composant robot):
+  // variables de template binding (@input vers le composant robot):
   public maisonViewModel: MaisonModel;
-  // variable de template binding (@input vers le composant robot):
   public aspiroViewSize = 50;
-
-  // TODO: déplacer directement dans la classe robot ??
-  // Positions du robot (Attention: index dans le tableau, ici, pas une position en px)
-  public aspiroX = 0;
-  public aspiroY = 0;
-  private aspiroDirX = 0;
-  private aspiroDirY = 0;
-
   public aspiroViewName = "";
   // Positions du robot pour la vue (en px, cette fois !)
-  public aspiroViewX = 0;
-  public aspiroViewY = 0;
-
+  public onRobotCoordinateUpdate: OutputEmitterRef<Position> = output<Position>();
 
   // Params de la maison (tableau)
   static largeurMaison: number = 10;
@@ -133,9 +121,10 @@ export class MaisonComponent implements OnDestroy {
   ngOnDestroy(): void {
     console.log("MaisonComponent - ngOnDestroy()");
 
-    this.drawCanvasInterval.unsubscribe();
-    this.destroy$.next();
-    this.destroy$.complete();
+    // Pour startDrawCanvasTimer() - V1:
+    // this.drawCanvasInterval.unsubscribe();
+    // this.destroy$.next();
+    // this.destroy$.complete();
   }
 
   public onMaisonPause(): void {
@@ -150,7 +139,7 @@ export class MaisonComponent implements OnDestroy {
   }
 
   /**
-   * Output de l'enfant Robot
+   * Output de l'enfant Robot récupéré à partir de MainComponent
    */
   public onImageReady(imgElement: HTMLImageElement) {
     console.log("MaisonComponent - onImageReady()");
@@ -171,86 +160,13 @@ export class MaisonComponent implements OnDestroy {
     }
   }
 
-  /**
-   * méthode de mise à jour de la position du robot
-   */
-  public updateMaisonWithRobot(robotUpdateModel: RobotAspiratorModel): void {
-    console.log("MaisonComponent - updateMaisonWithRobot()");
+  // TODO: instanciation pose pb ici en multibots
+  private nextCoordinate: Position = new Position(0, 0);
 
-    this.robotViewModel = { ...robotUpdateModel };
-
-    this.aspiroViewName = this.robotViewModel.robotName;
-    this.setAspiroPosition(this.robotViewModel);
-    this.setAspiroDirection(this.robotViewModel);
-
-    this.startDrawCanvasTimer();
-  }
-
-  // // V1:
-  // private startDrawCanvasTimer(): void {
-  //   console.log("MaisonComponent - startDrawCanvasTimer()");
-
-  //   this.counter.set(0);
-
-  //   this.drawCanvasInterval = interval(1)
-  //     .pipe(
-  //       take(50), // Prend exactement 50 valeurs (0 à 49)
-  //       takeUntil(this.destroy$)
-  //     )
-  //     .subscribe(value => {
-  //       this.counter.set(value);
-  //       console.log(this.counter());
-  //       this.drawCanvasElements();
-  //     });
-  // }
-
-  // V2: test animation précise mais plus lente (risque de décallage du robot avec les positions visitées)
-  private startDrawCanvasTimer(): void {
-    console.log("MaisonComponent - startDrawCanvasTimer()");
-
-    if (this.isRunning) return; // Éviter les doublons
-
-    console.log('Timer started');
-    console.log('requestAnimationFrame existe ?', typeof requestAnimationFrame); // ✅ Devrait afficher "function"
-
-    this.isRunning = true;
-    const startTime = performance.now();
-    let count = 0;
-
-    const animate = (currentTime: number) => {
-      if (!this.isRunning) return; // Vérifier si l'animation doit continuer
-
-      const elapsed = currentTime - startTime;
-      const frame = Math.floor(elapsed);
-      count++;
-      console.log(`Frame: ${frame}, Iteration: ${count}`);
-
-      this.counter.set(count); // ✅ Utiliser count au lieu de frame pour régularité
-      this.drawCanvasElements();
-
-      if (count < 50) { // attention à setInterval() de 1000 au moins sinon retard du robot sur l'algo de déplacement
-        // actuellement, fonctionne même si erreur "requestAnimationFrame introuvabl" dans VSCodium
-        this.animationId = requestAnimationFrame(animate); // ✅ Stocker l'ID
-      } else {
-        console.log('Animation terminée');
-        this.stopAnimation(); // ✅ Utiliser stopAnimation au lieu de ngOnDestroy
-      }
-    };
-
-    this.animationId = requestAnimationFrame(animate);
-  }
-
-  stopAnimation(): void {
-    console.log('Animation stopped');
-    this.isRunning = false;
-    if (this.animationId !== undefined) {
-      cancelAnimationFrame(this.animationId);
-      this.animationId = undefined;
-    }
-  }
-
-  private drawCanvasElements() {
+  public drawCanvasElements(aspiroDirX: number, aspiroDirY: number): void {
     console.log("MaisonComponent - drawCanvasElements()");
+
+    if (!this.ctx) return;
 
     // Effacer le canvas
     this.ctx.clearRect(0, 0, this.width, this.height);
@@ -264,28 +180,15 @@ export class MaisonComponent implements OnDestroy {
       this.ctx.save();
 
       // utilisation de variables en px pour la vue, différente de AspiroX, qui est un index dans le tableau (maison)
-      this.aspiroViewX += this.aspiroDirX;
-      this.aspiroViewY += this.aspiroDirY;
+      this.nextCoordinate.x += aspiroDirX;
+      this.nextCoordinate.y += aspiroDirY;
+
+      // transmission au comosant parent via output
+      this.onRobotCoordinateUpdate.emit(this.nextCoordinate);
 
       // Restaure l'état le plus récent du canevas
       this.ctx.restore();
     }
-  }
-
-  private setAspiroPosition(robotUpdateModel: RobotAspiratorModel) {
-    console.log("MaisonComponent - setAspiroPosition()");
-
-    this.aspiroX = robotUpdateModel.position.x;
-    this.aspiroY = robotUpdateModel.position.y;
-  }
-
-  private setAspiroDirection(robotUpdateModel: RobotAspiratorModel) {
-    console.log("MaisonComponent - setAspiroDirection()");
-
-    this.aspiroDirX = (this.aspiroX - robotUpdateModel.lastPosition.x) === 1 ? 1 :
-      (this.aspiroX - robotUpdateModel.lastPosition.x) === -1 ? -1 : 0;
-    this.aspiroDirY = (this.aspiroY - robotUpdateModel.lastPosition.y) === 1 ? 1 :
-      (this.aspiroY - robotUpdateModel.lastPosition.y) === -1 ? -1 : 0;
   }
 
   private log(message: string): void {

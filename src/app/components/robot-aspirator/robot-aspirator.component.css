@@ -2,12 +2,10 @@
     position: absolute;
     pointer-events: none;
     /* cf: padding pour à la maison: */
-    padding-top: 57px;
+    padding-top: 176px;
     /* TODO: REMPLACER par gestion de l'animation avec drawEverything() + px précis dans le html */
     /* transition: all 0.30s linear; */
 
-    width: 50px;
-    height: 50px;
     text-align: center !important;
     /* test d'une surcharge non prise en compte, ici, car pas !important : */
     /* border-width: 0 0 0px 0 !important; */

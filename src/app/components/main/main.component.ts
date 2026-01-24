@@ -12,14 +12,14 @@ import { RobotAspiratorModel } from '../../classes/models/robot-aspirator-model'
 import { MessageService } from '../../services/message-service/message.service';
 import { RobotAspiratorWithNextPositionsTabService } from '../../services/robot-actions-service/robot-aspirator-with-next-positions-tab-service/robot-aspirator/robot-aspirator/robot-aspirator-with-next-positions-tab-service/robot-aspirator-with-next-positions-tab.service';
 import { RobotAspiratorDataService } from '../../services/robot-aspirator-data-service/robot-aspirator-data.service';
-import { DecimalPipe } from '@angular/common';
 import { Position } from '../../classes/models/position';
+import { RobotAspiratorComponent } from '../robot-aspirator/robot-aspirator.component';
 
 @Component({
   selector: 'app-main',
   standalone: true,
-  imports: [FormsModule, TableModule, MessagesComponent, MaisonComponent,
-    DecimalPipe,
+  imports: [
+    MaisonComponent, RobotAspiratorComponent, MessagesComponent, FormsModule, TableModule,
   ],
   templateUrl: './main.component.html',
   styleUrl: './main.component.css',
@@ -47,6 +47,28 @@ export class MainComponent implements AfterContentInit, OnDestroy {
   // attendre l'initialisation des robots avant de déclencher effect()
   private areRobotsInitialized = signal(false);
 
+  // Positions du robot (Attention: index dans le tableau, ici, pas une position en px)
+  public aspiroX = 0;
+  public aspiroY = 0;
+  private aspiroDirX = 0;
+  private aspiroDirY = 0;
+
+  // variables de template binding (@input vers le composant robot):
+  private ctx!: CanvasRenderingContext2D;
+  private aspiratorImage!: HTMLImageElement;
+  private aspiratorImageLoaded = false;
+  public aspiroViewSize = 50;
+  public aspiroViewName = "";
+
+  // Positions du robot pour la vue (en px, cette fois !)
+  // position settée avec la valeur récupérée par l'output de la Maison dans MainComponent
+  public robotAspiratorCoordinate: Position = new Position();
+
+  // variables pour l'animation des robots
+  private counter = signal(0);
+  private animationId?: number;
+  private isRunning = false;
+
   constructor() {
     console.log("MainComponent - constructor()");
 
@@ -72,7 +94,10 @@ export class MainComponent implements AfterContentInit, OnDestroy {
 
     // mini-delai pour attendre la fin de l'initialisation de l'enfant MaisonComponent
     setTimeout(() => {
+      if (!this.maisonChildComponent) return;
       this.maisonChildComponent.construireMaison(this.maisonModel);
+
+      this.maisonChildComponent.onImageReady(this.imgElement);
     });
     this.initRobotsDatas();
 
@@ -112,7 +137,6 @@ export class MainComponent implements AfterContentInit, OnDestroy {
     }
   }
 
-  // TODO: voir si doublon avec le getter su service data ?
   /**
   * Getter local sur le signal d'un robot : utilisé par le template
   */
@@ -169,7 +193,7 @@ export class MainComponent implements AfterContentInit, OnDestroy {
   private performViewUpdate(robot: RobotAspiratorModel): void {
     console.log("MainComponent - performViewUpdate()");
 
-    this.maisonChildComponent.updateMaisonWithRobot(robot);
+    this.updateMaisonWithRobot(robot);
     this.maisonService.updateMaisonCellules(this.maisonModel, robot.lastPosition);
   }
 

@@ -68,6 +68,7 @@ export class RobotAspiratorDataService implements OnDestroy {
     // au départ, le robot est à la base:
     let lastPosition = { ...basePosition };
     let position = { ...basePosition };
+    let coordinate = { x: 0, y: 0 };
     let batterie = 50;
     let isRobotStarted = false;
     let isRobotReturningToBase = false;
@@ -79,6 +80,7 @@ export class RobotAspiratorDataService implements OnDestroy {
     // au départ, le robot est à la base:
     robot1Model.lastPosition = { ...lastPosition };
     robot1Model.position = { ...position };
+    robot1Model.coordinate = { ...coordinate };
     robot1Model.batterie = batterie;
     robot1Model.isRobotStarted = isRobotStarted;
     robot1Model.isRobotReturningToBase = isRobotReturningToBase;
@@ -90,6 +92,7 @@ export class RobotAspiratorDataService implements OnDestroy {
     basePosition = { x: 9, y: 0 };
     lastPosition = { ...basePosition };
     position = { ...basePosition };
+    coordinate = { x: 450, y: 0 };
     batterie = 60;
     isRobotStarted = false;
     isRobotReturningToBase = false;
@@ -99,6 +102,7 @@ export class RobotAspiratorDataService implements OnDestroy {
     robot2Model.basePosition = { ...basePosition };
     robot2Model.lastPosition = { ...lastPosition };
     robot2Model.position = { ...position };
+    robot2Model.coordinate = { ...coordinate };
     robot2Model.batterie = batterie;
     robot2Model.isRobotStarted = isRobotStarted;
     robot2Model.isRobotReturningToBase = isRobotReturningToBase;
@@ -110,6 +114,7 @@ export class RobotAspiratorDataService implements OnDestroy {
     basePosition = { x: 9, y: 7 };
     lastPosition = { ...basePosition };
     position = { ...basePosition };
+    coordinate = { x: 450, y: 350 };
     batterie = 20;
     isRobotStarted = false;
     isRobotReturningToBase = false;
@@ -119,6 +124,7 @@ export class RobotAspiratorDataService implements OnDestroy {
     robot3Model.basePosition = { ...basePosition };
     robot3Model.lastPosition = { ...lastPosition };
     robot3Model.position = { ...position };
+    robot3Model.coordinate = { ...coordinate };
     robot3Model.batterie = batterie;
     robot3Model.isRobotStarted = isRobotStarted;
     robot3Model.isRobotReturningToBase = isRobotReturningToBase;
@@ -130,6 +136,7 @@ export class RobotAspiratorDataService implements OnDestroy {
     basePosition = { x: 0, y: 7 };
     lastPosition = { ...basePosition };
     position = { ...basePosition };
+    coordinate = { x: 0, y: 350 };
     batterie = 10;
     isRobotStarted = false;
     isRobotReturningToBase = false;
@@ -139,6 +146,7 @@ export class RobotAspiratorDataService implements OnDestroy {
     robot4Model.basePosition = { ...basePosition };
     robot4Model.lastPosition = { ...lastPosition };
     robot4Model.position = { ...position };
+    robot4Model.coordinate = { ...coordinate };
     robot4Model.batterie = batterie;
     robot4Model.isRobotStarted = isRobotStarted;
     robot4Model.isRobotReturningToBase = isRobotReturningToBase;
@@ -180,6 +188,10 @@ export class RobotAspiratorDataService implements OnDestroy {
         position: {
           x: robotModel.position.x,
           y: robotModel.position.y
+        },
+        coordinate: {
+          x: robotModel.coordinate.x,
+          y: robotModel.coordinate.y
         },
         batterie: robotModel.batterie,
         consommationParMouvement: robotModel.consommationParMouvement,
@@ -238,12 +250,16 @@ export class RobotAspiratorDataService implements OnDestroy {
       // Récupérer le robot mis à jour pour nettoyer
       const robot: RobotAspiratorModel = robotSignal();
 
-      // TODO: garder condition ici ??
-      if (robot.batterie > 0) {
+      // TODO: revoir condition pour batterie de 1 (passer condition en cas de retour à la base)
+      if (robot.batterie >= this.energieNecessairePourRetour(robot.position, robot.basePosition, robot.consommationParMouvement)) {
         this.nettoyer(this.maisonModel, robot);
 
         console.log(`Robot ${robot.robotName} mis à jour - Batterie: ${robot.batterie}%`);
-      } else {
+      }
+      // else if (this.robotDoitRentrerALaBase(robot.batterie, robot.position, robot.basePosition, robot.consommationParMouvement)) {
+      //   this.retournerALaBase(this.maisonModel, robot);
+      // }
+      else {
         console.log(`Le robot ne peut pas démarrer - Batterie: ${robot.batterie}%`);
         robot.isRobotStarted = false;
         // TODO ?? utiliser stopMovingRobot() pour plusieurs robots ??
@@ -306,6 +322,26 @@ export class RobotAspiratorDataService implements OnDestroy {
   }
 
   /**
+* Déplace un robot à un point (px) de coordonnée spécifique dans l'espace (canvas)
+*/
+  public moveRobotOnView(robotName: string, newCoordinate: Position): void {
+    console.log("RobotAspiratorDataService - moveRobotOnView()");
+
+    const robotSignal: WritableSignal<RobotAspiratorModel> | undefined = this.robotSignals.get(robotName);
+
+    if (robotSignal) {
+      // Update des données du robot:
+      robotSignal.update(robot => ({
+        ...robot,
+        coordinate: { x: newCoordinate.x, y: newCoordinate.y },
+      }));
+
+      const updatedRobot: RobotAspiratorModel = robotSignal();
+      console.log(`Robot ${robotName} déplacé sur le canvas à (${updatedRobot.coordinate.x}, ${updatedRobot.coordinate.y})`);
+    }
+  }
+
+  /**
   * Retourne la liste des noms de tous les robots enregistrés
   */
   // getAllRobotNames(): string[] {
@@ -324,7 +360,7 @@ export class RobotAspiratorDataService implements OnDestroy {
   private nettoyer(maisonModelInput: MaisonModel, robotModelInput: RobotAspiratorModel): void {
     console.log("RobotAspiratorDataService - nettoyer()");
 
-    this.maisonModel = maisonModelInput;
+    this.maisonModel = { ...maisonModelInput };
 
     const robotName = robotModelInput.robotName;
     const robotSignal: WritableSignal<RobotAspiratorModel> | undefined = this.robotSignals.get(robotName);
@@ -339,7 +375,7 @@ export class RobotAspiratorDataService implements OnDestroy {
 
     // si le robot revient à la base
     if (robot.isRobotReturningToBase) {
-      this.retournerALaBase(maisonModelInput, robotModelInput);
+      this.retournerALaBase(this.maisonModel, robotModelInput);
       return;
     }
     // si toutes les cellules accessibles sont visitées
@@ -481,6 +517,7 @@ export class RobotAspiratorDataService implements OnDestroy {
     console.log("distance minimale de la base = " + distance);
 
     // Ajouter une marge de sécurité
+    // TODO: revoir les bugs d'utilisation (ex: batterie = 1, 0.5)
     return (distance * consommationParMouvement) * 1;
   }
 

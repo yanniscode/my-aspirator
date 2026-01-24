@@ -11,7 +11,17 @@
 
         <h1>Aspiro-Man</h1>
 
-        <app-maison></app-maison>
+        <app-maison (onRobotCoordinateUpdate)="handleRobotCoordinateUpdate($event)"></app-maison>
+
+        @for (robot of robotModelsTab; track robot) {
+        <div>
+            @if (getRobotDataView(robot.robotName)(); as robot) {
+            <app-robot-aspirator [robotAspiroSizeInput]="aspiroViewSize" [robotAspiroName]="robot.robotName"
+                [aspiroCoordinateInput]="robot.coordinate" (imageReady)="onImageReady($event)">
+            </app-robot-aspirator>
+            }
+        </div>
+        }
 
         <div class="buttons">
             <form (ngSubmit)="start()" #maisonForm="ngForm">
@@ -31,23 +41,24 @@
     </div>
 </div>
 
-<div class="maison-container">
+<div class="maison-container"><!-- TODO: utiliser classe maison-container ?? -->
     <h2>Main Test Signaux avec {{ robotModelsTab.length }} robots</h2>
 
-    @for (robotModels of robotModelsTab; track robotModels) {
+    @for (robot of robotModelsTab; track robot) {
     <div class="robot-card">
-        @if (getRobotDataView(robotModels.robotName)(); as robot) {
+        @if (getRobotDataView(robot.robotName)(); as robot) {
         <h3>🤖 {{ robot.robotName }}</h3>
         <div class="robot-info">
             <p>🔋 Batterie: {{ robot.batterie }}%</p>
-            <p>📍 Last Position: ({{ robot.lastPosition.x | number:'1.1-1' }}, {{ robot.lastPosition.y | number:'1.1-1'
-                }})
-            <p>📍 Position: ({{ robot.position.x | number:'1.1-1' }}, {{ robot.position.y | number:'1.1-1' }})
+            <p>📍 Last Position: ({{ robot.lastPosition.x }}, {{ robot.lastPosition.y }})
+            <p>📍 Position: ({{ robot.position.x }}, {{ robot.position.y }})
+            </p>
+            <p>📍 Coordinate: ({{ robot.coordinate.x }}, {{ robot.coordinate.y }})
             </p>
             <p>⚡ Status: {{ robot.batterie > 0 ? 'Actif' : 'Inactif' }}</p>
         </div>
         } @else {
-        <p>⚠️ Robot {{ robotModels }} non trouvé</p>
+        <p>⚠️ Robot {{ robot }} non trouvé</p>
         }
     </div>
     }

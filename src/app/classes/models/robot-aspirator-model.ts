@@ -8,6 +8,7 @@ export class RobotAspiratorModel {
     // Positions précédente et actuelle
     public lastPosition: Position;
     public position: Position;
+    public coordinate: Position;
     // Niveau de batterie (en pourcentage)
     public batterie: number;
     // Combien d'énergie est consommée par mouvement
@@ -21,6 +22,7 @@ export class RobotAspiratorModel {
         this.basePosition = new Position();
         this.lastPosition = new Position();
         this.position = new Position();
+        this.coordinate = new Position();
         this.batterie = -1;
         this.isRobotStarted = false;
         // Combien d'énergie est consommée par mouvement
@@ -39,6 +41,8 @@ export class RobotAspiratorModel {
         console.debug(robot.lastPosition);
         console.debug("robot.position :");
         console.debug(robot.position);
+        console.debug("robot.coordinate :");
+        console.debug(robot.coordinate);
         console.debug(`robot.batterie: ${robot.batterie}%.`);
         console.debug("robot.isRobotStarted = " + robot.isRobotStarted);
         console.debug("robot.consommationParMouvement = " + robot.consommationParMouvement);

@@ -21,30 +21,10 @@
             }
           </td>
           }
-          <!-- TODO: déplacer le robot dans MainComponent -->
-          <app-robot-aspirator [aspiroSizeInput]="aspiroViewSize" [aspiroName]="aspiroViewName"
-            [aspiroXInput]="aspiroViewX" [aspiroYInput]="aspiroViewY"
-            (imageReady)="onImageReady($event)"></app-robot-aspirator>
         </tr>
       </ng-template>
     </p-table>
 
     <canvas #maisonCanvas class="table-maison" width="500" height="400"></canvas>
   </div>
-
-  <!-- VERSION NG ANIMATION-->
-  <!-- 
-  <div class="robot-view-container" [@moveRobot2]="{ value: moveTrigger2, params: { x: aspiroX2, y: aspiroY2 } }">
-    <app-robot-aspirator class="app-robot-aspirator"></app-robot-aspirator>
-    <p style="font-weight:bold; font-size:8px; color:yellow;">AspiroMan 2</p>
-  </div>
-  <div class="robot-view-container" [@moveRobot3]="{ value: moveTrigger3, params: { x: aspiroX3, y: aspiroY3 } }">
-    <app-robot-aspirator class="app-robot-aspirator"></app-robot-aspirator>
-    <p style="font-weight:bold; font-size:8px; color:green;">AspiroMan 3</p>
-  </div>
-  <div class="robot-view-container" [@moveRobot4]="{ value: moveTrigger4, params: { x: aspiroX4, y: aspiroY4 } }">
-    <app-robot-aspirator class="app-robot-aspirator"></app-robot-aspirator>
-    <p style="font-weight:bold; font-size:8px; color:blue;">AspiroMan 4</p>
-  </div> 
-  -->
 </div>
