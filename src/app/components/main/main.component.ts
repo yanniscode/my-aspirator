@@ -1,4 +1,4 @@
-import { Component, OnDestroy, ViewChild, ViewEncapsulation, inject, Signal, computed, ChangeDetectionStrategy, effect, signal, AfterContentInit } from '@angular/core';
+import { Component, OnDestroy, ViewChild, ViewEncapsulation, inject, ChangeDetectionStrategy, signal, AfterContentInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
 
@@ -35,9 +35,11 @@ export class MainComponent implements AfterContentInit, OnDestroy {
   private maisonService = inject(MaisonService);
   private robotAspiratorDataService = inject(RobotAspiratorDataService);
 
-  public maisonView: MaisonModel;
+  public maisonViewModel: MaisonModel;
 
-  public robotDataTab: RobotAspiratorModel[];
+  public robotViewModelTab: RobotAspiratorModel[];
+
+  public robotNames = signal<string[]>([]);
 
   // Map pour stocker les signaux computed de chaque robot à afficher
   private robotDataViewSignals = new Map<string, Signal<RobotAspiratorModel | undefined>>();
@@ -69,8 +71,8 @@ export class MainComponent implements AfterContentInit, OnDestroy {
     console.log("MainComponent - constructor()");
 
     // initialisation des params de la maison et des robots
-    this.maisonView = { ...this.maisonService.getMaisonParams() };
-    this.robotDataTab = [...this.robotAspiratorDataService.getRobotsParams()];
+    this.maisonViewModel = { ...this.maisonService.getMaisonParams() };
+    this.robotViewModelTab = [...this.robotAspiratorDataService.getRobotsParams()];
 
     this.isRobotMapStarted = false;
 
@@ -91,7 +93,7 @@ export class MainComponent implements AfterContentInit, OnDestroy {
     // mini-delai pour attendre la fin de l'initialisation de l'enfant MaisonComponent
     setTimeout(() => {
       if (!this.maisonChildComponent) return;
-      this.maisonChildComponent.construireMaison(this.maisonView);
+      this.maisonChildComponent.construireMaison(this.maisonViewModel);
 
       this.initRobotsDatas();
       this.areRobotsInitialized.set(true);
@@ -100,7 +102,7 @@ export class MainComponent implements AfterContentInit, OnDestroy {
 
   ngOnDestroy(): void {
     console.log('MainComponent - ngOnDestroy()');
-    this.robotDataTab.forEach(robotModel => {
+    this.robotViewModelTab.forEach(robotModel => {
       this.robotAspiratorDataService.unregisterRobotFromList(robotModel.robotName);
     });
     console.log(`Nettoyage du composant Maison - ${this.robotDataTab.length} robots`);
@@ -129,7 +131,7 @@ export class MainComponent implements AfterContentInit, OnDestroy {
 
     // Démarrage avec des signaux:
     if (!this.isRobotMapStarted) {
-      this.robotAspiratorDataService.startRobotsMapInterval(this.maisonView);
+      this.robotAspiratorDataService.startRobotsMapInterval(this.maisonViewModel);
       this.isRobotMapStarted = true;
     } else {
       console.log("(re)démarrage impossible");

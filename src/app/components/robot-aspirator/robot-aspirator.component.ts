@@ -19,9 +19,15 @@ export class RobotAspiratorComponent implements OnChanges {
   private messageService: MessageService = inject(MessageService);
 
   // TODO: refacto - faire passer datas à partir du service, et plus du parent:
-  @Input() robotAspiroSizeInput: number;
-  @Input() robotAspiroName: string;
-  @Input() aspiroCoordinateInput: Position;
+  @Input() robotNameInput!: string;
+
+  public aspiroViewSize = 50;
+
+  // Signal en LECTURE SEULE depuis le service
+  public robotViewModel: Signal<RobotAspiratorModel | undefined>;
+
+  // attendre l'initialisation des robots avant de déclencher effect()
+  private areRobotsInitialized = signal(false);
 
   constructor() {
     console.log("RobotAspiratorComponent - constructor()");
