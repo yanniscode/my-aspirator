@@ -37,7 +37,7 @@ export class MainComponent implements AfterContentInit, OnDestroy {
 
   public maisonView: MaisonModel;
 
-  public robotViewTab: RobotAspiratorModel[];
+  public robotDataTab: RobotAspiratorModel[];
 
   // Map pour stocker les signaux computed de chaque robot à afficher
   private robotDataViewSignals = new Map<string, Signal<RobotAspiratorModel | undefined>>();
@@ -70,7 +70,7 @@ export class MainComponent implements AfterContentInit, OnDestroy {
 
     // initialisation des params de la maison et des robots
     this.maisonView = { ...this.maisonService.getMaisonParams() };
-    this.robotViewTab = [...this.robotAspiratorDataService.getRobotsParams()];
+    this.robotDataTab = [...this.robotAspiratorDataService.getRobotsParams()];
 
     this.isRobotMapStarted = false;
 
@@ -93,19 +93,17 @@ export class MainComponent implements AfterContentInit, OnDestroy {
       if (!this.maisonChildComponent) return;
       this.maisonChildComponent.construireMaison(this.maisonView);
 
-      // this.maisonChildComponent.onImageReady(this.imgElement);
+      this.initRobotsDatas();
+      this.areRobotsInitialized.set(true);
     });
-    this.initRobotsDatas();
-
-    this.areRobotsInitialized.set(true);
   }
 
   ngOnDestroy(): void {
     console.log('MainComponent - ngOnDestroy()');
-    this.robotViewTab.forEach(robotModel => {
+    this.robotDataTab.forEach(robotModel => {
       this.robotAspiratorDataService.unregisterRobotFromList(robotModel.robotName);
     });
-    console.log(`Nettoyage du composant Maison - ${this.robotViewTab.length} robots`);
+    console.log(`Nettoyage du composant Maison - ${this.robotDataTab.length} robots`);
 
     this.robotDataViewSignals.clear();
 
@@ -150,11 +148,12 @@ export class MainComponent implements AfterContentInit, OnDestroy {
   private initRobotsDatas(): void {
     console.log("MainComponent - initRobotsDatas()");
 
-    this.robotViewTab.forEach((robotModel: RobotAspiratorModel) => {
+    this.robotDataTab.forEach((robotModel: RobotAspiratorModel) => {
       // 1/ ajout du robot à la liste:
       this.robotAspiratorDataService.registerRobotInList(robotModel);
       // 2/ créer un signal computed pour chaque robot
       this.createRobotSignal(robotModel.robotName);
+
       // 3/ Ajout de la base du robot dans la Maison
       const robotBasePosition: Position = { ...robotModel.basePosition };
       this.maisonView = { ...this.maisonService.updateMaisonConfig(this.maisonView, robotBasePosition) };

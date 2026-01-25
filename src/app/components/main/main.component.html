@@ -13,7 +13,7 @@
 
         <app-maison></app-maison>
 
-        @for (robot of robotViewTab; track robot) {
+        @for (robot of robotDataTab; track robot) {
         <div>
             @if (getRobotDataView(robot.robotName)(); as robot) {
             <app-robot-aspirator [robotAspiroSizeInput]="aspiroViewSize" [robotAspiroName]="robot.robotName"
@@ -42,9 +42,9 @@
 </div>
 
 <div class="maison-container"><!-- TODO: utiliser classe maison-container ?? -->
-    <h2>Main Test Signaux avec {{ robotViewTab.length }} robots</h2>
+    <h2>Main Test Signaux avec {{ robotDataTab.length }} robots</h2>
 
-    @for (robot of robotViewTab; track robot) {
+    @for (robot of robotDataTab; track robot) {
     <div class="robot-card">
         @if (getRobotDataView(robot.robotName)(); as robot) {
         <h3>🤖 {{ robot.robotName }}</h3>
