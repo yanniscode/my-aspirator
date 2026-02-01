@@ -14,6 +14,9 @@ export class MaisonService {
 
   constructor() { }
 
+  // instanciation de la maison:
+  private maisonModel = new MaisonModel();
+
   public getMaisonParams(): MaisonModel {
     console.log("MaisonComponent - getMaisonParams()");
 
@@ -28,29 +31,26 @@ export class MaisonService {
     ];
     const isNettoyageComplete = false;
 
-    // instanciation de la maison:
-    let maisonModel = new MaisonModel();
-
-    maisonModel.largeurMaison = largeurMaison;
-    maisonModel.hauteurMaison = hauteurMaison;
-    maisonModel.obstacles = obstacles;
-    maisonModel.isNettoyageComplete = isNettoyageComplete;
+    this.maisonModel.largeurMaison = largeurMaison;
+    this.maisonModel.hauteurMaison = hauteurMaison;
+    this.maisonModel.obstacles = obstacles;
+    this.maisonModel.isNettoyageComplete = isNettoyageComplete;
 
     // appel de la méthode privée creerMaison()
-    return maisonModel = { ...this.creerMaison(maisonModel) };
+    return this.maisonModel = { ...this.creerMaison() };
   }
 
   // TODO: pour version Signaux: utiliser des signaux ici ?
-  public updateMaisonConfig(maisonModel: MaisonModel, robotBasePosition: Position): MaisonModel {
+  public updateMaisonConfig(robotBasePosition: Position): MaisonModel {
     console.log("MaisonComponent - updateMaisonConfig()");
 
     // On ajoute la base de chaque robot:
-    maisonModel.maison[robotBasePosition.y][robotBasePosition.x].cellStack[0].type = 'B';
-    return maisonModel;
+    this.maisonModel.maison[robotBasePosition.y][robotBasePosition.x].cellStack[0].type = 'B';
+    return this.maisonModel;
   }
 
   // TODO: pour version Signaux: utiliser des signaux ici ?
-  public updateMaisonCellules(maisonModel: MaisonModel, lastPosition: Position): void {
+  public updateMaisonCellules(lastPosition: Position): void {
     console.log("MaisonComponent - updateMaisonCellules()");
 
     console.log("lastPosition.x = " + lastPosition.x);
@@ -61,7 +61,7 @@ export class MaisonService {
       return;
     }
     // on ne veut pas que la case de la base soit modifiée:
-    const lastVisitedCell: CellElement = maisonModel.maison[lastPosition.y][lastPosition.x].cellStack[0];
+    const lastVisitedCell: CellElement = this.maisonModel.maison[lastPosition.y][lastPosition.x].cellStack[0];
 
     if (lastVisitedCell.type !== 'B') {
       lastVisitedCell.visited = true;
@@ -69,17 +69,17 @@ export class MaisonService {
     }
   }
 
-  private creerMaison(maisonModel: MaisonModel): MaisonModel {
+  private creerMaison(): MaisonModel {
     console.log("MaisonComponent - creerMaison()");
 
-    for (let y = 0; y < maisonModel.hauteurMaison; y++) {
+    for (let y = 0; y < this.maisonModel.hauteurMaison; y++) {
       // x = la largeur de la maison
       // y = la hauteur de la maison
 
-      maisonModel.maison[y] = [];
+      this.maisonModel.maison[y] = [];
 
       // Création de la maison comme ensemble de blocs d'éléments vides 'O'
-      for (let x = 0; x < maisonModel.largeurMaison; x++) {
+      for (let x = 0; x < this.maisonModel.largeurMaison; x++) {
         let cellElement: CellElement = {
           position: { x, y },
           type: 'O',
@@ -87,7 +87,7 @@ export class MaisonService {
         };
         let cellStack: CellElement[] = [];
         cellStack.push(cellElement);
-        maisonModel.maison[y][x] = {
+        this.maisonModel.maison[y][x] = {
           cellStack: cellStack
         }
       }
@@ -95,13 +95,13 @@ export class MaisonService {
 
     // Ajouter les obstacles 'X' à la maison
     // TODO: pour version Signaux: utiliser des signaux ici ?
-    maisonModel.obstacles.forEach(obs => {
-      if (obs.x >= 0 && obs.x < maisonModel.largeurMaison && obs.y >= 0 && obs.y < maisonModel.hauteurMaison) {
-        maisonModel.maison[obs.y][obs.x].cellStack[0].type = 'X';
+    this.maisonModel.obstacles.forEach(obs => {
+      if (obs.x >= 0 && obs.x < this.maisonModel.largeurMaison && obs.y >= 0 && obs.y < this.maisonModel.hauteurMaison) {
+        this.maisonModel.maison[obs.y][obs.x].cellStack[0].type = 'X';
       }
     });
 
-    return maisonModel;
+    return this.maisonModel;
   }
 
   private log(message: string) {

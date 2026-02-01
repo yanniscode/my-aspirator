@@ -41,6 +41,8 @@ export class MainComponent implements AfterContentInit, OnDestroy {
 
   public robotNames = signal<string[]>([]);
 
+  // TODO ? transformer en signal animationId
+  //   isAnimating = signal(false);
   private isRobotMapStarted: boolean = false;
 
   // variables de template binding (@input vers le composant robot):
@@ -80,7 +82,7 @@ export class MainComponent implements AfterContentInit, OnDestroy {
     console.log("MainComponent - pause");
 
     if (this.isRobotMapStarted) {
-      this.robotAspiratorDataService.onRobotPause();
+      this.robotAspiratorDataService.onRobotsPause();
       this.isRobotMapStarted = false;
     } else {
       console.log("robot(s) actuellement en pause");
@@ -111,7 +113,7 @@ export class MainComponent implements AfterContentInit, OnDestroy {
 
       // 3/ Ajout de la base du robot dans la Maison
       const robotBasePosition: Position = { ...robotViewModel.basePosition };
-      this.maisonViewModel = { ...this.maisonService.updateMaisonConfig(this.maisonViewModel, robotBasePosition) };
+      this.maisonViewModel = { ...this.maisonService.updateMaisonConfig(robotBasePosition) };
     });
   }
 

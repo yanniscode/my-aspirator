@@ -1,4 +1,4 @@
-import { AfterContentInit, ChangeDetectionStrategy, Component, inject, Input, OnInit, signal, Signal, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, Input, OnInit, signal, Signal, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { MessageService } from '../../services/message-service/message.service';
@@ -15,7 +15,7 @@ import { RobotAspiratorDataService } from '../../services/robot-aspirator-data-s
   changeDetection: ChangeDetectionStrategy.Default,
   encapsulation: ViewEncapsulation.None,
 })
-export class RobotAspiratorComponent implements AfterContentInit, OnInit {
+export class RobotAspiratorComponent implements OnInit {
 
   private messageService: MessageService = inject(MessageService);
   private robotAspiratorDataService = inject(RobotAspiratorDataService);
@@ -28,21 +28,15 @@ export class RobotAspiratorComponent implements AfterContentInit, OnInit {
   // Signal en LECTURE SEULE depuis le service
   public robotViewModel: Signal<RobotAspiratorModel | undefined>;
 
-  // attendre l'initialisation des robots avant de déclencher effect()
-  private areRobotsInitialized = signal(false);
-
   constructor() {
     console.log("RobotAspiratorComponent - constructor()");
-
+    // Initialisation temporaire
     this.robotViewModel = signal(undefined);
   }
   ngOnInit(): void {
     // Récupère le signal en lecture seule depuis le service
+    // Le signal se mettra à jour automatiquement quand le service modifie les données
     this.robotViewModel = this.robotAspiratorDataService.getRobotSignal(this.robotNameInput);
-  }
-
-  ngAfterContentInit(): void {
-    this.areRobotsInitialized.set(true);
   }
 
   private log(message: string) {

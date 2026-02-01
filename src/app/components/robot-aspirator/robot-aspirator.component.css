@@ -3,9 +3,9 @@
     pointer-events: none;
     /* cf: padding pour à la maison: */
     padding-top: 176px;
-    /* TODO: REMPLACER par gestion de l'animation avec drawEverything() + px précis dans le html */
-    /* transition: all 0.30s linear; */
-
+    /* TODO ? REMPLACER par gestion de l'animation avec drawEverything() + px précis dans le html */
+    /* Animation fluide sur 1 seconde = intervalle de l'animation */
+    transition: all 1s linear;
     text-align: center !important;
 }
 
