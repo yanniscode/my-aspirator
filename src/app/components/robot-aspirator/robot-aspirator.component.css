@@ -4,8 +4,8 @@
     /* cf: padding pour à la maison: */
     padding-top: 176px;
     /* TODO ? REMPLACER par gestion de l'animation avec drawEverything() + px précis dans le html */
-    /* Animation fluide sur 1 seconde = intervalle de l'animation */
-    transition: all 1s linear;
+    /* Animation fluide sur 600ms = intervalle de l'animation */
+    transition: all 0.6s linear;
     text-align: center !important;
 }
 
