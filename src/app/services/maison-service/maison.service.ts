@@ -4,6 +4,7 @@ import { MaisonModel } from '../../classes/models/maison-model';
 import { CellElement } from '../../classes/models/cellElement';
 import { Position } from '../../classes/models/position';
 import { MessageService } from '../message-service/message.service';
+import { Cell } from '../../classes/models/cell';
 
 @Injectable({
   providedIn: 'root'
@@ -57,15 +58,17 @@ export class MaisonService {
     console.log("lastPosition.y = " + lastPosition.y);
 
     // Vérification des null et undefined
-    if (lastPosition.x == null || lastPosition.y == null) {
-      return;
-    }
-    // on ne veut pas que la case de la base soit modifiée:
-    const lastVisitedCell: CellElement = this.maisonModel.maison[lastPosition.y][lastPosition.x].cellStack[0];
+    if (!lastPosition) return;
+    const lastVisitedCell: Cell = !this.maisonModel?.maison[lastPosition.y] ? new Cell : this.maisonModel?.maison[lastPosition.y][lastPosition.x] ?? new Cell();
+    if (!lastVisitedCell) return;
 
-    if (lastVisitedCell.type !== 'B') {
-      lastVisitedCell.visited = true;
-      lastVisitedCell.type = '_';
+    // on ne veut pas que la case de la base soit modifiée:
+    const lastVisitedCellElement: CellElement = lastVisitedCell.cellStack[0];
+    if (!lastVisitedCellElement) return;
+
+    if (lastVisitedCellElement.type !== 'B') {
+      lastVisitedCellElement.visited = true;
+      lastVisitedCellElement.type = '_';
     }
   }
 
