@@ -546,7 +546,7 @@ export class RobotAspiratorDataService implements OnDestroy {
   //   }
   // }
 
-  // TODO: juste pour tester rapido
+  // TODO: à supprimer - juste pour tester rapido
   /**
    * Votre logique métier pour calculer le nouveau modèle
    */
@@ -726,7 +726,7 @@ export class RobotAspiratorDataService implements OnDestroy {
 
     // else
     // const batteryLimitExceeded: boolean = this.robotDoitRentrerALaBase(robotModelInput.batterie, robotModelInput.position, robotModelInput.basePosition, robotModelInput.consommationParMouvement);
-    // if (this.toutEstNettoye() || batteryLimitExceeded) {
+    // if (this.maisonService.toutEstNettoye() || batteryLimitExceeded) {
     //   console.log("nettoyer() - Tout est nettoyer, ou bien batterie insuffisante pour aller plus loin");
     //   robotModelInput = this.retournerALaBase(this.maisonModel, robotModelInput);
     //   return robotModelInput;
@@ -757,7 +757,7 @@ export class RobotAspiratorDataService implements OnDestroy {
         return nextPosition;
       }
       // ** Dans cette version de l'algo: on prend la première position du chemin à chaque tour de boucle
-      if (this.toutEstNettoye() || this.robotDoitRentrerALaBase(robotModelInput.batterie, nextPosition, robotModelInput.basePosition, robotModelInput.consommationParMouvement)) {
+      if (this.maisonService.toutEstNettoye() || this.robotDoitRentrerALaBase(robotModelInput.batterie, nextPosition, robotModelInput.basePosition, robotModelInput.consommationParMouvement)) {
         console.log("Batterie insuffisante pour aller plus loin");
         nextPosition = this.retournerALaBase(this.maisonModel, robotModelInput);
         return nextPosition;
@@ -816,7 +816,6 @@ export class RobotAspiratorDataService implements OnDestroy {
     // console.log(`Robot ${robot.robotName} va se déplacer de (${robot.lastPosition.x}, ${robot.lastPosition.y}) à (${nextPosition.x}, ${nextPosition.y}) - Batterie: (${robot.batterie.toFixed(1)})%`);
   }
 
-  // TODO: refacto dans service algo ?
   private robotDoitRentrerALaBase(batterie: number, position: Position, basePosition: Position, consommationParMouvement: number): boolean {
     console.log("RobotAspiratorDataService - robotMustStop()");
 
@@ -824,7 +823,6 @@ export class RobotAspiratorDataService implements OnDestroy {
       true : false;
   }
 
-  // TODO: refacto dans service algo ?
   // Estimer l'énergie nécessaire au robot pour retourner à la base
   private energieNecessairePourRetour(position: Position, basePosition: Position, consommationParMouvement: number): number {
     console.log("RobotAspiratorDataService - energieNecessairePourRetour()");
@@ -835,22 +833,6 @@ export class RobotAspiratorDataService implements OnDestroy {
 
     // Ajouter une marge de sécurité si on veut
     return (distance * consommationParMouvement) * 1;
-  }
-
-  // TODO: refacto dans service algo ?
-  // Vérifier si toutes les cellules accessibles ont été visitées
-  private toutEstNettoye(): boolean {
-    console.log("RobotAspiratorDataService - toutEstNettoye()");
-
-    for (let i = 0; i < this.maisonModel.maison.length; i++) {
-      for (let j = 0; j < this.maisonModel.maison[i].length; j++) {
-        const cell: Cell = this.maisonModel.maison[i][j];
-        if (cell.cellStack[0].type !== 'X' && cell.cellStack[0].type !== 'B' && !cell.cellStack[0].visited) {
-          return false;
-        }
-      }
-    }
-    return true;
   }
 
   // TODO: revoir CSS de la maison si on affiche les logs dans l'ihm

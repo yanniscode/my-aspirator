@@ -43,7 +43,7 @@ export class MaisonService {
 
   // TODO: pour version Signaux: utiliser des signaux ici ?
   public updateMaisonConfig(robotBasePosition: Position): MaisonModel {
-    console.log("MaisonComponent - updateMaisonConfig()");
+    console.log("MaisonService - updateMaisonConfig()");
 
     // On ajoute la base de chaque robot:
     this.maisonModel.maison[robotBasePosition.y][robotBasePosition.x].cellStack[0].type = 'B';
@@ -52,7 +52,7 @@ export class MaisonService {
 
   // TODO: pour version Signaux: utiliser des signaux ici ?
   public updateMaisonCellules(lastPosition: Position): void {
-    console.log("MaisonComponent - updateMaisonCellules()");
+    console.log("MaisonService - updateMaisonCellules()");
 
     console.log("lastPosition.x = " + lastPosition.x);
     console.log("lastPosition.y = " + lastPosition.y);
@@ -73,7 +73,7 @@ export class MaisonService {
   }
 
   private creerMaison(): MaisonModel {
-    console.log("MaisonComponent - creerMaison()");
+    console.log("MaisonService - creerMaison()");
 
     for (let y = 0; y < this.maisonModel.hauteurMaison; y++) {
       // x = la largeur de la maison
@@ -105,6 +105,21 @@ export class MaisonService {
     });
 
     return this.maisonModel;
+  }
+
+  // Vérifier si toutes les cellules accessibles ont été visitées
+  public toutEstNettoye(): boolean {
+    console.log("MaisonService - toutEstNettoye()");
+
+    for (let i = 0; i < this.maisonModel.maison.length; i++) {
+      for (let j = 0; j < this.maisonModel.maison[i].length; j++) {
+        const cell: Cell = this.maisonModel.maison[i][j];
+        if (cell.cellStack[0].type !== 'X' && cell.cellStack[0].type !== 'B' && !cell.cellStack[0].visited) {
+          return false;
+        }
+      }
+    }
+    return true;
   }
 
   private log(message: string) {
