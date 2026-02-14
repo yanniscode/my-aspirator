@@ -514,7 +514,6 @@ export class RobotAspiratorDataService implements OnDestroy {
 
     if (!positionRetourALaBase) {
       console.log("Impossible de trouver un chemin vers la base de charge!");
-      // this.stopMovingRobot(robotModelInput.robotName, robotModelInput.isRobotReturningToBase);
       return new Position();
     }
 
