@@ -20,17 +20,16 @@ export class RobotAspiratorDataService implements OnDestroy {
   // TODO: pourquoi readonly si WritableSignal ici ?? c'est la map qui est en lecture seule, pas les éléments ??
   private readonly robotSignals = new Map<string, WritableSignal<RobotAspiratorModel>>();
 
-  private robotCount = 0; // TODO: utiliser pour la mise en pause globale, si plus de robot actif
-
   // attendre l'initialisation des robots avant de déclencher effect()
   // private areRobotsInitialized = signal(false);
 
   // variables pour la vue: animation des robots
-  private intervalId?: ReturnType<typeof setInterval>;
-  private counter = signal(0); // compteur de frames > TODO ?? à utiliser ?
-  private mainAnimationId?: number;
   private animationId?: number;
   private isRunning = false;
+
+  // nouvelle version :
+  // Signal public pour le progress (0 à 1)
+  public animationProgress = signal(0);
 
   // Configuration de l'animation
   private readonly STEP_DURATION = 600; // Durée d'un déplacement complet (ms)
@@ -51,21 +50,7 @@ export class RobotAspiratorDataService implements OnDestroy {
   ngOnDestroy(): void {
     console.log("RobotAspiratorDataService - ngOnDestroy()");
 
-    // TODO ?? à utiliser ?
-    // if (this.mainAnimationId) {
-    //   cancelAnimationFrame(this.mainAnimationId);
-    //   this.mainAnimationId = undefined;
-    // }
-    // if (this.animationId) {
-    //   cancelAnimationFrame(this.animationId);
-    //   this.animationId = undefined;
-    // }
-
-    if (this.intervalId) {
-      clearInterval(this.intervalId);
-      this.intervalId = undefined;
-    }
-    this.robotSignals.clear();
+    this.stopAnimation();
 
     // TODO ?? à utiliser ?
     // nettoyage de l'animation pour startDrawCanvasTimer() - V1:
@@ -89,20 +74,8 @@ export class RobotAspiratorDataService implements OnDestroy {
       }
     });
 
-    // TODO ?? à utiliser ?
-    // if (this.mainAnimationId) {
-    //   cancelAnimationFrame(this.mainAnimationId);
-    //   this.mainAnimationId = undefined;
-    // }
-    // if (this.animationId) {
-    //   cancelAnimationFrame(this.animationId);
-    //   this.animationId = undefined;
-    // }
+    this.stopAnimation();
 
-    if (this.intervalId) {
-      clearInterval(this.intervalId);
-      this.intervalId = undefined;
-    }
     console.log('Service de robots mis en pause');
   }
 
@@ -210,9 +183,11 @@ export class RobotAspiratorDataService implements OnDestroy {
 
     console.log(robot4Model);
 
-    // pour test 1 ou plusieurs robots
-    return [robot1Model, robot2Model, robot3Model, robot4Model];
-//     return [robot1Model];
+    // pour test de 1 ou plusieurs robots
+    const robotModelTab: RobotAspiratorModel[] = [{ ...robot1Model }, { ...robot2Model }, { ...robot3Model }, { ...robot4Model }];
+    // const robotModelTab = [{ ...robot1Model }];
+
+    return robotModelTab;
   }
 
   /**
@@ -311,7 +286,7 @@ export class RobotAspiratorDataService implements OnDestroy {
       ...robot,
       isRobotStarted: false,
       lastPosition: robot.position,
-      position: robot.position,
+      startCoordinate: robot.targetCoordinate,
       isRobotReturningToBase: isRobotReturningToBase
     }));
 
@@ -329,11 +304,6 @@ export class RobotAspiratorDataService implements OnDestroy {
 
   //   this.performModelUpdate(robotModel);
   // }
-
-
-  // nouvelle version :
-  // ✅ Signal public pour le progress (0 à 1)
-  public animationProgress = signal(0);
 
   public startRobotsMapInterval(maisonModel: MaisonModel): void {
 
@@ -373,71 +343,6 @@ export class RobotAspiratorDataService implements OnDestroy {
     this.animationId = requestAnimationFrame(animate);
   }
 
-  // // V1
-  // // méthode principale de démarrage de l'animation synchronisée des robots
-  // public startRobotsMapInterval(maisonModel: MaisonModel): void {
-  //   // if (this.isRunning) {
-  //   //   console.warn('Animation déjà en cours');
-  //   //   return;
-  //   // }
-  //   // this.isRunning = true;
-
-  //   this.maisonModel = maisonModel;
-
-  //   // const animate = (currentTime: number) => {
-  //   // if (!this.isRunning) return;
-
-  //   this.intervalId = setInterval(() => {
-  //     this.calculateNewDirectionsForAllRobots();
-  //     this.updateAllRobotsSmooth();
-  //     this.updateMaisonVisitedCells();
-  //   }, 600); // 600ms modifiable avec le CSS du robot (transition)
-
-  //   // this.animationId = requestAnimationFrame(animate);
-  //   // };
-
-  //   // this.animationId = requestAnimationFrame(animate);
-  //   // animate();
-  //   console.log('Animation démarrée');
-  // }
-
-  // private updateAllRobotsSmooth(deltaTime: number): void {
-  //   const progress = Math.min(deltaTime / this.STEP_DURATION, 1); // 0 à 1
-
-  //   this.robotSignals.forEach((robotSignal: WritableSignal<RobotAspiratorModel>) => {
-  //     const robotModel: RobotAspiratorModel = robotSignal();
-
-  //     if (!robotModel.isRobotStarted) return;
-
-  //     // Interpolation linéaire entre position de départ et cible
-  //     const newX = robotModel.lastPosition.x + (robotModel.position.x - robotModel.lastPosition.x) * progress;
-  //     const newY = robotModel.lastPosition.y + (robotModel.position.y - robotModel.lastPosition.y) * progress;
-
-  //     robotSignal.update(robot => ({
-  //       ...robot,
-  //       coordinate: { x: newX, y: newY }
-  //     }));
-
-  //     // coordinate: utilisation de variables en px pour la vue, différente de AspiroX, qui est un index dans le tableau (maison)
-  //     robotSignal.update(robot => ({
-  //       ...robot,
-  //       isRobotReturningToBase: robot.isRobotReturningToBase,
-  //       startCoordinate: {
-  //         x: robot.startCoordinate.x + nextDirection.x * this.MAISON_CELL_WIDTH,
-  //         y: robot.startCoordinate.y + nextDirection.y * this.MAISON_CELL_WIDTH
-  //       },
-  //       lastPosition: { ...robot.lastPosition },
-  //       position: { ...robot.position },
-  //       isRobotStarted: robot.isRobotStarted,
-  //       consommationParMouvement: robot.consommationParMouvement,
-  //       batterie: robot.batterie - robot.consommationParMouvement
-  //     }));
-
-  //     const updatedRobot = robotSignal();
-  //     console.log(`Robot ${updatedRobot.robotName} déplacé sur le canvas à (${updatedRobot.startCoordinate.x}, ${updatedRobot.startCoordinate.y})`);
-  //   });
-  // }
-
   /**
  * Calcule de nouvelles directions toutes les 1000ms
  */
@@ -447,6 +352,7 @@ export class RobotAspiratorDataService implements OnDestroy {
     // Parcourt tous les robots
     this.robotSignals.forEach((robotSignal: WritableSignal<RobotAspiratorModel>, robotName) => {
       const robot = robotSignal();
+
       // if (!robot.isRobotStarted) return;
 
       // IMPORTANT:
@@ -468,21 +374,6 @@ export class RobotAspiratorDataService implements OnDestroy {
         y: newPosition.y * this.PIXELS_PER_STEP
       };
 
-      // // TODO: revoir ici:
-      // // ✅ La targetPosition précédente devient la startPosition
-      // const newStartCoordinate = { ...robot.targetCoordinate };
-
-
-      // // TODO: angle = pour test : Calculer une nouvelle direction aléatoire
-      // const distance = this.PIXELS_PER_STEP;
-      // const newTargetX = robot.startCoordinate.x + nextDirection.x * distance;
-      // const newTargetY = robot.startCoordinate.y + nextDirection.y * distance;
-      // // Contraintes du canvas (500x400 avec robot de 50px)
-      // const newTargetCoordinate = {
-      //   x: Math.max(0, Math.min(500, newTargetX)),
-      //   y: Math.max(0, Math.min(400, newTargetY))
-      // };
-
       robotSignal.update(robot => ({
         ...robot,
         isRobotReturningToBase: robot.isRobotReturningToBase,
@@ -495,33 +386,6 @@ export class RobotAspiratorDataService implements OnDestroy {
       }));
 
       console.log(`${robotName}: tableau [${newPosition.x},${newPosition.y}] → pixels (${newTargetCoordinate.x}, ${newTargetCoordinate.y})`);
-
-      // robotSignal.update(robot => ({
-      //   ...robot,
-      //   startCoordinate: newStartCoordinate,
-      //   targetCoordinate: newTargetCoordinate
-      // }));
-
-      // console.log(`${robotName}: (${newStartCoordinate.x.toFixed(0)}, ${newStartCoordinate.y.toFixed(0)}) → (${newTargetCoordinate.x.toFixed(0)}, ${newTargetCoordinate.y.toFixed(0)})`);
-      // ******************
-
-      // ancienne version ok:
-      // // met à jour chaque robot
-      // robotSignal.update(currentRobot => {
-
-      //   const robotStarted: RobotAspiratorModel = {
-      //     ...currentRobot,
-      //     isRobotStarted: true
-      //   }
-
-      //   // renvoyer les données du robot à sa nouvelle position du robot
-      //   const robotWithNewPosition: RobotAspiratorModel | undefined = this.calculateRobotNextPosition(robotStarted);
-
-      //   if (robotWithNewPosition) {
-      //     return robotWithNewPosition;
-      //   }
-      //   return robotStarted;
-      // });
     });
   }
 
@@ -606,83 +470,15 @@ export class RobotAspiratorDataService implements OnDestroy {
     return nextPosition;
   }
 
-  private getRobotDirection(lastPosition: Position, nextPosition: Position): Position {
-    console.log("RobotAspiratorDataService - setAspiroDirection()");
-    // Directions du robot (Attention: c'est un index dans le tableau de la maison ici, pas la position en px)
-    const aspiroDirX = (nextPosition.x - lastPosition.x) === 1 ? 1 :
-      (nextPosition.x - lastPosition.x) === -1 ? -1 : 0;
-    const aspiroDirY = (nextPosition.y - lastPosition.y) === 1 ? 1 :
-      (nextPosition.y - lastPosition.y) === -1 ? -1 : 0;
-    return new Position(aspiroDirX, aspiroDirY);
-  }
-
-  // V2: test animation précise mais plus lente (risque de décallage du robot avec les positions visitées)
-  // -> pb respect algo > ne plus utiliser
-  // private startDrawCanvasTimer(robotModel: RobotAspiratorModel | undefined): void {
-  //   //   private startDrawCanvasTimer(robotName: string, robotCoordinate: Position): void {
-  //   console.log("RobotAspiratorDataService - startDrawCanvasTimer()");
-
-  //   if (this.isRunning) {
-  //     console.warn('Animation déjà en cours');
-  //     return;
-  //   }
-
-  //   if (!robotModel) return;
-
-  //   console.log('Timer started');
-  //   console.log('requestAnimationFrame existe ?', typeof requestAnimationFrame); // ✅ Devrait afficher "function"
-
-  //   this.isRunning = true;
-  //   // const startTime = performance.now();
-  //   let count = 0;
-
-  //   const animate = (currentTime: number) => {
-  //     if (!this.isRunning) return; // Vérifier si l'animation doit continuer
-
-  //     // TODO: UTILISER elapsed ??
-  //     // const elapsed = currentTime - startTime;
-  //     // const frame = Math.floor(elapsed);
-  //     count++;
-  //     // console.log(`Frame: ${frame}, Iteration: ${count}`);
-
-  //     if (count <= 50) { // attention à setInterval() de 1000 au moins sinon retard du robot sur l'algo de déplacement
-  //       this.counter.set(count); // ✅ Utiliser count au lieu de frame pour régularité
-
-  //       // utilisation de variables en px pour la vue, différente de AspiroX, qui est un index dans le tableau (maison)
-  //       robotModel.startCoordinate.x += this.aspiroDirX;
-  //       robotModel.startCoordinate.y += this.aspiroDirY;
-
-  //       // mise à jour du signal du robot à ses nouvelles coordonnées (en px)
-  //       // TODO: utiliser ici ?
-  //       this.performModelUpdateTest(robotModel);
-  //       // this.moveRobotView(robotModel.robotName, robotModel.startCoordinate);
-
-  //       this.animationId = requestAnimationFrame(animate); // ✅ Stocker l'id de l'animation
-  //     } else {
-  //       console.log('Animation terminée');
-  //       this.stopAnimation(); // ✅ Utilise stopAnimation au lieu de ngOnDestroy
-  //     }
-  //   };
-
-  //   this.animationId = requestAnimationFrame(animate);
-  // }
-
-  // V1: startDrawCanvasTimer > ne plus utiliser
-  // private startDrawCanvasTimer(): void {
-  //   console.log("RobotAspiratorDataService - startDrawCanvasTimer()");
-
-  //   this.counter.set(0);
-
-  //   this.drawCanvasInterval = interval(1)
-  //     .pipe(
-  //       take(50), // Prend exactement 50 valeurs (0 à 49)
-  //       takeUntil(this.destroy$)
-  //     )
-  //     .subscribe(value => {
-  //       this.counter.set(value);
-  //       console.log(this.counter());
-  //       this.drawCanvasElements();
-  //     });
+  // TODO:SUPPRIMER ??
+  // private getRobotDirection(lastPosition: Position, nextPosition: Position): Position {
+  //   console.log("RobotAspiratorDataService - setAspiroDirection()");
+  //   // Directions du robot (Attention: c'est un index dans le tableau de la maison ici, pas la position en px)
+  //   const aspiroDirX = (nextPosition.x - lastPosition.x) === 1 ? 1 :
+  //     (nextPosition.x - lastPosition.x) === -1 ? -1 : 0;
+  //   const aspiroDirY = (nextPosition.y - lastPosition.y) === 1 ? 1 :
+  //     (nextPosition.y - lastPosition.y) === -1 ? -1 : 0;
+  //   return new Position(aspiroDirX, aspiroDirY);
   // }
 
   // TODO: utiliser ??
@@ -693,6 +489,7 @@ export class RobotAspiratorDataService implements OnDestroy {
       cancelAnimationFrame(this.animationId);
       this.animationId = undefined;
     }
+    this.robotSignals.clear();
   }
 
   // ************ méthodes propres au robot Aspirateur:
@@ -817,7 +614,7 @@ export class RobotAspiratorDataService implements OnDestroy {
   }
 
   private robotDoitRentrerALaBase(batterie: number, position: Position, basePosition: Position, consommationParMouvement: number): boolean {
-    console.log("RobotAspiratorDataService - robotMustStop()");
+    console.log("RobotAspiratorDataService - robotDoitRentrerALaBase()");
 
     return (position && batterie <= this.energieNecessairePourRetour(position, basePosition, consommationParMouvement)) ?
       true : false;
