@@ -398,10 +398,11 @@ export class RobotAspiratorDataService implements OnDestroy {
   private calculateRobotNextPosition(robot: RobotAspiratorModel | undefined): Position {
     console.log("RobotAspiratorDataService - calculateRobotNextPosition()");
 
-    let nextPosition: Position = new Position();
+    if (!robot) return new Position();
 
-    if (!robot?.position) return nextPosition;
     if (!robot.isRobotStarted) return robot.position;
+
+    let nextPosition: Position = robot.position;
 
     if (robot.batterie === 0) {
       if (robot!.position.x === robot!.basePosition.x && robot!.position.y === robot!.basePosition.y
@@ -425,12 +426,11 @@ export class RobotAspiratorDataService implements OnDestroy {
         console.log(`### updateAllRobots() - Maison entièrement nettoyée ou bien: limite de batterie atteinte : le robot doit rentrer à la base - Batterie: ${robot.batterie}%`);
         nextPosition = this.retournerALaBase(this.maisonModel, robot);
         console.log(`### Nouvelle position de retour à la base trouvée pour le Robot ${robot.robotName} : x = ${nextPosition.x}, y = ${nextPosition.y} - Batterie: ${robot.batterie}%`);
-        return nextPosition;
+      } else {
+        /** Dans cette version de l'algo: on prend la première position du chemin à chaque tour de boucle  */
+        nextPosition = this.nettoyer(this.maisonModel, robot);
+        console.log(`### Nouvelle position de nettoyage trouvée pour le Robot ${robot.robotName} : x = ${nextPosition.x}, y = ${nextPosition.y} - Batterie: ${robot.batterie}%`);
       }
-
-      /** Dans cette version de l'algo: on prend la première position du chemin à chaque tour de boucle  */
-      nextPosition = this.nettoyer(this.maisonModel, robot);
-      console.log(`### Nouvelle position de nettoyage trouvée pour le Robot ${robot.robotName} : x = ${nextPosition.x}, y = ${nextPosition.y} - Batterie: ${robot.batterie}%`);
     }
 
     return nextPosition;
@@ -467,7 +467,7 @@ export class RobotAspiratorDataService implements OnDestroy {
 
       if (!positionRetourALaBase) {
         console.log("Impossible de trouver un chemin vers la destination");
-        return new Position();
+        return robotModelInput.position;
       }
 
       return positionRetourALaBase;
@@ -481,7 +481,7 @@ export class RobotAspiratorDataService implements OnDestroy {
     console.log("nextPositionNettoyage :" + nextPositionNettoyage);
     if (!nextPositionNettoyage) {
       console.log("Impossible de trouver un chemin vers la destination");
-      return new Position();
+      return robotModelInput.position;
     }
 
     return nextPositionNettoyage;
@@ -500,7 +500,7 @@ export class RobotAspiratorDataService implements OnDestroy {
 
     if (!positionRetourALaBase) {
       console.log("Impossible de trouver un chemin vers la base de charge!");
-      return new Position();
+      return robotModelInput.position;
     }
 
     return positionRetourALaBase;
