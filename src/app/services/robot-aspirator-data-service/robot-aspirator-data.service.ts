@@ -3,7 +3,6 @@ import { RobotAspiratorModel } from '../../classes/models/robot-aspirator-model'
 import { MaisonModel } from '../../classes/models/maison-model';
 import { CheminOptimalService } from '../algo-services/chemin-optimal.service';
 import { Position } from '../../classes/models/position';
-import { Cell } from '../../classes/models/cell';
 import { MessageService } from '../message-service/message.service';
 import { MaisonService } from '../maison-service/maison.service';
 
@@ -19,9 +18,6 @@ export class RobotAspiratorDataService implements OnDestroy {
   // Map en lecture seule pour stocker les signaux computed de chaque robot à afficher
   // TODO: pourquoi readonly si WritableSignal ici ?? c'est la map qui est en lecture seule, pas les éléments ??
   private readonly robotSignals = new Map<string, WritableSignal<RobotAspiratorModel>>();
-
-  // attendre l'initialisation des robots avant de déclencher effect()
-  // private areRobotsInitialized = signal(false);
 
   // variables pour la vue: animation des robots
   private animationId?: number;
@@ -273,6 +269,29 @@ export class RobotAspiratorDataService implements OnDestroy {
   // }
 
   /**
+* Met à jour un robot dans la liste de signaux (appelé par la boucle d'animation)
+*/
+  // private updateRobotModel(robotModel: RobotAspiratorModel | undefined): void {
+  //   if (!robotModel) return;
+
+  //   const robotSignal = this.robotSignals.get(robotModel.robotName);
+  //   if (robotSignal) {
+  //     robotSignal.set(robotModel);
+  //   }
+  // }
+
+  // TODO:SUPPRIMER ??
+  // private getRobotDirection(lastPosition: Position, nextPosition: Position): Position {
+  //   console.log("RobotAspiratorDataService - setAspiroDirection()");
+  //   // Directions du robot (Attention: c'est un index dans le tableau de la maison ici, pas la position en px)
+  //   const aspiroDirX = (nextPosition.x - lastPosition.x) === 1 ? 1 :
+  //     (nextPosition.x - lastPosition.x) === -1 ? -1 : 0;
+  //   const aspiroDirY = (nextPosition.y - lastPosition.y) === 1 ? 1 :
+  //     (nextPosition.y - lastPosition.y) === -1 ? -1 : 0;
+  //   return new Position(aspiroDirX, aspiroDirY);
+  // }
+
+  /**
   * Arrêt d'un robot à une position
   */
   // TODO: revoir selon modifs de moveRobot
@@ -294,16 +313,6 @@ export class RobotAspiratorDataService implements OnDestroy {
   }
 
   // ************ méthodes pour l'animation des déplacements du robot (vue)
-
-  /**
-  * Lancement de l'update de la vue pour la liste de robots
-  */
-  // public updateAllRobotsViews(robotName: string): void {
-  //   console.log('RobotAspiratorDataService - updateAllRobotsViews()');
-  //   const robotModel: RobotAspiratorModel = this.getRobotModel(robotName);
-
-  //   this.performModelUpdate(robotModel);
-  // }
 
   public startRobotsMapInterval(maisonModel: MaisonModel): void {
 
@@ -353,16 +362,10 @@ export class RobotAspiratorDataService implements OnDestroy {
     this.robotSignals.forEach((robotSignal: WritableSignal<RobotAspiratorModel>, robotName) => {
       const robot = robotSignal();
 
-      // if (!robot.isRobotStarted) return;
-
       // IMPORTANT:
       // calculer et renvoyer la nouvelle position du robot (appelle l'algo de recherche du chemin)
       const newPosition: Position = this.calculateRobotNextPosition(robot);
       if (!newPosition) return;
-
-      // MAJ de la direction du robot (datas)
-      // const nextDirection = this.getRobotDirection(robot.position, newPosition);
-      // if (!nextDirection) return;
 
       const newStartCoordinate = {
         x: robot.position.x * this.PIXELS_PER_STEP,
@@ -398,88 +401,54 @@ export class RobotAspiratorDataService implements OnDestroy {
     });
   }
 
-  /**
- * Met à jour un robot dans la liste de signaux (appelé par la boucle d'animation)
- */
-  // private updateRobotModel(robotModel: RobotAspiratorModel | undefined): void {
-  //   if (!robotModel) return;
-
-  //   const robotSignal = this.robotSignals.get(robotModel.robotName);
-  //   if (robotSignal) {
-  //     robotSignal.set(robotModel);
-  //   }
-  // }
-
-  // TODO: à supprimer - juste pour tester rapido
-  /**
-   * Votre logique métier pour calculer le nouveau modèle
-   */
-  // private updatedRobotCoordinateTest(robotName: string): RobotAspiratorModel {
-  //   const current = this.robotSignals.get(robotName)?.();
-  //   if (!current) {
-  //     throw new Error(`Robot ${robotName} introuvable`);
-  //   }
-  //   // Votre logique de calcul ici
-  //   return {
-  //     ...current,
-  //     startCoordinate: {
-  //       x: current.startCoordinate.x + (Math.random() * 4 - 2),
-  //       y: current.startCoordinate.y + (Math.random() * 4 - 2)
-  //     }
-  //   };
-  // }
-
   // mise à jour de robot (à l'unité)
   private calculateRobotNextPosition(robot: RobotAspiratorModel | undefined): Position {
-    console.log("RobotAspiratorDataService - updateAllRobots()");
+    console.log("RobotAspiratorDataService - calculateRobotNextPosition()");
 
     let nextPosition: Position = new Position();
 
     if (!robot?.position) return nextPosition;
     if (!robot.isRobotStarted) return robot.position;
 
-    // this.areRobotsInitialized.set(true);
-    // Récupérer le robot mis à jour pour nettoyer
-    // robot.isRobotStarted = true;
-
-    // TODO: garder ??
-    robot.batterie = robot.batterie > 0 ? robot.batterie : 0;
-
-    const batteryLimitExceeded: boolean = this.robotDoitRentrerALaBase(robot.batterie, robot.position, robot.basePosition, robot.consommationParMouvement);
-    // TODO: revoir condition pour batterie de 1 (passer condition en cas de retour à la base)
-    if (robot.batterie > 0 && batteryLimitExceeded) {
-      console.log(`updateAllRobots() - Limite de batterie atteinte : le robot doit rentrer à la base - Batterie: ${robot.batterie}%`);
-      nextPosition = this.retournerALaBase(this.maisonModel, robot);
-    }
-    else {
-      if (robot.batterie > 0 && !batteryLimitExceeded) {
-        nextPosition = this.nettoyer(this.maisonModel, robot);
-        if (!robot) return nextPosition;
-        console.log(`Robot ${robot.robotName} mis à jour - Batterie: ${robot.batterie}%`);
-      }
-      // TODO: mise en pause par robot à l'arrivée à la base du robot : stop
-      else if (robot!.position.x === robot!.basePosition.x && robot!.position.y === robot!.basePosition.y
+    if (robot.batterie <= 0) {
+      if (robot!.position.x === robot!.basePosition.x && robot!.position.y === robot!.basePosition.y
       ) {
+        console.log(`Le robot est à sa base et ne peut démarrer - Batterie: ${robot.batterie}%`);
         this.stopMovingRobot(robot.robotName, robot.isRobotReturningToBase);
       }
       else {
-        console.log(`Le robot ne peut pas démarrer - Batterie: ${robot.batterie}%`);
+        console.log(`Le robot est à l'arrêt en cours de parcours et ne peut redémarrer - Batterie: ${robot.batterie}%`);
         this.stopMovingRobot(robot.robotName, robot.isRobotReturningToBase);
       }
     }
+    else if (robot.batterie > 0) {
+      // vérification du niveau de batterie du robot:
+      const batteryLimitExceeded: boolean = this.robotDoitRentrerALaBase(robot.batterie, robot.position, robot.basePosition, robot.consommationParMouvement);
+
+      if (batteryLimitExceeded) {
+        console.log(`updateAllRobots() - Limite de batterie atteinte : le robot doit rentrer à la base - Batterie: ${robot.batterie}%`);
+        return nextPosition = this.retournerALaBase(this.maisonModel, robot);
+      }
+      else {
+        nextPosition = this.nettoyer(this.maisonModel, robot);
+        console.log(`Robot ${robot.robotName} mis à jour - Batterie: ${robot.batterie}%`);
+
+        // Dans cette version de l'algo: on prend la première position du chemin à chaque tour de boucle    
+        if (this.maisonService.toutEstNettoye() || this.robotDoitRentrerALaBase(
+          robot.batterie,
+          nextPosition,
+          robot.basePosition,
+          robot.consommationParMouvement
+        )) {
+          console.log("Batterie insuffisante pour aller plus loin");
+          nextPosition = this.retournerALaBase(this.maisonModel, robot);
+          return nextPosition;
+        }
+      }
+    }
+
     return nextPosition;
   }
-
-  // TODO:SUPPRIMER ??
-  // private getRobotDirection(lastPosition: Position, nextPosition: Position): Position {
-  //   console.log("RobotAspiratorDataService - setAspiroDirection()");
-  //   // Directions du robot (Attention: c'est un index dans le tableau de la maison ici, pas la position en px)
-  //   const aspiroDirX = (nextPosition.x - lastPosition.x) === 1 ? 1 :
-  //     (nextPosition.x - lastPosition.x) === -1 ? -1 : 0;
-  //   const aspiroDirY = (nextPosition.y - lastPosition.y) === 1 ? 1 :
-  //     (nextPosition.y - lastPosition.y) === -1 ? -1 : 0;
-  //   return new Position(aspiroDirX, aspiroDirY);
-  // }
 
   // TODO: utiliser ??
   private stopAnimation(): void {
@@ -492,82 +461,46 @@ export class RobotAspiratorDataService implements OnDestroy {
     this.robotSignals.clear();
   }
 
-  // ************ méthodes propres au robot Aspirateur:
+  /** méthodes propres au robot Aspirateur: */
 
-  // Algo V1
   // Fonction principale pour nettoyer la maison
   private nettoyer(maisonModelInput: MaisonModel, robotModelInput: RobotAspiratorModel): Position {
     console.log("RobotAspiratorDataService - nettoyer()");
 
     this.maisonModel = { ...maisonModelInput };
 
-    // const robotName = robotModelInput.robotName;
-    // const robotSignal: WritableSignal<RobotAspiratorModel> | undefined = this.robotSignals.get(robotName);
-
-    // TODO: gardé pour les différentes conditions de déplacement ou arrêt (voir si refacto nécessaire)
-    // if (!robotSignal) {
-    //   console.error(`Signal du robot ${robotName} introuvable`);
-    //   return robotSignal;
-    // }
-    // Toujours récupérer la version actuelle du signal
-    // let robot: RobotAspiratorModel | undefined = robotSignal();
-
-    // si le robot revient à la base
-    // if (robotModelInput.isRobotReturningToBase) {
-    //   robotModelInput = this.retournerALaBase(this.maisonModel, robotModelInput);
-    //   return robotModelInput;
-    // }
-    // si toutes les cellules accessibles sont visitées
-    // ou bien: si la batterie est insuffisante pour avancer plus loin,
-    // retour à la base nécessaire
-
-    // else
-    // const batteryLimitExceeded: boolean = this.robotDoitRentrerALaBase(robotModelInput.batterie, robotModelInput.position, robotModelInput.basePosition, robotModelInput.consommationParMouvement);
-    // if (this.maisonService.toutEstNettoye() || batteryLimitExceeded) {
-    //   console.log("nettoyer() - Tout est nettoyer, ou bien batterie insuffisante pour aller plus loin");
-    //   robotModelInput = this.retournerALaBase(this.maisonModel, robotModelInput);
-    //   return robotModelInput;
-    // }
-
     // Chercher la prochaine cellule non visitée et s'y diriger
     const prochaineCellule = this.cheminOptimalService.trouverProchaineDestination(this.maisonModel.maison, robotModelInput.position);
     console.log(prochaineCellule);
 
-    let nextPosition: Position = new Position();
-
     if (!prochaineCellule) {
-      // Si aucune cellule n'est trouvée, retourner à la base
       console.log("Aucune cellule accessible non visitée trouvée");
-      // Mise à jour des données du robot avec un Signal dans un service Singleton (équivalent d'un setter)
-      nextPosition = this.retournerALaBase(this.maisonModel, robotModelInput);
-      // this.stopMovingRobot(robotModelInput.robotName, true);
-      return nextPosition;
-    }
-    // TODO: revoir - effet de bord de setInterval nous ramène ici ?
-    else {
-      // Utiliser A* ou un autre algorithme de recherche de chemin pour trouver le chemin optimal
-      nextPosition = this.cheminOptimalService.trouverPositionSuivante(this.maisonModel.maison, robotModelInput.position, prochaineCellule.cellStack[0].position);
-      console.log("nextPosition :" + nextPosition);
 
-      if (!nextPosition) {
+      let positionRetourALaBase: Position = this.retournerALaBase(this.maisonModel, robotModelInput);
+      console.log("positionRetourALaBase :" + positionRetourALaBase);
+
+      if (!positionRetourALaBase) {
         console.log("Impossible de trouver un chemin vers la destination");
-        return nextPosition;
-      }
-      // ** Dans cette version de l'algo: on prend la première position du chemin à chaque tour de boucle
-      if (this.maisonService.toutEstNettoye() || this.robotDoitRentrerALaBase(robotModelInput.batterie, nextPosition, robotModelInput.basePosition, robotModelInput.consommationParMouvement)) {
-        console.log("Batterie insuffisante pour aller plus loin");
-        nextPosition = this.retournerALaBase(this.maisonModel, robotModelInput);
-        return nextPosition;
+        return new Position();
       }
 
-      // TODO: vérifier si deplacer() encore utile ??
-      // Suivre le chemin
-      this.deplacer(robotModelInput, nextPosition);
+      return positionRetourALaBase;
     }
-    return nextPosition;
+
+    // Utiliser un algorithme de recherche de chemin optimal
+    let nextPositionNettoyage: Position = this.cheminOptimalService.trouverPositionSuivante(
+      this.maisonModel.maison, robotModelInput.position, prochaineCellule.cellStack[0].position
+    );
+
+    console.log("nextPositionNettoyage :" + nextPositionNettoyage);
+    if (!nextPositionNettoyage) {
+      console.log("Impossible de trouver un chemin vers la destination");
+      return new Position();
+    }
+
+    return nextPositionNettoyage;
   }
 
-  // algo V1
   // Retourner à la base de charge
   private retournerALaBase(maisonModelInput: MaisonModel, robotModelInput: RobotAspiratorModel): Position {
     console.log("RobotAspiratorDataService - retournerALaBase()");
@@ -576,41 +509,16 @@ export class RobotAspiratorDataService implements OnDestroy {
     this.maisonModel = maisonModelInput;
 
     // Trouver le chemin vers la base
-    const nextPosition: Position = this.cheminOptimalService.trouverPositionSuivante(this.maisonModel.maison, robotModelInput.position, robotModelInput.basePosition);
-    console.log("nextPosition :" + nextPosition);
+    const positionRetourALaBase: Position = this.cheminOptimalService.trouverPositionSuivante(this.maisonModel.maison, robotModelInput.position, robotModelInput.basePosition);
+    console.log("nextPosition :" + positionRetourALaBase);
 
-    if (!nextPosition) {
+    if (!positionRetourALaBase) {
       console.log("Impossible de trouver un chemin vers la base de charge!");
-      this.stopMovingRobot(robotModelInput.robotName, robotModelInput.isRobotReturningToBase);
-      return nextPosition;
-    }
-    // Suivre le chemin
-    // TODO: vérifier si deplacer() encore utile ??
-    // this.deplacer(robotModelInput, nextPosition);
-    return nextPosition;
-  }
-
-
-  // V1 :
-  // Déplacer le robot à une position spécifique
-  private deplacer(robot: RobotAspiratorModel, nextPosition: Position) {
-    console.log("RobotAspiratorDataService - deplacer()");
-
-    // TODO: utiliser encore ??
-    if (robot.isRobotStarted === false) {
-      this.stopMovingRobot(robot.robotName, false);
-    }
-    else if (this.robotDoitRentrerALaBase(robot.batterie, nextPosition, robot.basePosition, robot.consommationParMouvement)) {
-      console.log("Le robot ne peut aller plus loin : batterie insuffisante. Activation du retour à la base !");
-      this.stopMovingRobot(robot.robotName, true);
-      console.log(robot);
+      // this.stopMovingRobot(robotModelInput.robotName, robotModelInput.isRobotReturningToBase);
+      return new Position();
     }
 
-    // TODO: NE PLUS MODIFIER LE MODEL ICI DIRECTEMENT, RENVOYER UNIQUEMENT nextPosition
-    // Mettre à jour le robot à sa nouvelle position:
-    // robot.lastPosition = { ...robot.position };
-    // robot.position = { ...nextPosition };
-    // console.log(`Robot ${robot.robotName} va se déplacer de (${robot.lastPosition.x}, ${robot.lastPosition.y}) à (${nextPosition.x}, ${nextPosition.y}) - Batterie: (${robot.batterie.toFixed(1)})%`);
+    return positionRetourALaBase;
   }
 
   private robotDoitRentrerALaBase(batterie: number, position: Position, basePosition: Position, consommationParMouvement: number): boolean {
