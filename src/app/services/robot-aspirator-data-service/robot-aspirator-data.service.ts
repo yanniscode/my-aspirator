@@ -414,37 +414,30 @@ export class RobotAspiratorDataService implements OnDestroy {
       if (robot!.position.x === robot!.basePosition.x && robot!.position.y === robot!.basePosition.y
       ) {
         console.log(`Le robot est à sa base et ne peut démarrer - Batterie: ${robot.batterie}%`);
-        this.stopMovingRobot(robot.robotName, robot.isRobotReturningToBase);
       }
       else {
         console.log(`Le robot est à l'arrêt en cours de parcours et ne peut redémarrer - Batterie: ${robot.batterie}%`);
-        this.stopMovingRobot(robot.robotName, robot.isRobotReturningToBase);
       }
+      this.stopMovingRobot(robot.robotName, robot.isRobotReturningToBase);
     }
     else if (robot.batterie > 0) {
-      // vérification du niveau de batterie du robot:
-      const batteryLimitExceeded: boolean = this.robotDoitRentrerALaBase(robot.batterie, robot.position, robot.basePosition, robot.consommationParMouvement);
+      const batteryLimitExceeded: boolean = this.robotDoitRentrerALaBase(
+        robot.batterie,
+        robot.position,
+        robot.basePosition,
+        robot.consommationParMouvement
+      );
 
-      if (batteryLimitExceeded) {
-        console.log(`updateAllRobots() - Limite de batterie atteinte : le robot doit rentrer à la base - Batterie: ${robot.batterie}%`);
-        return nextPosition = this.retournerALaBase(this.maisonModel, robot);
+      if (this.maisonService.toutEstNettoye() || batteryLimitExceeded) {
+        console.log(`updateAllRobots() - Maison entièrement nettoyée ou bien: limite de batterie atteinte : le robot doit rentrer à la base - Batterie: ${robot.batterie}%`);
+        nextPosition = this.retournerALaBase(this.maisonModel, robot);
+        console.log(`Nouvelle position de retour à la base trouvée pour le Robot ${robot.robotName} : x = ${nextPosition.x}, y = ${nextPosition.y} - Batterie: ${robot.batterie}%`);
+        return nextPosition;
       }
-      else {
-        nextPosition = this.nettoyer(this.maisonModel, robot);
-        console.log(`Robot ${robot.robotName} mis à jour - Batterie: ${robot.batterie}%`);
 
-        // Dans cette version de l'algo: on prend la première position du chemin à chaque tour de boucle    
-        if (this.maisonService.toutEstNettoye() || this.robotDoitRentrerALaBase(
-          robot.batterie,
-          nextPosition,
-          robot.basePosition,
-          robot.consommationParMouvement
-        )) {
-          console.log("Batterie insuffisante pour aller plus loin");
-          nextPosition = this.retournerALaBase(this.maisonModel, robot);
-          return nextPosition;
-        }
-      }
+      /** Dans cette version de l'algo: on prend la première position du chemin à chaque tour de boucle  */
+      nextPosition = this.nettoyer(this.maisonModel, robot);
+      console.log(`Nouvelle position de nettoyage trouvée pour le Robot ${robot.robotName} : x = ${nextPosition.x}, y = ${nextPosition.y} - Batterie: ${robot.batterie}%`);
     }
 
     return nextPosition;
@@ -469,7 +462,7 @@ export class RobotAspiratorDataService implements OnDestroy {
 
     this.maisonModel = { ...maisonModelInput };
 
-    // Chercher la prochaine cellule non visitée et s'y diriger
+    // Chercher la prochaine cellule non visitée
     const prochaineCellule = this.cheminOptimalService.trouverProchaineDestination(this.maisonModel.maison, robotModelInput.position);
     console.log(prochaineCellule);
 
