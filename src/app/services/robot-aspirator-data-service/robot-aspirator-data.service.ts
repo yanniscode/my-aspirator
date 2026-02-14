@@ -375,14 +375,6 @@ export class RobotAspiratorDataService implements OnDestroy {
     const robotSignal: WritableSignal<RobotAspiratorModel> | undefined = this.robotSignals.get(robotName);
     if (!robotSignal) return;
 
-    // on ne diminue le niveau de batterie que s'il y a une nouvelle position, mais dans tous les cas: mettre à jour les autres données du robot juste après
-    if (newStartCoordinate.x !== newTargetCoordinate.x || newStartCoordinate.y !== newTargetCoordinate.y) {
-      robotSignal.update(robot => ({
-        ...robot,
-        batterie: robot.batterie - robot.consommationParMouvement
-      }));
-    }
-
     robotSignal.update(robot => ({
       ...robot,
       isRobotReturningToBase: robot.isRobotReturningToBase,
@@ -392,6 +384,14 @@ export class RobotAspiratorDataService implements OnDestroy {
       targetCoordinate: { ...newTargetCoordinate }, // la nouvelle coordonnée prend sa nouvelle valeur
       isRobotStarted: true,
     }));
+
+    // on ne diminue le niveau de batterie que s'il y a une nouvelle position
+    if (newStartCoordinate.x !== newTargetCoordinate.x || newStartCoordinate.y !== newTargetCoordinate.y) {
+      robotSignal.update(robot => ({
+        ...robot,
+        batterie: robot.batterie - robot.consommationParMouvement
+      }));
+    }
   }
 
   // mise à jour de robot (à l'unité)
