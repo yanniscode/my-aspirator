@@ -53,9 +53,8 @@ export class MaisonService {
   // TODO: pour version Signaux: utiliser des signaux ici ?
   public updateMaisonCellules(lastPosition: Position): void {
     console.log("MaisonService - updateMaisonCellules()");
-
-    console.log("lastPosition.x = " + lastPosition.x);
-    console.log("lastPosition.y = " + lastPosition.y);
+    // console.log("lastPosition.x = " + lastPosition.x);
+    // console.log("lastPosition.y = " + lastPosition.y);
 
     // Vérification des null et undefined
     if (!lastPosition) return;

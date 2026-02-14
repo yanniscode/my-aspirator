@@ -250,25 +250,6 @@ export class RobotAspiratorDataService implements OnDestroy {
   // MÉTHODES D'ACTION SUR LE ROBOT:
 
   /**
- * Déplace manuellement un robot à une position
- */
-  // private updateRobotModelPosition(robotName: string, lastPosition: Position, newPosition: Position): void {
-  //   console.log("RobotAspiratorDataService - moveRobot()");
-
-  //   const robotSignal: WritableSignal<RobotAspiratorModel> | undefined = this.robotSignals.get(robotName);
-
-  //   if (robotSignal) {
-  //     // Update des données du robot:
-  //     robotSignal.update(robot => ({
-  //       ...robot,
-  //       lastPosition: { ...lastPosition },
-  //       position: { ...newPosition },
-  //       batterie: robot.batterie - robot.consommationParMouvement
-  //     }));
-  //   }
-  // }
-
-  /**
 * Met à jour un robot dans la liste de signaux (appelé par la boucle d'animation)
 */
   // private updateRobotModel(robotModel: RobotAspiratorModel | undefined): void {
@@ -356,7 +337,7 @@ export class RobotAspiratorDataService implements OnDestroy {
  * Calcule de nouvelles directions toutes les 1000ms
  */
   private calculateNewDirectionsForAllRobots(): void {
-    console.log("RobotAspiratorDataService - calculateNewDirectionsForAllRobots()");
+    console.log("###### RobotAspiratorDataService - calculateNewDirectionsForAllRobots()");
 
     // Parcourt tous les robots
     this.robotSignals.forEach((robotSignal: WritableSignal<RobotAspiratorModel>, robotName) => {
@@ -377,28 +358,40 @@ export class RobotAspiratorDataService implements OnDestroy {
         y: newPosition.y * this.PIXELS_PER_STEP
       };
 
-      robotSignal.update(robot => ({
-        ...robot,
-        isRobotReturningToBase: robot.isRobotReturningToBase,
-        lastPosition: { ...robot.position }, // la dernière position est modifiée avec l'actuelle
-        position: { ...newPosition },        // la nouvelle position prend sa nouvelle valeur
-        startCoordinate: { ...newStartCoordinate }, // la dernière coordonnée est modifiée avec l'actuelle
-        targetCoordinate: { ...newTargetCoordinate }, // la nouvelle coordonnée prend sa nouvelle valeur
-        isRobotStarted: true,
-        batterie: robot.batterie - robot.consommationParMouvement
-      }));
+      console.log("### robotSignal.update()");
 
-      console.log(`${robotName}: tableau [${newPosition.x},${newPosition.y}] → pixels (${newTargetCoordinate.x}, ${newTargetCoordinate.y})`);
+      this.moveRobot(robotName, newStartCoordinate, newPosition, newTargetCoordinate);
+
+      console.log(`### ${robotName}: tableau [${newPosition.x},${newPosition.y}] → pixels (${newTargetCoordinate.x}, ${newTargetCoordinate.y})`);
     });
   }
 
-  public updateMaisonVisitedCells(): void {
-    this.robotSignals.forEach((robotSignal) => {
-      console.log("RobotAspiratorDataService - updateMaisonVisitedCells");
-      const robot: RobotAspiratorModel = robotSignal();
-      // maj des datas de la maison: position visitée
-      this.maisonService.updateMaisonCellules(robot.lastPosition);
-    });
+  /**
+  * Déplace manuellement un robot à une position
+  */
+  private moveRobot(robotName: string, newStartCoordinate: Position, newPosition: Position, newTargetCoordinate: Position): void {
+    console.log("RobotAspiratorDataService - moveRobot()");
+
+    const robotSignal: WritableSignal<RobotAspiratorModel> | undefined = this.robotSignals.get(robotName);
+    if (!robotSignal) return;
+
+    // on ne diminue le niveau de batterie que s'il y a une nouvelle position, mais dans tous les cas: mettre à jour les autres données du robot juste après
+    if (newStartCoordinate.x !== newTargetCoordinate.x || newStartCoordinate.y !== newTargetCoordinate.y) {
+      robotSignal.update(robot => ({
+        ...robot,
+        batterie: robot.batterie - robot.consommationParMouvement
+      }));
+    }
+
+    robotSignal.update(robot => ({
+      ...robot,
+      isRobotReturningToBase: robot.isRobotReturningToBase,
+      lastPosition: { ...robot.position }, // la dernière position est modifiée avec l'actuelle
+      position: { ...newPosition },        // la nouvelle position prend sa nouvelle valeur
+      startCoordinate: { ...newStartCoordinate }, // la dernière coordonnée est modifiée avec l'actuelle
+      targetCoordinate: { ...newTargetCoordinate }, // la nouvelle coordonnée prend sa nouvelle valeur
+      isRobotStarted: true,
+    }));
   }
 
   // mise à jour de robot (à l'unité)
@@ -410,13 +403,13 @@ export class RobotAspiratorDataService implements OnDestroy {
     if (!robot?.position) return nextPosition;
     if (!robot.isRobotStarted) return robot.position;
 
-    if (robot.batterie <= 0) {
+    if (robot.batterie === 0) {
       if (robot!.position.x === robot!.basePosition.x && robot!.position.y === robot!.basePosition.y
       ) {
-        console.log(`Le robot est à sa base et ne peut démarrer - Batterie: ${robot.batterie}%`);
+        console.log(`### Le robot est à sa base et ne peut démarrer - Batterie: ${robot.batterie}%`);
       }
       else {
-        console.log(`Le robot est à l'arrêt en cours de parcours et ne peut redémarrer - Batterie: ${robot.batterie}%`);
+        console.log(`### Le robot est à l'arrêt en cours de parcours et ne peut redémarrer - Batterie: ${robot.batterie}%`);
       }
       this.stopMovingRobot(robot.robotName, robot.isRobotReturningToBase);
     }
@@ -429,15 +422,15 @@ export class RobotAspiratorDataService implements OnDestroy {
       );
 
       if (this.maisonService.toutEstNettoye() || batteryLimitExceeded) {
-        console.log(`updateAllRobots() - Maison entièrement nettoyée ou bien: limite de batterie atteinte : le robot doit rentrer à la base - Batterie: ${robot.batterie}%`);
+        console.log(`### updateAllRobots() - Maison entièrement nettoyée ou bien: limite de batterie atteinte : le robot doit rentrer à la base - Batterie: ${robot.batterie}%`);
         nextPosition = this.retournerALaBase(this.maisonModel, robot);
-        console.log(`Nouvelle position de retour à la base trouvée pour le Robot ${robot.robotName} : x = ${nextPosition.x}, y = ${nextPosition.y} - Batterie: ${robot.batterie}%`);
+        console.log(`### Nouvelle position de retour à la base trouvée pour le Robot ${robot.robotName} : x = ${nextPosition.x}, y = ${nextPosition.y} - Batterie: ${robot.batterie}%`);
         return nextPosition;
       }
 
       /** Dans cette version de l'algo: on prend la première position du chemin à chaque tour de boucle  */
       nextPosition = this.nettoyer(this.maisonModel, robot);
-      console.log(`Nouvelle position de nettoyage trouvée pour le Robot ${robot.robotName} : x = ${nextPosition.x}, y = ${nextPosition.y} - Batterie: ${robot.batterie}%`);
+      console.log(`### Nouvelle position de nettoyage trouvée pour le Robot ${robot.robotName} : x = ${nextPosition.x}, y = ${nextPosition.y} - Batterie: ${robot.batterie}%`);
     }
 
     return nextPosition;
@@ -530,6 +523,15 @@ export class RobotAspiratorDataService implements OnDestroy {
 
     // Ajouter une marge de sécurité si on veut
     return (distance * consommationParMouvement) * 1;
+  }
+
+  public updateMaisonVisitedCells(): void {
+    this.robotSignals.forEach((robotSignal) => {
+      console.log("RobotAspiratorDataService - updateMaisonVisitedCells");
+      const robot: RobotAspiratorModel = robotSignal();
+      // maj des datas de la maison: position visitée
+      this.maisonService.updateMaisonCellules(robot.lastPosition);
+    });
   }
 
   // TODO: revoir CSS de la maison si on affiche les logs dans l'ihm
