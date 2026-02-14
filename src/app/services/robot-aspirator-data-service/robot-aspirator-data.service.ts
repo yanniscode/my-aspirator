@@ -46,7 +46,7 @@ export class RobotAspiratorDataService implements OnDestroy {
   ngOnDestroy(): void {
     console.log("RobotAspiratorDataService - ngOnDestroy()");
 
-    this.stopAnimation();
+    this.stopAllAnimation();
 
     // TODO ?? à utiliser ?
     // nettoyage de l'animation pour startDrawCanvasTimer() - V1:
@@ -70,7 +70,7 @@ export class RobotAspiratorDataService implements OnDestroy {
       }
     });
 
-    this.stopAnimation();
+    this.pauseAllAnimation();
 
     console.log('Service de robots mis en pause');
   }
@@ -436,15 +436,25 @@ export class RobotAspiratorDataService implements OnDestroy {
     return nextPosition;
   }
 
-  // TODO: utiliser ??
-  private stopAnimation(): void {
+  private stopAllAnimation(): void {
     console.log('Animation stopped');
     this.isRunning = false;
     if (this.animationId !== undefined) {
       cancelAnimationFrame(this.animationId);
       this.animationId = undefined;
     }
+    // On vide la map de signaux
     this.robotSignals.clear();
+  }
+
+  private pauseAllAnimation(): void {
+    console.log('Animation stopped');
+    this.isRunning = false;
+    if (this.animationId !== undefined) {
+      cancelAnimationFrame(this.animationId);
+      this.animationId = undefined;
+    }
+    // On ne supprime pas la map de signaux pour la mise en pause
   }
 
   /** méthodes propres au robot Aspirateur: */
