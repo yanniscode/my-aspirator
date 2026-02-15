@@ -48,12 +48,6 @@ export class RobotAspiratorDataService implements OnDestroy {
 
     this.stopAllAnimation();
 
-    // TODO ?? à utiliser ?
-    // nettoyage de l'animation pour startDrawCanvasTimer() - V1:
-    // this.drawCanvasInterval.unsubscribe();
-    // this.destroy$.next();
-    // this.destroy$.complete();
-
     console.log('Service de robots arrêté');
   }
 
@@ -62,16 +56,7 @@ export class RobotAspiratorDataService implements OnDestroy {
   */
   public onRobotsPause(): void {
     console.log("RobotAspiratorDataService - onRobotsPause()");
-
-    this.robotSignals.forEach((robotSignal) => {
-      let robot = robotSignal();
-      if (!robot.isRobotStarted) {
-        this.stopMovingRobot(robot.robotName, robot.isRobotReturningToBase);
-      }
-    });
-
-    this.pauseAllAnimation();
-
+    this.isRunning = false;
     console.log('Service de robots mis en pause');
   }
 
@@ -275,23 +260,23 @@ export class RobotAspiratorDataService implements OnDestroy {
   /**
   * Arrêt d'un robot à une position
   */
-  // TODO: revoir selon modifs de moveRobot
-  private stopMovingRobot(robotName: string, isRobotReturningToBase: boolean): void {
-    console.log("RobotAspiratorDataService - stopMovingRobot()");
+  // // TODO: supprimer ??
+  // private stopMovingRobot(robotName: string, isRobotReturningToBase: boolean): void {
+  //   console.log("RobotAspiratorDataService - stopMovingRobot()");
 
-    const robotSignal: WritableSignal<RobotAspiratorModel> | undefined = this.robotSignals.get(robotName);
-    if (!robotSignal) return;
+  //   const robotSignal: WritableSignal<RobotAspiratorModel> | undefined = this.robotSignals.get(robotName);
+  //   if (!robotSignal) return;
 
-    robotSignal.update(robot => ({
-      ...robot,
-      isRobotStarted: false,
-      lastPosition: robot.position,
-      startCoordinate: robot.targetCoordinate,
-      isRobotReturningToBase: isRobotReturningToBase
-    }));
+  //   robotSignal.update(robot => ({
+  //     ...robot,
+  //     isRobotStarted: false,
+  //     lastPosition: robot.position,
+  //     startCoordinate: robot.targetCoordinate,
+  //     isRobotReturningToBase: isRobotReturningToBase
+  //   }));
 
-    console.log(`Robot ${robotSignal().robotName} arrêté à (${robotSignal().position.x}, ${robotSignal().position.y}) - Batterie = (${robotSignal().batterie})`);
-  }
+  //   console.log(`Robot ${robotSignal().robotName} arrêté à (${robotSignal().position.x}, ${robotSignal().position.y}) - Batterie = (${robotSignal().batterie})`);
+  // }
 
   // ************ méthodes pour l'animation des déplacements du robot (vue)
 
@@ -300,18 +285,22 @@ export class RobotAspiratorDataService implements OnDestroy {
     if (!this.maisonModel) return;
     this.maisonModel = maisonModel;
 
+    // on ne démarre ici que si l'animation n'est pas encore activée
     if (this.isRunning) return;
-
     this.isRunning = true;
+
     let lastStepTime = performance.now();
 
     const animate = (currentTime: number) => {
-      if (!this.isRunning) return;
-
       const deltaTime = currentTime - lastStepTime;
 
+      // on termine la séquence actuelle avant de mettre en pause l'animation
+      if (!this.isRunning && deltaTime >= this.STEP_DURATION) {
+        this.pauseAllAnimation();
+        return;
+      }
       // Nouvelle direction toutes les 1000ms
-      if (deltaTime >= this.STEP_DURATION) {
+      else if (deltaTime >= this.STEP_DURATION) {
         // 1. Reset du temps
         lastStepTime = currentTime;
         // 2. Reset du progress à 0
@@ -412,7 +401,6 @@ export class RobotAspiratorDataService implements OnDestroy {
       else {
         console.log(`### Le robot est à l'arrêt en cours de parcours et ne peut redémarrer - Batterie: ${robot.batterie}%`);
       }
-      this.stopMovingRobot(robot.robotName, robot.isRobotReturningToBase);
     }
     else if (robot.batterie > 0) {
       const batteryLimitExceeded: boolean = this.robotDoitRentrerALaBase(
@@ -449,7 +437,6 @@ export class RobotAspiratorDataService implements OnDestroy {
 
   private pauseAllAnimation(): void {
     console.log('Animation stopped');
-    this.isRunning = false;
     if (this.animationId !== undefined) {
       cancelAnimationFrame(this.animationId);
       this.animationId = undefined;
