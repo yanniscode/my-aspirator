@@ -30,6 +30,7 @@ export class RobotAspiratorComponent implements OnInit {
   // ✅ Computed réactif basé sur le signal animationProgress
   public currentCoordinates: Signal<Position> = computed(() => {
     console.log("RobotAspiratorComponent - currentCoordinates: computed()");
+    this.robotViewModel = this.robotAspiratorDataService.getRobotSignal(this.robotNameInput);
     const robot = this.robotViewModel();
     console.log(robot);
     if (!robot) return new Position(-50, -50);
