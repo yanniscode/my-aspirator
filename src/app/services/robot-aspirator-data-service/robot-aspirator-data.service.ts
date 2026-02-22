@@ -280,14 +280,14 @@ export class RobotAspiratorDataService implements OnDestroy {
 
       const deltaTime = currentTime - lastStepTime;
 
-      const endedSequence = deltaTime >= this.STEP_DURATION;
+      const sequenceEnded = deltaTime >= this.STEP_DURATION;
       // on termine la séquence actuelle avant de mettre en pause l'animation
-      if (!this.isRunning && endedSequence) {
+      if (!this.isRunning && sequenceEnded) {
         this.pauseAllAnimation();
         return;
       }
       // Nouvelle direction selon la durée de STEP_DURATION
-      else if (endedSequence) {
+      else if (sequenceEnded) {
         // s'il n'y a plus de robot actif à la fin de la séquence d'animation, on stoppe directement l'animation
         this.checkIfNoActiveRobotInList();
 
@@ -618,7 +618,7 @@ export class RobotAspiratorDataService implements OnDestroy {
     };
   }
 
-  public updateMaisonVisitedCells(): void {
+  private updateMaisonVisitedCells(): void {
     this.robotSignals.forEach((robotSignal) => {
       console.log("RobotAspiratorDataService - updateMaisonVisitedCells");
       const robot: RobotAspiratorModel = robotSignal();

@@ -74,7 +74,7 @@ export class MaisonComponent implements OnInit {
   }
 
   // TODO: la maison peut être dessinée seulement 1 fois à l'init
-  public drawCanvasElements(): void {
+  private drawCanvasElements(): void {
     console.log("MaisonComponent - drawCanvasElements()");
 
     if (!this.ctx) return;

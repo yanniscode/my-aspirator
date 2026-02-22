@@ -63,6 +63,7 @@ export class RobotAspiratorComponent implements OnInit {
     // couleur aléatoire pour le nom du robot
     this.setRandomRobotColor();
   }
+
   ngOnInit(): void {
     // Récupère le signal en lecture seule depuis le service
     // Le signal se mettra à jour automatiquement quand le service modifie les données
