@@ -12,6 +12,15 @@
 .robot-label {
     font-weight: bold;
     font-size: 7px;
+    /* couleur pas défaut */
+    color: orangered;
+    width: 50px;
+}
+
+.robot-batterie-label {
+    font-weight: bold;
+    font-size: 7px;
+    /* couleur pas défaut */
     color: orangered;
     width: 50px;
 }
