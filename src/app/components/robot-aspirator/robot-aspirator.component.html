@@ -1,5 +1,5 @@
 <div class="robot" [style.width.px]="aspiroViewSize" [style.height.px]="aspiroViewSize"
   [style.left.px]="currentCoordinates().x" [style.top.px]="currentCoordinates().y">
   <img src="/assets/megaman.png" alt='R' />
-  <div class="robot-label">{{robotViewModel()?.robotName ?? "Theodule" }}</div>
+  <div class="robot-label" [style.color]="robotColor">{{robotViewModel()?.robotName ?? "Theodule" }}</div>
 </div>

@@ -27,6 +27,17 @@ export class RobotAspiratorComponent implements OnInit {
   // Signal en LECTURE SEULE depuis le service
   public robotViewModel: Signal<RobotAspiratorModel | undefined>;
 
+  // variables pour les couleurs du robot (actuellement: pour le nom)
+  private colorLetters = '0123456789ABCDEF';
+  public robotColor = '#';
+
+  private setRandomRobotColor() {
+    this.robotColor = "#";
+    for (var i = 0; i < 6; i++) {
+      this.robotColor += this.colorLetters[Math.floor(Math.random() * 16)];
+    }
+  }
+
   // ✅ Computed réactif basé sur le signal animationProgress
   public currentCoordinates: Signal<Position> = computed(() => {
     console.log("RobotAspiratorComponent - currentCoordinates: computed()");
@@ -49,6 +60,8 @@ export class RobotAspiratorComponent implements OnInit {
     console.log("RobotAspiratorComponent - constructor()");
     // Initialisation temporaire
     this.robotViewModel = signal(undefined);
+    // couleur aléatoire pour le nom du robot
+    this.setRandomRobotColor();
   }
   ngOnInit(): void {
     // Récupère le signal en lecture seule depuis le service

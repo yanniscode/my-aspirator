@@ -87,6 +87,7 @@ export class MaisonService {
           type: 'O',
           visited: false
         };
+        // TODO: revoir l'utilisation : Une cellule est une pile d'éléments (ex: élément 0 de la pile = une cellule non-visitée, élément 1 superposé = un mur)
         let cellStack: CellElement[] = [];
         cellStack.push(cellElement);
         this.maisonModel.maison[y][x] = {
