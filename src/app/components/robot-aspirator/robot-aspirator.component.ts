@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, Input, OnInit, signal, Signal, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, Input, Signal, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { MessageService } from '../../services/message-service/message.service';
@@ -16,7 +16,7 @@ import { Position } from '../../classes/models/position';
   changeDetection: ChangeDetectionStrategy.Default,
   encapsulation: ViewEncapsulation.None,
 })
-export class RobotAspiratorComponent implements OnInit {
+export class RobotAspiratorComponent {
 
   private messageService: MessageService = inject(MessageService);
   private robotAspiratorDataService = inject(RobotAspiratorDataService);
@@ -24,8 +24,17 @@ export class RobotAspiratorComponent implements OnInit {
   // TODO: refacto - faire passer datas à partir du service, et plus du parent:
   @Input() robotNameInput!: string;
   public aspiroViewSize = 50;
-  // Signal en LECTURE SEULE depuis le service
-  public robotViewModel: Signal<RobotAspiratorModel | undefined>;
+
+  // Injecter le signal une seule fois à l'initialisation
+  public readonly robotServiceSignal: Signal<Signal<RobotAspiratorModel | undefined>> = computed(() =>
+    this.robotAspiratorDataService.getRobotSignal(this.robotNameInput)
+  );
+  // Computed dédié pour le robot — pas d'effet de bord
+  // Un computed() doit être une fonction pure: même entrées → même sortie, sans toucher à l'état extérieur
+  public readonly robotViewModel = computed(() => {
+    const signal = this.robotServiceSignal();
+    return signal ? signal() : undefined;
+  });
 
   // variables pour les couleurs du robot (actuellement: pour le nom)
   private colorLetters = '0123456789ABCDEF';
@@ -38,13 +47,13 @@ export class RobotAspiratorComponent implements OnInit {
     }
   }
 
-  // ✅ Computed réactif basé sur le signal animationProgress
-  public currentCoordinates: Signal<Position> = computed(() => {
+  // Computed réactif basé sur le signal animationProgress
+  public currentCoordinates: Signal<Position> = computed((): Position => {
     console.log("RobotAspiratorComponent - currentCoordinates: computed()");
-    this.robotViewModel = this.robotAspiratorDataService.getRobotSignal(this.robotNameInput);
+
     const robot = this.robotViewModel();
-    console.log(robot);
     if (!robot) return new Position(-50, -50);
+    console.log(robot);
 
     // ✅ Dépend du signal animationProgress
     const progress = this.robotAspiratorDataService.animationProgress();
@@ -58,16 +67,8 @@ export class RobotAspiratorComponent implements OnInit {
 
   constructor() {
     console.log("RobotAspiratorComponent - constructor()");
-    // Initialisation temporaire
-    this.robotViewModel = signal(undefined);
     // couleur aléatoire pour le nom du robot
     this.setRandomRobotColor();
-  }
-
-  ngOnInit(): void {
-    // Récupère le signal en lecture seule depuis le service
-    // Le signal se mettra à jour automatiquement quand le service modifie les données
-    this.robotViewModel = this.robotAspiratorDataService.getRobotSignal(this.robotNameInput);
   }
 
   private log(message: string) {

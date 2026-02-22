@@ -197,24 +197,25 @@ export class RobotAspiratorDataService implements OnDestroy {
   // GETTERS SUR LE ROBOT
 
   /**
+ * Lecture directe (non-réactive) de l'état actuel du robot
  * Retourne le signal readonly du robot pour la réactivité
  */
+  // TODO: revoir si check undefined nécessaire
   public getRobotSignal(robotName: string): Signal<RobotAspiratorModel | undefined> {
     console.log("RobotAspiratorDataService - getRobotSignal()");
 
     const writableSignal: WritableSignal<RobotAspiratorModel> | undefined = this.robotSignals.get(robotName);
     return writableSignal?.asReadonly() ?? signal(undefined);
   }
-
   /**
   * Lecture directe (non-réactive) de l'état actuel du robot
   */
-  public getRobotModel(robotName: string): RobotAspiratorModel {
-    console.log("RobotAspiratorDataService - getRobot()");
+  // public getRobotModel(robotName: string): RobotAspiratorModel {
+  //   console.log("RobotAspiratorDataService - getRobot()");
 
-    const robotSignal: WritableSignal<RobotAspiratorModel> | undefined = this.robotSignals.get(robotName);
-    return robotSignal ? robotSignal() : new RobotAspiratorModel();
-  }
+  //   const robotSignal: WritableSignal<RobotAspiratorModel> | undefined = this.robotSignals.get(robotName);
+  //   return robotSignal ? robotSignal() : new RobotAspiratorModel();
+  // }
 
   // TODO: à voir si utilisation possible
   /**
