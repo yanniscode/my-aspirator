@@ -318,21 +318,15 @@ export class RobotAspiratorDataService implements OnDestroy {
   * s'il n'y a plus de robot actif en liste, on stoppe l'animation
   * TODO: revoir si trop couteux
   */
-  private checkIfNoActiveRobotInList() {
-    let robotStartedCount: number = this.robotSignals.size;
-    this.robotSignals.forEach((robotSignal) => {
+  private checkIfNoActiveRobotInList(): void {
+    const hasActiveRobot = [...this.robotSignals.values()].some(robotSignal => {
       const robot = robotSignal();
-      if (!robot.isRobotStarted) {
-        console.log("loop robotStartedCount = " + robotStartedCount);
-        robotStartedCount--;
-      }
+      return robot?.isRobotStarted === true;
     });
-    if (robotStartedCount <= 0) {
-      console.log("robotStartedCount = " + robotStartedCount);
-      // this.isRunning = false;
+
+    if (!hasActiveRobot) {
       this.pauseAllAnimation();
-      return;
-    };
+    }
   }
 
   /**
