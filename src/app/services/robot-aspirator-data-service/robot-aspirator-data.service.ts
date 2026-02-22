@@ -1,4 +1,4 @@
-import { inject, Injectable, OnDestroy, Signal, signal, WritableSignal } from '@angular/core';
+import { computed, inject, Injectable, OnDestroy, Signal, signal, WritableSignal } from '@angular/core';
 import { RobotAspiratorModel } from '../../classes/models/robot-aspirator-model';
 import { MaisonModel } from '../../classes/models/maison-model';
 import { CheminOptimalService } from '../algo-services/chemin-optimal.service';
@@ -18,6 +18,14 @@ export class RobotAspiratorDataService implements OnDestroy {
   // Map en lecture seule pour stocker les signaux computed de chaque robot à afficher
   // TODO: pourquoi readonly si WritableSignal ici ?? c'est la map qui est en lecture seule, pas les éléments ??
   private readonly robotSignals = new Map<string, WritableSignal<RobotAspiratorModel>>();
+
+  /**
+  * s'il n'y a plus de robot actif en liste, on stoppe l'animation
+  * TODO: revoir si trop couteux
+  */
+  public readonly hasActiveRobots = computed(() =>
+    [...this.robotSignals.values()].some(sig => sig()?.isRobotStarted)
+  );
 
   // variables pour la vue: animation des robots
   private animationId?: number;
@@ -290,7 +298,10 @@ export class RobotAspiratorDataService implements OnDestroy {
       // Nouvelle direction selon la durée de STEP_DURATION
       else if (sequenceEnded) {
         // s'il n'y a plus de robot actif à la fin de la séquence d'animation, on stoppe directement l'animation
-        this.checkIfNoActiveRobotInList();
+        if (!this.hasActiveRobots()) {
+          this.pauseAllAnimation();
+          return;
+        }
 
         // 1. Reset du temps
         lastStepTime = currentTime;
@@ -312,21 +323,6 @@ export class RobotAspiratorDataService implements OnDestroy {
 
     this.calculateNewDirectionsForAllRobots();
     this.animationId = requestAnimationFrame(animate);
-  }
-
-  /**
-  * s'il n'y a plus de robot actif en liste, on stoppe l'animation
-  * TODO: revoir si trop couteux
-  */
-  private checkIfNoActiveRobotInList(): void {
-    const hasActiveRobot = [...this.robotSignals.values()].some(robotSignal => {
-      const robot = robotSignal();
-      return robot?.isRobotStarted === true;
-    });
-
-    if (!hasActiveRobot) {
-      this.pauseAllAnimation();
-    }
   }
 
   /**
