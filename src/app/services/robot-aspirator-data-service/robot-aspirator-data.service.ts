@@ -18,7 +18,6 @@ export class RobotAspiratorDataService implements OnDestroy {
   // Map en lecture seule pour stocker les signaux computed de chaque robot à afficher
   // TODO: pourquoi readonly si WritableSignal ici ?? c'est la map qui est en lecture seule, pas les éléments ??
   private readonly robotSignals = new Map<string, WritableSignal<RobotAspiratorModel>>();
-  private robotStartedCount: number = 0;
 
   // variables pour la vue: animation des robots
   private animationId?: number;
@@ -179,8 +178,6 @@ export class RobotAspiratorDataService implements OnDestroy {
 
     if (!this.robotSignals.has(robotModel.robotName)) {
       this.robotSignals.set(robotModel.robotName, signal(robotModel));
-
-      this.robotStartedCount = this.robotSignals.size;
     } else {
       console.warn(`Robot ${robotModel.robotName} déjà enregistré`);
     }
@@ -318,17 +315,19 @@ export class RobotAspiratorDataService implements OnDestroy {
 
   /**
   * s'il n'y a plus de robot actif en liste, on stoppe l'animation
+  * TODO: revoir si trop couteux
   */
   private checkIfNoActiveRobotInList() {
+    let robotStartedCount: number = this.robotSignals.size;
     this.robotSignals.forEach((robotSignal) => {
       const robot = robotSignal();
       if (!robot.isRobotStarted) {
-        console.log("loop robotStartedCount = " + this.robotStartedCount);
-        this.robotStartedCount--;
+        console.log("loop robotStartedCount = " + robotStartedCount);
+        robotStartedCount--;
       }
     });
-    if (this.robotStartedCount <= 0) {
-      console.log("robotStartedCount = " + this.robotStartedCount);
+    if (robotStartedCount <= 0) {
+      console.log("robotStartedCount = " + robotStartedCount);
       // this.isRunning = false;
       this.pauseAllAnimation();
       return;
@@ -401,8 +400,8 @@ export class RobotAspiratorDataService implements OnDestroy {
           }
 
           console.log(`### Nouvelle position de nettoyage trouvée pour le Robot ${robot.robotName} : x = ${nextPosition.x}, y = ${nextPosition.y} - Batterie: ${robot.batterie}%`);
-          // MAJ du robot: déplacement de nettoyage normal
-          this.moveCleanerRobot(robotName, robot.position, nextPosition);
+          // MAJ du robot: déplacement normal
+          this.moveCleaningRobot(robotName, robot.position, nextPosition);
         }
       }
     });
@@ -453,7 +452,7 @@ export class RobotAspiratorDataService implements OnDestroy {
   /**
   * Déplace manuellement un robot à une position pour le nettoyage
   */
-  private moveCleanerRobot(robotName: string, position: Position, nextPosition: Position): void {
+  private moveCleaningRobot(robotName: string, position: Position, nextPosition: Position): void {
     console.log("RobotAspiratorDataService - moveRobot()");
 
     const robotSignal: WritableSignal<RobotAspiratorModel> | undefined = this.robotSignals.get(robotName);
