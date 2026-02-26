@@ -5,18 +5,18 @@
       cellpadding="0">
       <ng-template pTemplate="body" let-rowData>
         <tr class="tr-maison">
-          @for (cell of rowData; track cell) {
+          @for (cellElement of rowData; track cellElement) {
           <td class="td-maison">
-            @if (cell.cellStack[0].type === 'O') {
+            @if (cellElement.type === 'O') {
             <img src="/assets/texture-non-visitee.png" alt='O' />
             }
-            @if (cell.cellStack[0].type === 'X') {
+            @if (cellElement.type === 'X') {
             <img src="/assets/texture-mur.png" alt='X' />
             }
-            @if (cell.cellStack[0].type === 'B') {
+            @if (cellElement.type === 'B') {
             <img src="/assets/texture-base.png" alt='B' />
             }
-            @if (cell.cellStack[0].type === '_') {
+            @if (cellElement.type === '_') {
             <img src="/assets/texture-visitee.png" alt='_' />
             }
           </td>

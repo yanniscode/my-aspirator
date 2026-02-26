@@ -4,7 +4,6 @@ import { MaisonModel } from '../../classes/models/maison-model';
 import { CellElement } from '../../classes/models/cellElement';
 import { Position } from '../../classes/models/position';
 import { MessageService } from '../message-service/message.service';
-import { Cell } from '../../classes/models/cell';
 
 @Injectable({
   providedIn: 'root'
@@ -46,7 +45,7 @@ export class MaisonService {
     console.log("MaisonService - updateMaisonConfig()");
 
     // On ajoute la base de chaque robot:
-    this.maisonModel.maison[robotBasePosition.y][robotBasePosition.x].cellStack[0].type = 'B';
+    this.maisonModel.maison[robotBasePosition.y][robotBasePosition.x].type = 'B';
     return this.maisonModel;
   }
 
@@ -58,11 +57,11 @@ export class MaisonService {
 
     // Vérification des null et undefined
     if (!lastPosition) return;
-    const lastVisitedCell: Cell = !this.maisonModel?.maison[lastPosition.y] ? new Cell : this.maisonModel?.maison[lastPosition.y][lastPosition.x] ?? new Cell();
+    const lastVisitedCell: CellElement = !this.maisonModel?.maison[lastPosition.y] ? new CellElement : this.maisonModel?.maison[lastPosition.y][lastPosition.x] ?? new CellElement();
     if (!lastVisitedCell) return;
 
     // on ne veut pas que la case de la base soit modifiée:
-    const lastVisitedCellElement: CellElement = lastVisitedCell.cellStack[0];
+    const lastVisitedCellElement: CellElement = lastVisitedCell;
     if (!lastVisitedCellElement) return;
 
     if (lastVisitedCellElement.type !== 'B') {
@@ -88,10 +87,10 @@ export class MaisonService {
           visited: false
         };
         // TODO: revoir l'utilisation : Une cellule est une pile d'éléments (ex: élément 0 de la pile = une cellule non-visitée, élément 1 superposé = un mur)
-        let cellStack: CellElement[] = [];
-        cellStack.push(cellElement);
+        // let cellStack: CellElement[] = [];
+        // cellStack.push(cellElement);
         this.maisonModel.maison[y][x] = {
-          cellStack: cellStack
+          ...cellElement
         }
       }
     }
@@ -100,7 +99,7 @@ export class MaisonService {
     // TODO: pour version Signaux: utiliser des signaux ici ?
     this.maisonModel.obstacles.forEach(obs => {
       if (obs.x >= 0 && obs.x < this.maisonModel.largeurMaison && obs.y >= 0 && obs.y < this.maisonModel.hauteurMaison) {
-        this.maisonModel.maison[obs.y][obs.x].cellStack[0].type = 'X';
+        this.maisonModel.maison[obs.y][obs.x].type = 'X';
       }
     });
 
@@ -113,8 +112,8 @@ export class MaisonService {
 
     for (let i = 0; i < this.maisonModel.maison.length; i++) {
       for (let j = 0; j < this.maisonModel.maison[i].length; j++) {
-        const cell: Cell = this.maisonModel.maison[i][j];
-        if (cell.cellStack[0].type !== 'X' && cell.cellStack[0].type !== 'B' && !cell.cellStack[0].visited) {
+        const cellElement: CellElement = this.maisonModel.maison[i][j];
+        if (cellElement.type !== 'X' && cellElement.type !== 'B' && !cellElement.visited) {
           return false;
         }
       }

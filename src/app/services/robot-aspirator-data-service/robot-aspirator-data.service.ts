@@ -81,7 +81,7 @@ export class RobotAspiratorDataService implements OnDestroy {
     let position = { ...basePosition };
     let startCoordinate = { x: 0, y: 0 };
     let targetCoordinate = { x: 0, y: 0 };
-    let batterie = 5;
+    let batterie = 5.5;
     let isRobotStarted = false;
     let isRobotReturningToBase = false;
 
@@ -551,7 +551,7 @@ export class RobotAspiratorDataService implements OnDestroy {
 
     // Utiliser un algorithme de recherche de chemin optimal
     let nextPositionNettoyage: Position = this.cheminOptimalService.trouverPositionSuivante(
-      this.maisonModel.maison, robotModelInput.position, prochaineCellule.cellStack[0].position
+      this.maisonModel.maison, robotModelInput.position, prochaineCellule.position
     );
 
     console.log("nextPositionNettoyage :" + nextPositionNettoyage);

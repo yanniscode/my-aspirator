@@ -5,7 +5,7 @@ import { TableModule } from "primeng/table";
 import { MessageService } from '../../services/message-service/message.service';
 import { MaisonModel } from '../../classes/models/maison-model';
 import { Position } from '../../classes/models/position';
-import { Cell } from '../../classes/models/cell';
+import { CellElement } from '../../classes/models/cellElement';
 
 @Component({
   selector: 'app-maison',
@@ -45,7 +45,7 @@ export class MaisonComponent implements OnInit {
   static largeurMaison: number = 10;
   static hauteurMaison: number = 8;
   static obstacles: Position[] = [];
-  static maison: Cell[][] = [[]];
+  static maison: CellElement[][] = [[]];
 
   constructor() {
     console.log("MaisonComponent - constructor()");

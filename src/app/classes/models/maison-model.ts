@@ -1,8 +1,8 @@
-import { Cell } from "./cell";
+import { CellElement } from "./cellElement";
 import { Position } from "./position";
 
 export class MaisonModel {
-    public maison: Cell[][];
+    public maison: CellElement[][];
     public largeurMaison: number;
     public hauteurMaison: number;
     public obstacles: Position[];
@@ -11,7 +11,7 @@ export class MaisonModel {
     constructor() {
         this.maison = [
             [
-                new Cell(),
+                new CellElement(),
             ]
         ];
 
