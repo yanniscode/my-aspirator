@@ -1,8 +1,7 @@
 <div class="game-container">
 
   <div class="maison">
-    <p-table [value]="this.maisonViewModel.maison" @maisonAnimation class="table-maison" cellspacing="0"
-      cellpadding="0">
+    <p-table [value]="maisonViewModel().maison" @maisonAnimation class="table-maison" cellspacing="0" cellpadding="0">
       <ng-template pTemplate="body" let-rowData>
         <tr class="tr-maison">
           @for (cellElement of rowData; track cellElement) {

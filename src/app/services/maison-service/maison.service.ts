@@ -1,8 +1,8 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, Signal, signal, WritableSignal } from '@angular/core';
 
 import { MaisonModel } from '../../classes/models/maison-model';
 import { CellElement } from '../../classes/models/cellElement';
-import { Position } from '../../classes/models/position';
+import { GridPosition } from '../../classes/models/grid-position';
 import { MessageService } from '../message-service/message.service';
 
 @Injectable({
@@ -12,10 +12,20 @@ export class MaisonService {
 
   private messageService = inject(MessageService);
 
-  constructor() { }
+  constructor() {
+      console.log("MaisonService - constructor()");
+  }
 
   // instanciation de la maison:
-  private maisonModel = new MaisonModel();
+  // Privé et mutable — seul le service peut écrire dedans
+  // readonly sur la déclaration TypeScript signifie que la référence au signal ne peut pas être réassignée — pas que le signal lui-même est immuable
+  private readonly _maisonSignal: WritableSignal<MaisonModel> = signal<MaisonModel>(new MaisonModel());
+  // Public et lecture seule — les composants peuvent seulement lire
+  public readonly maisonSignal: Signal<MaisonModel> = this._maisonSignal.asReadonly();
+
+  public updateMaison(maison: MaisonModel): void {
+    this._maisonSignal.set(maison);
+  }
 
   public getMaisonParams(): MaisonModel {
     console.log("MaisonComponent - getMaisonParams()");
@@ -24,101 +34,121 @@ export class MaisonService {
     // Création des paramètres de la maison
     const largeurMaison: number = 10;
     const hauteurMaison: number = 8;
-    const obstacles: { x: number; y: number; }[] = [
-      { x: 2, y: 3 }, { x: 2, y: 4 }, { x: 3, y: 4 },
-      { x: 7, y: 1 }, { x: 7, y: 2 }, { x: 7, y: 3 },
-      { x: 4, y: 6 }, { x: 5, y: 6 }, { x: 6, y: 6 }
+    const obstacles: GridPosition[] = [
+      { row: 3, col: 2 }, { row: 4, col: 2 }, { row: 4, col: 3 },
+      { row: 1, col: 7 }, { row: 2, col: 7 }, { row: 3, col: 7 },
+      { row: 6, col: 4 }, { row: 6, col: 5 }, { row: 6, col: 6 }
     ];
+
     const isNettoyageComplete = false;
 
-    this.maisonModel.largeurMaison = largeurMaison;
-    this.maisonModel.hauteurMaison = hauteurMaison;
-    this.maisonModel.obstacles = obstacles;
-    this.maisonModel.isNettoyageComplete = isNettoyageComplete;
+    const newMaison = new MaisonModel();
+    newMaison.largeurMaison = largeurMaison;
+    newMaison.hauteurMaison = hauteurMaison;
+    newMaison.obstacles = obstacles;
+    newMaison.isNettoyageComplete = isNettoyageComplete;
 
-    // appel de la méthode privée creerMaison()
-    return this.maisonModel = { ...this.creerMaison() };
+    return newMaison;
   }
 
-  // TODO: pour version Signaux: utiliser des signaux ici ?
-  public updateMaisonConfig(robotBasePosition: Position): MaisonModel {
-    console.log("MaisonService - updateMaisonConfig()");
+  public initMaison(maisonModel: MaisonModel): void {
+    this._maisonSignal.set({
+      ...new MaisonModel(),
+      maison: this.buildMaison(maisonModel.largeurMaison, maisonModel.hauteurMaison, maisonModel.obstacles),
+      largeurMaison: maisonModel.largeurMaison,
+      hauteurMaison: maisonModel.hauteurMaison,
+      obstacles: maisonModel.obstacles,
+      isNettoyageComplete: maisonModel.isNettoyageComplete
+    });
+  }
+
+  private buildMaison(
+    largeur: number,
+    hauteur: number,
+    obstacles: GridPosition[]
+  ): CellElement[][] {
+    return Array.from({ length: hauteur }, (_, row) =>
+      Array.from({ length: largeur }, (_, col) => {
+        const cell = new CellElement();
+        const isObstacle = obstacles.some(o => o.row === row && o.col === col);
+        cell.type = isObstacle ? 'X' : 'O';
+        cell.position = new GridPosition(row, col);
+        return cell;
+      })
+    );
+  }
+
+  private updateMaisonCell(row: number, col: number, newCellElement: CellElement) {
+    const maison = this._maisonSignal().maison;
+    if (row < 0 || row >= maison.length || col < 0 || col >= (maison[0]?.length ?? 0)) {
+      console.warn(`updateMaisonCell: position (${row}, ${col}) hors limites`);
+      return;
+    }
+
+    this._maisonSignal.update(current => ({
+      ...current,
+      maison: current.maison.map((rowMaison, i) =>
+        i === row
+          ? rowMaison.map((cellElement, j) => j === col ? newCellElement : cellElement)
+          : rowMaison
+      )
+    }));
+  }
+
+  public updateMaisonRobotsBases(robotBasePosition: GridPosition): void {
+    console.log("MaisonService - updateMaisonRobotsBases()");
+
+    console.log("maison dimensions:",
+      this._maisonSignal().maison.length,        // hauteur
+      this._maisonSignal().maison[0]?.length     // largeur
+    );
+    console.log("base position:", robotBasePosition);
 
     // On ajoute la base de chaque robot:
-    this.maisonModel.maison[robotBasePosition.y][robotBasePosition.x].type = 'B';
-    return this.maisonModel;
+    const newRobotBaseCell: CellElement = {
+      position: { ...robotBasePosition },
+      type: 'B',
+      visited: false
+    };
+    this.updateMaisonCell(newRobotBaseCell.position.row, newRobotBaseCell.position.col, newRobotBaseCell);
   }
 
-  // TODO: pour version Signaux: utiliser des signaux ici ?
-  public updateMaisonCellules(lastPosition: Position): void {
+  public updateMaisonCellules(lastPosition: GridPosition): void {
     console.log("MaisonService - updateMaisonCellules()");
-    // console.log("lastPosition.x = " + lastPosition.x);
-    // console.log("lastPosition.y = " + lastPosition.y);
 
-    // Vérification des null et undefined
-    if (!lastPosition) return;
-    const lastVisitedCell: CellElement = !this.maisonModel?.maison[lastPosition.y] ? new CellElement : this.maisonModel?.maison[lastPosition.y][lastPosition.x] ?? new CellElement();
+    const maisonModel = this.maisonSignal();
+    if (!maisonModel) return;
+
+    // Copie par référence, ici, pas par valeur:
+    const lastVisitedCell: CellElement = !maisonModel?.maison[lastPosition.row]
+      ? new CellElement
+      : maisonModel?.maison[lastPosition.row][lastPosition.col] ? { ...maisonModel?.maison[lastPosition.row][lastPosition.col] } : new CellElement();
+
     if (!lastVisitedCell) return;
 
-    // on ne veut pas que la case de la base soit modifiée:
-    const lastVisitedCellElement: CellElement = lastVisitedCell;
-    if (!lastVisitedCellElement) return;
-
-    if (lastVisitedCellElement.type !== 'B') {
-      lastVisitedCellElement.visited = true;
-      lastVisitedCellElement.type = '_';
-    }
-  }
-
-  private creerMaison(): MaisonModel {
-    console.log("MaisonService - creerMaison()");
-
-    for (let y = 0; y < this.maisonModel.hauteurMaison; y++) {
-      // x = la largeur de la maison
-      // y = la hauteur de la maison
-
-      this.maisonModel.maison[y] = [];
-
-      // Création de la maison comme ensemble de blocs d'éléments vides 'O'
-      for (let x = 0; x < this.maisonModel.largeurMaison; x++) {
-        let cellElement: CellElement = {
-          position: { x, y },
-          type: 'O',
-          visited: false
-        };
-        // TODO: revoir l'utilisation : Une cellule est une pile d'éléments (ex: élément 0 de la pile = une cellule non-visitée, élément 1 superposé = un mur)
-        // let cellStack: CellElement[] = [];
-        // cellStack.push(cellElement);
-        this.maisonModel.maison[y][x] = {
-          ...cellElement
-        }
-      }
+    // Ici, l'update du  signal est automatique car on a une copie par référence
+    // On ne veut pas que la case de la base soit modifiée
+    if (lastVisitedCell.type !== 'B') {
+      lastVisitedCell.visited = true;
+      lastVisitedCell.type = '_';
     }
 
-    // Ajouter les obstacles 'X' à la maison
-    // TODO: pour version Signaux: utiliser des signaux ici ?
-    this.maisonModel.obstacles.forEach(obs => {
-      if (obs.x >= 0 && obs.x < this.maisonModel.largeurMaison && obs.y >= 0 && obs.y < this.maisonModel.hauteurMaison) {
-        this.maisonModel.maison[obs.y][obs.x].type = 'X';
-      }
-    });
-
-    return this.maisonModel;
+    this.updateMaisonCell(lastVisitedCell.position.row, lastVisitedCell.position.col, lastVisitedCell);
   }
 
-  // Vérifier si toutes les cellules accessibles ont été visitées
   public toutEstNettoye(): boolean {
     console.log("MaisonService - toutEstNettoye()");
+    const maisonModel = this.maisonSignal();
+    if (!maisonModel) return true;
 
-    for (let i = 0; i < this.maisonModel.maison.length; i++) {
-      for (let j = 0; j < this.maisonModel.maison[i].length; j++) {
-        const cellElement: CellElement = this.maisonModel.maison[i][j];
-        if (cellElement.type !== 'X' && cellElement.type !== 'B' && !cellElement.visited) {
-          return false;
-        }
-      }
-    }
-    return true;
+    // Vérifier si toutes les cellules accessibles ont été visitées
+    return maisonModel.maison.every(row =>
+      // row.every() renvoie true pour un mur, une position de base (on ne veut pas savoir s'ils sont visités) ou une cellule visitée,
+      // false pour une position non visitée:
+      row.every(cell =>
+        cell.type === 'X' || cell.type === 'B' || cell.visited
+      )
+    );
   }
 
   private log(message: string) {

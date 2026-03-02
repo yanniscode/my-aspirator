@@ -2,5 +2,5 @@
   [style.left.px]="currentCoordinates().x" [style.top.px]="currentCoordinates().y">
   <img src="/assets/megaman.png" alt='R' />
   <div class="robot-label" [style.color]="robotColor">{{robotViewModel()?.robotName ?? "Theodule" }}</div>
-  <div class="robot-batterie-label" [style.color]="robotColor">{{robotViewModel()?.batterie ?? -1 }}</div>
+  <div class="robot-batterie-label">{{robotViewModel()?.batterie ?? -1 }}</div>
 </div>

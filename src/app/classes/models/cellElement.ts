@@ -1,12 +1,12 @@
-import { Position } from "./position";
+import { GridPosition } from "./grid-position";
 
 export class CellElement {
-    position: Position;
+    position: GridPosition;
     type: 'O' | 'X' | 'B' | '_' | 'R'; // 'O' = nonVisitée, 'X' = mur, 'B' = base, '_' = visitée, 'R' = robot
     visited: boolean;
 
     constructor() {
-        this.position = new Position();
+        this.position = new GridPosition();
         this.type = 'O';
         this.visited = false;
     }

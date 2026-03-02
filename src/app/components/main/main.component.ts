@@ -1,4 +1,4 @@
-import { Component, OnDestroy, ViewChild, ViewEncapsulation, inject, ChangeDetectionStrategy, signal, AfterContentInit } from '@angular/core';
+import { Component, OnDestroy, ViewChild, ViewEncapsulation, inject, ChangeDetectionStrategy, signal, computed, Signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
 
@@ -12,7 +12,7 @@ import { RobotAspiratorModel } from '../../classes/models/robot-aspirator-model'
 import { MessageService } from '../../services/message-service/message.service';
 import { RobotAspiratorWithNextPositionsTabService } from '../../services/robot-actions-service/robot-aspirator-with-next-positions-tab-service/robot-aspirator/robot-aspirator/robot-aspirator-with-next-positions-tab-service/robot-aspirator-with-next-positions-tab.service';
 import { RobotAspiratorDataService } from '../../services/robot-aspirator-data-service/robot-aspirator-data.service';
-import { Position } from '../../classes/models/position';
+import { GridPosition } from '../../classes/models/grid-position';
 import { RobotAspiratorComponent } from '../robot-aspirator/robot-aspirator.component';
 
 @Component({
@@ -27,7 +27,7 @@ import { RobotAspiratorComponent } from '../robot-aspirator/robot-aspirator.comp
   changeDetection: ChangeDetectionStrategy.Default, // ATTENTION: ChangeDetectionStrategy.OnPush pourrait poser problème lors de l'affichage de la maison en intro
   providers: [RobotAspiratorWithNextPositionsTabService]
 })
-export class MainComponent implements AfterContentInit, OnDestroy {
+export class MainComponent implements OnDestroy {
   // instantiation de composant enfant
   @ViewChild(MaisonComponent) maisonChildComponent!: MaisonComponent;
 
@@ -35,39 +35,26 @@ export class MainComponent implements AfterContentInit, OnDestroy {
   private maisonService = inject(MaisonService);
   private robotAspiratorDataService = inject(RobotAspiratorDataService);
 
-  public maisonViewModel: MaisonModel;
+  public readonly maisonViewModel: Signal<MaisonModel> = computed(() =>
+    this.maisonService.maisonSignal()
+  );
 
   public robotViewModelTab: RobotAspiratorModel[];
 
   public robotNames = signal<string[]>([]);
 
-  // TODO ? transformer en signal animationId
-  //   isAnimating = signal(false);
   private isRobotMapStarted: boolean = false;
-
-  // variables de template binding (@input vers le composant robot):
 
   constructor() {
     console.log("MainComponent - constructor()");
 
     // initialisation des params de la maison et des robots
-    this.maisonViewModel = { ...this.maisonService.getMaisonParams() };
+    const maisonModel: MaisonModel = { ...this.maisonService.getMaisonParams() };
+    this.maisonService.initMaison(maisonModel);
+
     this.robotViewModelTab = [...this.robotAspiratorDataService.getRobotsParams()];
-
     this.isRobotMapStarted = false;
-  }
-
-  // évite une ExpressionChangedAfterItHasBeenCheckedError
-  ngAfterContentInit(): void {
-    console.log('MainComponent - ngAfterContentInit()');
-
-    // mini-delai pour attendre la fin de l'initialisation de l'enfant MaisonComponent
-    setTimeout(() => {
-      if (!this.maisonChildComponent) return;
-      this.maisonChildComponent.construireMaison(this.maisonViewModel);
-
-      this.initRobotsViewModelDatas();
-    });
+    this.initRobotsViewModelDatas();
   }
 
   ngOnDestroy(): void {
@@ -94,7 +81,7 @@ export class MainComponent implements AfterContentInit, OnDestroy {
 
     // Démarrage avec des signaux:
     if (!this.isRobotMapStarted) {
-      this.robotAspiratorDataService.startRobotsMapInterval(this.maisonViewModel);
+      this.robotAspiratorDataService.startRobotsMapInterval();
       this.isRobotMapStarted = true;
     } else {
       console.log("(re)démarrage impossible");
@@ -112,8 +99,9 @@ export class MainComponent implements AfterContentInit, OnDestroy {
       this.robotNames.update(robotNames => [...robotNames, robotViewModel.robotName]);
 
       // 3/ Ajout de la base du robot dans la Maison
-      const robotBasePosition: Position = { ...robotViewModel.basePosition };
-      this.maisonViewModel = { ...this.maisonService.updateMaisonConfig(robotBasePosition) };
+      const robotBasePosition: GridPosition = { ...robotViewModel.basePosition };
+      // TODO: remettre
+      this.maisonService.updateMaisonRobotsBases(robotBasePosition);
     });
   }
 

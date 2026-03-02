@@ -1,15 +1,16 @@
-import { Position } from "./position";
+import { GridPosition } from "./grid-position";
+import { PixelPosition } from "./pixel-position";
 
 export class RobotAspiratorModel {
 
     public robotName: string;
     // Position de la base de charge du robot
-    public basePosition: Position;
+    public basePosition: GridPosition;
     // Positions précédente et actuelle
-    public lastPosition: Position;
-    public position: Position;
-    public startCoordinate: Position;
-    public targetCoordinate: Position;
+    public lastPosition: GridPosition;
+    public position: GridPosition;
+    public startCoordinate: PixelPosition;
+    public targetCoordinate: PixelPosition;
 
     // Niveau de batterie (en pourcentage)
     public batterie: number;
@@ -21,11 +22,11 @@ export class RobotAspiratorModel {
     constructor() {
         this.robotName = "Theodule";
         // valeurs par défaut pour l'init du robot:
-        this.basePosition = new Position();
-        this.lastPosition = new Position();
-        this.position = new Position();
-        this.startCoordinate = new Position();
-        this.targetCoordinate = new Position();
+        this.basePosition = new GridPosition();
+        this.lastPosition = new GridPosition();
+        this.position = new GridPosition();
+        this.startCoordinate = new PixelPosition();
+        this.targetCoordinate = new PixelPosition();
         this.batterie = -1;
         this.isRobotStarted = false;
         // Combien d'énergie est consommée par mouvement

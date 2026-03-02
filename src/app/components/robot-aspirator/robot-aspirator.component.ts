@@ -5,7 +5,8 @@ import { MessageService } from '../../services/message-service/message.service';
 
 import { RobotAspiratorModel } from '../../classes/models/robot-aspirator-model';
 import { RobotAspiratorDataService } from '../../services/robot-aspirator-data-service/robot-aspirator-data.service';
-import { Position } from '../../classes/models/position';
+import { GridPosition } from '../../classes/models/grid-position';
+import { PixelPosition } from '../../classes/models/pixel-position';
 
 @Component({
   selector: 'app-robot-aspirator',
@@ -48,21 +49,22 @@ export class RobotAspiratorComponent {
   }
 
   // Computed réactif basé sur le signal animationProgress
-  public currentCoordinates: Signal<Position> = computed((): Position => {
-    console.log("RobotAspiratorComponent - currentCoordinates: computed()");
+  public currentCoordinates: Signal<PixelPosition> = computed((): PixelPosition => {
+    // console.log("RobotAspiratorComponent - currentCoordinates: computed()");
 
     const robot = this.robotViewModel();
-    if (!robot) return new Position(-50, -50);
-    console.log(robot);
+    if (!robot) return new PixelPosition(-50, -50);
+    // console.log(robot);
 
-    // ✅ Dépend du signal animationProgress
+    // Dépend du signal animationProgress
     const progress = this.robotAspiratorDataService.animationProgress();
 
-    // Interpolation linéaire entre startCoordinate et targetCoordinate
+    // Interpolation linéaire (calcul de valeurs intermédiaires) entre startCoordinate et targetCoordinate
     const newXCoordinate = robot.startCoordinate.x + (robot.targetCoordinate.x - robot.startCoordinate.x) * progress;
     const newYCoordinate = robot.startCoordinate.y + (robot.targetCoordinate.y - robot.startCoordinate.y) * progress;
 
-    return new Position(newXCoordinate, newYCoordinate);
+    // Attention: inversion des coordonnées pour l'affichage: col = x, row = y
+    return new PixelPosition(newXCoordinate, newYCoordinate);
   });
 
   constructor() {

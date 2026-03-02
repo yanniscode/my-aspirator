@@ -1,11 +1,11 @@
 import { CellElement } from "./cellElement";
-import { Position } from "./position";
+import { GridPosition } from "./grid-position";
 
 export class MaisonModel {
     public maison: CellElement[][];
     public largeurMaison: number;
     public hauteurMaison: number;
-    public obstacles: Position[];
+    public obstacles: GridPosition[];
     public isNettoyageComplete: boolean;
 
     constructor() {
@@ -18,7 +18,7 @@ export class MaisonModel {
         this.largeurMaison = 0;
         this.hauteurMaison = 0
         this.obstacles = [
-            new Position(),
+            new GridPosition(),
         ];
         this.isNettoyageComplete = false;
     }

@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 
-import { Position } from '../../classes/models/position';
+import { GridPosition } from '../../classes/models/grid-position';
 import { MessageService } from '../message-service/message.service';
 import { CellElement } from '../../classes/models/cellElement';
 
@@ -13,7 +13,7 @@ export class CheminOptimalService {
 
   constructor() { }
 
-  public calculerCheminSuivant(isRetourAlaBase: boolean, maison: CellElement[][], basePosition: Position, position: Position): Position[] {
+  public calculerCheminSuivant(isRetourAlaBase: boolean, maison: CellElement[][], basePosition: GridPosition, position: GridPosition): GridPosition[] {
     console.log("CheminOptimalService - calculerCheminSuivant()");
 
     const prochaineCellule = this.trouverProchaineDestination(maison, position);
@@ -22,7 +22,7 @@ export class CheminOptimalService {
     // isRetourAlaBase n'est vrai ici que si prochaineCellule est null ou undefined
     if (prochaineCellule || isRetourAlaBase) {
 
-      let finChemin: Position = !isRetourAlaBase ? { ...prochaineCellule!.position } : { ...basePosition };
+      let finChemin: GridPosition = !isRetourAlaBase ? { ...prochaineCellule!.position } : { ...basePosition };
 
       const chemin = this.trouverChemin(maison, position, finChemin);
       // console.log(chemin);
@@ -36,20 +36,20 @@ export class CheminOptimalService {
   }
 
   // Trouver la prochaine cellule accessible non visitée la plus proche
-  public trouverProchaineDestination(maison: CellElement[][], position: Position): CellElement | null {
+  public trouverProchaineDestination(maison: CellElement[][], position: GridPosition): CellElement | null {
     // console.log("CheminOptimalService - trouverProchaineDestination()");
 
     // Utiliser un algorithme de recherche en largeur (BFS) pour trouver la cellule non visitée la plus proche
     const queue: { cellElement: CellElement; distance: number }[] = [];
     const visited: Set<string> = new Set();
 
-    const positionKey = `${position.x},${position.y}`;
+    const positionKey = `${position.col},${position.row}`;
     visited.add(positionKey);
 
     // Ajouter les cellules adjacentes à la position actuelle
     this.obtenirCellulesAdjacentes(maison, position).forEach(cellElement => {
       queue.push({ cellElement: cellElement, distance: 1 });
-      visited.add(`${cellElement.position.x},${cellElement.position.y}`);
+      visited.add(`${cellElement.position.col},${cellElement.position.row}`);
     });
 
     while (queue.length > 0) {
@@ -67,7 +67,7 @@ export class CheminOptimalService {
 
       // Ajouter les cellules adjacentes à la file d'attente
       this.obtenirCellulesAdjacentes(maison, cellElement.position).forEach(adjacentCell => {
-        const key = `${adjacentCell.position.x},${adjacentCell.position.y}`;
+        const key = `${adjacentCell.position.col},${adjacentCell.position.row}`;
         if (!visited.has(key)) {
           queue.push({ cellElement: adjacentCell, distance: distance + 1 });
           visited.add(key);
@@ -78,32 +78,32 @@ export class CheminOptimalService {
   }
 
   // pour la version 1 de l'algo - RobotAspiratorWithNextPositionService :
-  public trouverPositionSuivante(maison: CellElement[][], depart: Position, fin: Position): Position {
+  public trouverPositionSuivante(maison: CellElement[][], depart: GridPosition, fin: GridPosition): GridPosition {
     // console.log("CheminOptimalService - trouverPositionSuivante()");
 
     return this.trouverChemin(maison, depart, fin)[0];
   }
 
   // Calculer la distance entre deux positions (heuristique pour A*)
-  public distance(a: Position, b: Position): number {
+  public distance(a: GridPosition, b: GridPosition): number {
     // console.log("CheminOptimalService - distance()");
 
-    return Math.abs(a.x - b.x) + Math.abs(a.y - b.y); // Distance de Manhattan
+    return Math.abs(a.col - b.col) + Math.abs(a.row - b.row); // Distance de Manhattan
   }
 
   // Algorithme A* pour trouver le chemin optimal
-  private trouverChemin(maison: CellElement[][], depart: Position, fin: Position): Position[] {
+  private trouverChemin(maison: CellElement[][], depart: GridPosition, fin: GridPosition): GridPosition[] {
     // console.log("CheminOptimalService - trouverChemin()");
 
     // Structure pour représenter un nœud dans l'algorithme A*
     interface Node {
-      position: Position;
+      position: GridPosition;
       g: number; // Coût depuis le départ
       f: number; // Coût estimé total (g + h)
     }
 
     // Fonction pour créer une clé unique pour une position
-    const positionKey = (pos: Position): string => `${pos.x},${pos.y}`;
+    const positionKey = (pos: GridPosition): string => `${pos.col},${pos.row}`;
 
     // Ensemble des nœuds à explorer (la file de priorité)
     const openSet: Node[] = [];
@@ -112,7 +112,7 @@ export class CheminOptimalService {
     const closedSet = new Set<string>();
 
     // Map qui associe chaque position à son parent dans le chemin optimal
-    const cameFrom = new Map<string, Position>();
+    const cameFrom = new Map<string, GridPosition>();
 
     // Map qui stocke le coût g pour chaque position
     const gScore = new Map<string, number>();
@@ -144,7 +144,7 @@ export class CheminOptimalService {
       const currentKey = positionKey(current.position);
 
       // Si nous sommes arrivés à destination
-      if (current.position.x === fin.x && current.position.y === fin.y) {
+      if (current.position.col === fin.col && current.position.row === fin.row) {
         // Reconstruire le chemin
         return this.reconstruireChemin(depart, cameFrom, fin);
       }
@@ -178,7 +178,7 @@ export class CheminOptimalService {
 
           // Vérifier si le voisin est déjà dans openSet
           const existingIndex = openSet.findIndex(node =>
-            node.position.x === voisin.position.x && node.position.y === voisin.position.y
+            node.position.col === voisin.position.col && node.position.row === voisin.position.row
           );
 
           if (existingIndex !== -1) {
@@ -208,12 +208,12 @@ export class CheminOptimalService {
   }
 
   // Méthode pour reconstruire le chemin
-  private reconstruireChemin(position: Position, cameFrom: Map<string, Position>, current: Position): Position[] {
+  private reconstruireChemin(position: GridPosition, cameFrom: Map<string, GridPosition>, current: GridPosition): GridPosition[] {
     // console.log("CheminOptimalService - reconstruireChemin()");
 
-    const chemin: Position[] = [];
+    const chemin: GridPosition[] = [];
     let currentPos = current;
-    const positionKey = (pos: Position): string => `${pos.x},${pos.y}`;
+    const positionKey = (pos: GridPosition): string => `${pos.col},${pos.row}`;
 
     // Reconstruire le chemin en partant de la fin
     while (cameFrom.has(positionKey(currentPos))) {
@@ -223,15 +223,15 @@ export class CheminOptimalService {
 
     // Enlever le premier nœud si c'est la position actuelle
     if (chemin.length > 0 &&
-      chemin[0].x === position.x &&
-      chemin[0].y === position.y) {
+      chemin[0].col === position.col &&
+      chemin[0].row === position.row) {
       chemin.shift();
     }
     return chemin;
   }
 
   // Obtenir les cellules adjacentes à une position
-  private obtenirCellulesAdjacentes(maison: CellElement[][], position: Position): CellElement[] {
+  private obtenirCellulesAdjacentes(maison: CellElement[][], position: GridPosition): CellElement[] {
     // console.log("CheminOptimalService - obtenirCellulesAdjacentes()");
 
     const directions = [
@@ -244,8 +244,8 @@ export class CheminOptimalService {
     const cellules: CellElement[] = [];
 
     directions.forEach(dir => {
-      const newX = position.x + dir.dx;
-      const newY = position.y + dir.dy;
+      const newX = position.col + dir.dx;
+      const newY = position.row + dir.dy;
 
       // Vérifier si la nouvelle position est dans les limites de la maison et si c'est un bloc de type mur
       if (newX >= 0 && newX < maison[0].length &&

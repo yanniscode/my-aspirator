@@ -1,16 +1,16 @@
-import { Position } from "../models/position";
+import { GridPosition } from "../models/grid-position";
 
 export class RobotServiceDtoOut {
     batterie: number;
     isNettoyageComplete: boolean;
-    positions: Position[]; // Contient [lastPosition, currentPosition]
+    positions: GridPosition[]; // Contient [lastPosition, currentPosition]
     isRobotReturningToBase: boolean;
 
     constructor() {
         this.batterie = -1;
         this.isNettoyageComplete = false;
         this.positions = [
-            new Position()
+            new GridPosition()
         ];
         this.isRobotReturningToBase = false;
     }

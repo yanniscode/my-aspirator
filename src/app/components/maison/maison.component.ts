@@ -1,11 +1,12 @@
-import { Component, ViewEncapsulation, ChangeDetectionStrategy, inject, ViewChild, ElementRef, OnInit } from '@angular/core';
+import { Component, ViewEncapsulation, ChangeDetectionStrategy, inject, ViewChild, ElementRef, OnInit, computed, Signal } from '@angular/core';
 
 import { TableModule } from "primeng/table";
 
 import { MessageService } from '../../services/message-service/message.service';
 import { MaisonModel } from '../../classes/models/maison-model';
-import { Position } from '../../classes/models/position';
+import { GridPosition } from '../../classes/models/grid-position';
 import { CellElement } from '../../classes/models/cellElement';
+import { MaisonService } from '../../services/maison-service/maison.service';
 
 @Component({
   selector: 'app-maison',
@@ -29,6 +30,7 @@ import { CellElement } from '../../classes/models/cellElement';
 export class MaisonComponent implements OnInit {
   @ViewChild('maisonCanvas', { static: true }) maisonCanvas!: ElementRef<HTMLCanvasElement>;
 
+  private maisonService = inject(MaisonService);
   private messageService = inject(MessageService);
 
   private ctx!: CanvasRenderingContext2D;
@@ -38,23 +40,20 @@ export class MaisonComponent implements OnInit {
   private height = 400;
 
   // variables de template binding (@input vers le composant robot):
-  public maisonViewModel: MaisonModel;
+  public readonly maisonViewModel: Signal<MaisonModel> = computed(() =>
+    this.maisonService.maisonSignal()
+  );
+
   public aspiroViewSize = 50;
 
   // Params de la maison (tableau)
   static largeurMaison: number = 10;
   static hauteurMaison: number = 8;
-  static obstacles: Position[] = [];
+  static obstacles: GridPosition[] = [];
   static maison: CellElement[][] = [[]];
 
   constructor() {
     console.log("MaisonComponent - constructor()");
-
-    this.maisonViewModel = new MaisonModel();
-    this.maisonViewModel.largeurMaison = 10;
-    this.maisonViewModel.hauteurMaison = 8;
-    this.maisonViewModel.obstacles = [];
-    this.maisonViewModel.isNettoyageComplete = false;
   }
 
   // on dessine une seule fois la maison, à son initialisation :
@@ -66,14 +65,7 @@ export class MaisonComponent implements OnInit {
     console.log("MaisonComponent - onMaisonPause()");
   }
 
-  public construireMaison(maisonModel: MaisonModel): void {
-    console.log("MaisonComponent - construireMaison()");
-
-    // Instanciation de la maison pour la Vue (composant MaisonComponent) :
-    this.maisonViewModel = { ...maisonModel };
-  }
-
-  // TODO: la maison peut être dessinée seulement 1 fois à l'init
+  // TODO: la maison peut être dessinée seulement 1 fois à l'initialisation
   private drawCanvasElements(): void {
     console.log("MaisonComponent - drawCanvasElements()");
 
