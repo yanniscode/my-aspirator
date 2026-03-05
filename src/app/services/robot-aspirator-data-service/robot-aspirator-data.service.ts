@@ -6,6 +6,7 @@ import { GridPosition } from '../../classes/models/grid-position';
 import { MessageService } from '../message-service/message.service';
 import { MaisonService } from '../maison-service/maison.service';
 import { PixelPosition } from '../../classes/models/pixel-position';
+import { CellElement } from '../../classes/models/cellElement';
 
 @Injectable({
   providedIn: 'root'
@@ -80,7 +81,7 @@ export class RobotAspiratorDataService implements OnDestroy {
     let position = { ...basePosition };
     let startCoordinate = this.calculatePixelCoordinates(basePosition);
     let targetCoordinate = this.calculatePixelCoordinates(basePosition);
-    let batterie = 3;
+    let batterie = 3.5;
     let isRobotStarted = false;
     let isRobotReturningToBase = false;
 
@@ -171,7 +172,7 @@ export class RobotAspiratorDataService implements OnDestroy {
     console.log(robot4Model);
 
     // pour test de 1 ou plusieurs robots
-    // const robotModelTab: RobotAspiratorModel[] = [{ ...robot1Model }, { ...robot2Model }, { ...robot3Model }, { ...robot4Model }];
+//     const robotModelTab: RobotAspiratorModel[] = [{ ...robot1Model }, { ...robot2Model }, { ...robot3Model }, { ...robot4Model }];
     const robotModelTab = [{ ...robot1Model }, { ...robot4Model }];
 
     return robotModelTab;
@@ -336,6 +337,7 @@ export class RobotAspiratorDataService implements OnDestroy {
 
       const robot = robotSignal();
       if (!robot) return;
+      console.log(robot);
 
       let nextPosition: GridPosition = robot.position;
       if (!nextPosition) return;
@@ -384,11 +386,13 @@ export class RobotAspiratorDataService implements OnDestroy {
             robot.consommationParMouvement
           );
           if (batteryLimitExceeded) {
+            console.log("batteryLimitExceeded !");
+            console.log(`### Limite de batterie dépassée pour le Robot ${robot.robotName} : row = ${robot.position.row}, col = ${robot.position.col} - Batterie: ${robot.batterie}%`);
             this.activateReturnToBase(robot);
             return;
           }
 
-          console.log(`### Nouvelle position de nettoyage trouvée pour le Robot ${robot.robotName} : row = ${nextPosition.col}, col = ${nextPosition.row} - Batterie: ${robot.batterie}%`);
+          console.log(`### Nouvelle position de nettoyage trouvée pour le Robot ${robot.robotName} : row = ${nextPosition.row}, col = ${nextPosition.col} - Batterie: ${robot.batterie}%`);
           // MAJ du robot: déplacement normal
           this.moveCleaningRobot(robotName, robot.position, nextPosition);
         }
@@ -535,7 +539,7 @@ export class RobotAspiratorDataService implements OnDestroy {
     console.log(prochaineCellule);
 
     if (!prochaineCellule) {
-      console.log("Aucune cellule accessible non visitée trouvée");
+      console.log("La maison est entièrement nettoyée !");
 
       let positionRetourALaBase: GridPosition = this.retournerALaBase(robotModelInput);
       console.log("positionRetourALaBase :" + positionRetourALaBase);
@@ -592,13 +596,24 @@ export class RobotAspiratorDataService implements OnDestroy {
   // Estimer l'énergie nécessaire au robot pour retourner à la base
   private energieNecessairePourRetour(position: GridPosition, basePosition: GridPosition, consommationParMouvement: number): number {
     console.log("RobotAspiratorDataService - energieNecessairePourRetour()");
+    const maisonModel: MaisonModel = this.maisonSignal();
+    if (!maisonModel) return -1;
 
-    // Estimer la distance jusqu'à la base
-    const distance = this.cheminOptimalService.distance(position, basePosition);
+    // Estimer la distance jusqu'à la base (la distance de Manhattan ne suffit pas : elle ne tient pas compte des obstacles)
+    const distance = this.distanceDeLaBase(maisonModel.maison, position, basePosition);
     console.log("distance minimale de la base = " + distance);
 
     // Ajouter une marge de sécurité si on veut
     return (distance * consommationParMouvement) * 1;
+  }
+
+  // recherche de la distance du robot à  sa base:
+  public distanceDeLaBase(maison: CellElement[][], basePosition: GridPosition, position: GridPosition): number {
+    console.log("CheminOptimalService - distanceDeLaBase()");
+    const chemin: GridPosition[] = this.cheminOptimalService.trouverChemin(maison, position, basePosition);
+    console.log(chemin.length);
+
+    return chemin.length;
   }
 
   public calculatePixelCoordinates(grid: GridPosition): PixelPosition {

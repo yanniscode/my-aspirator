@@ -24,7 +24,7 @@ export class CheminOptimalService {
 
       let finChemin: GridPosition = !isRetourAlaBase ? { ...prochaineCellule!.position } : { ...basePosition };
 
-      const chemin = this.trouverChemin(maison, position, finChemin);
+      const chemin: GridPosition[] = this.trouverChemin(maison, position, finChemin);
       // console.log(chemin);
 
       return chemin.map(pos => ({ ...pos }));
@@ -92,7 +92,7 @@ export class CheminOptimalService {
   }
 
   // Algorithme A* pour trouver le chemin optimal
-  private trouverChemin(maison: CellElement[][], depart: GridPosition, fin: GridPosition): GridPosition[] {
+  public trouverChemin(maison: CellElement[][], depart: GridPosition, fin: GridPosition): GridPosition[] {
     // console.log("CheminOptimalService - trouverChemin()");
 
     // Structure pour représenter un nœud dans l'algorithme A*
