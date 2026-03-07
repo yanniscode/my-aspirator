@@ -61,10 +61,6 @@ export class MaisonComponent implements OnInit {
     this.drawCanvasElements();
   }
 
-  public onMaisonPause(): void {
-    console.log("MaisonComponent - onMaisonPause()");
-  }
-
   // TODO: la maison peut être dessinée seulement 1 fois à l'initialisation
   private drawCanvasElements(): void {
     console.log("MaisonComponent - drawCanvasElements()");

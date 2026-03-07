@@ -48,6 +48,12 @@ export class RobotAspiratorComponent {
     }
   }
 
+  constructor() {
+    console.log("RobotAspiratorComponent - constructor()");
+    // couleur aléatoire pour le nom du robot
+    this.setRandomRobotColor();
+  }
+
   // Computed réactif basé sur le signal animationProgress
   public currentCoordinates: Signal<PixelPosition> = computed((): PixelPosition => {
     // console.log("RobotAspiratorComponent - currentCoordinates: computed()");
@@ -66,12 +72,6 @@ export class RobotAspiratorComponent {
     // Attention: inversion des coordonnées pour l'affichage: col = x, row = y
     return new PixelPosition(newXCoordinate, newYCoordinate);
   });
-
-  constructor() {
-    console.log("RobotAspiratorComponent - constructor()");
-    // couleur aléatoire pour le nom du robot
-    this.setRandomRobotColor();
-  }
 
   private log(message: string) {
     this.messageService.add(`RobotAspiratorComponent: ${message}`);

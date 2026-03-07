@@ -35,6 +35,7 @@ export class MainComponent implements OnDestroy {
   private maisonService = inject(MaisonService);
   private robotAspiratorDataService = inject(RobotAspiratorDataService);
 
+  // pour le template
   public readonly maisonViewModel: Signal<MaisonModel> = computed(() =>
     this.maisonService.maisonSignal()
   );

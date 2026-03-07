@@ -172,7 +172,7 @@ export class RobotAspiratorDataService implements OnDestroy {
     console.log(robot4Model);
 
     // pour test de 1 ou plusieurs robots
-//     const robotModelTab: RobotAspiratorModel[] = [{ ...robot1Model }, { ...robot2Model }, { ...robot3Model }, { ...robot4Model }];
+    //     const robotModelTab: RobotAspiratorModel[] = [{ ...robot1Model }, { ...robot2Model }, { ...robot3Model }, { ...robot4Model }];
     const robotModelTab = [{ ...robot1Model }, { ...robot4Model }];
 
     return robotModelTab;
@@ -215,15 +215,6 @@ export class RobotAspiratorDataService implements OnDestroy {
     const writableSignal: WritableSignal<RobotAspiratorModel> | undefined = this.robotSignals.get(robotName);
     return writableSignal?.asReadonly() ?? signal(undefined);
   }
-  /**
-  * Lecture directe (non-réactive) de l'état actuel du robot
-  */
-  // public getRobotModel(robotName: string): RobotAspiratorModel {
-  //   console.log("RobotAspiratorDataService - getRobot()");
-
-  //   const robotSignal: WritableSignal<RobotAspiratorModel> | undefined = this.robotSignals.get(robotName);
-  //   return robotSignal ? robotSignal() : new RobotAspiratorModel();
-  // }
 
   // TODO: à voir si utilisation possible
   /**
@@ -608,7 +599,7 @@ export class RobotAspiratorDataService implements OnDestroy {
   }
 
   // recherche de la distance du robot à  sa base:
-  public distanceDeLaBase(maison: CellElement[][], basePosition: GridPosition, position: GridPosition): number {
+  private distanceDeLaBase(maison: CellElement[][], basePosition: GridPosition, position: GridPosition): number {
     console.log("CheminOptimalService - distanceDeLaBase()");
     const chemin: GridPosition[] = this.cheminOptimalService.trouverChemin(maison, position, basePosition);
     console.log(chemin.length);
@@ -616,7 +607,7 @@ export class RobotAspiratorDataService implements OnDestroy {
     return chemin.length;
   }
 
-  public calculatePixelCoordinates(grid: GridPosition): PixelPosition {
+  private calculatePixelCoordinates(grid: GridPosition): PixelPosition {
     // Conversion del'index dans le tableau (GridPosition) en Coordonnée en Pixels pour l'affichage CSS
     return new PixelPosition(
       grid.col * this.PIXELS_PER_STEP,  // col → x (left)
