@@ -13,13 +13,13 @@ import { MessageService } from '../../services/message-service/message.service';
 import { RobotAspiratorWithNextPositionsTabService } from '../../services/robot-actions-service/robot-aspirator-with-next-positions-tab-service/robot-aspirator/robot-aspirator/robot-aspirator-with-next-positions-tab-service/robot-aspirator-with-next-positions-tab.service';
 import { RobotAspiratorDataService } from '../../services/robot-aspirator-data-service/robot-aspirator-data.service';
 import { GridPosition } from '../../classes/models/grid-position';
-import { RobotAspiratorComponent } from '../robot-aspirator/robot-aspirator.component';
+import { AssetService } from '../../services/asset-service/asset.service';
 
 @Component({
   selector: 'app-main',
   standalone: true,
   imports: [
-    MaisonComponent, RobotAspiratorComponent, MessagesComponent, FormsModule, TableModule,
+    MaisonComponent, MessagesComponent, FormsModule, TableModule,
   ],
   templateUrl: './main.component.html',
   styleUrl: './main.component.css',
@@ -31,9 +31,10 @@ export class MainComponent implements OnDestroy {
   // instantiation de composant enfant
   @ViewChild(MaisonComponent) maisonChildComponent!: MaisonComponent;
 
-  private messageService = inject(MessageService);
   private maisonService = inject(MaisonService);
   private robotAspiratorDataService = inject(RobotAspiratorDataService);
+  public assetService = inject(AssetService);
+  private messageService = inject(MessageService);
 
   // pour le template
   public readonly maisonViewModel: Signal<MaisonModel> = computed(() =>
@@ -58,7 +59,7 @@ export class MainComponent implements OnDestroy {
     this.initRobotsViewModelDatas();
   }
 
-  ngOnDestroy(): void {
+  public ngOnDestroy(): void {
     console.log('MainComponent - ngOnDestroy()');
     this.robotViewModelTab.forEach(robotModel => {
       this.robotAspiratorDataService.unregisterRobotFromList(robotModel.robotName);
@@ -70,7 +71,7 @@ export class MainComponent implements OnDestroy {
     console.log("MainComponent - pause");
 
     if (this.isRobotMapStarted) {
-      this.robotAspiratorDataService.onRobotsPause();
+      this.maisonChildComponent.onRobotsPause();
       this.isRobotMapStarted = false;
     } else {
       console.log("robot(s) actuellement en pause");
@@ -82,7 +83,7 @@ export class MainComponent implements OnDestroy {
 
     // Démarrage avec des signaux:
     if (!this.isRobotMapStarted) {
-      this.robotAspiratorDataService.startRobotsMapInterval();
+      this.maisonChildComponent.startRobotsMapInterval();
       this.isRobotMapStarted = true;
     } else {
       console.log("(re)démarrage impossible");

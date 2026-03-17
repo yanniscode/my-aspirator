@@ -13,10 +13,10 @@ export class MaisonService {
   private messageService = inject(MessageService);
 
   constructor() {
-      console.log("MaisonService - constructor()");
+    console.log("MaisonService - constructor()");
   }
 
-  // instanciation de la maison:
+  // Instanciation de la maison:
   // Privé et mutable — seul le service peut écrire dedans
   // readonly sur la déclaration TypeScript signifie que la référence au signal ne peut pas être réassignée — pas que le signal lui-même est immuable
   private readonly _maisonSignal: WritableSignal<MaisonModel> = signal<MaisonModel>(new MaisonModel());
@@ -28,7 +28,7 @@ export class MaisonService {
   }
 
   public getMaisonParams(): MaisonModel {
-    console.log("MaisonComponent - getMaisonParams()");
+    console.log("MaisonService - getMaisonParams()");
 
     // TODO: possible récupération des données dans des objets JSON / appels HTTP
     // Création des paramètres de la maison
@@ -99,8 +99,8 @@ export class MaisonService {
     console.log("MaisonService - updateMaisonRobotsBases()");
 
     console.log("maison dimensions:",
-      this._maisonSignal().maison.length,        // hauteur
-      this._maisonSignal().maison[0]?.length     // largeur
+      this._maisonSignal().maison.length,     // hauteur
+      this._maisonSignal().maison[0]?.length  // largeur
     );
     console.log("base position:", robotBasePosition);
 
@@ -152,6 +152,6 @@ export class MaisonService {
   }
 
   private log(message: string) {
-    this.messageService.add(`MaisonComponent: ${message}`);
+    this.messageService.add(`MaisonService: ${message}`);
   }
 }

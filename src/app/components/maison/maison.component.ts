@@ -1,4 +1,4 @@
-import { Component, ViewEncapsulation, ChangeDetectionStrategy, inject, ViewChild, ElementRef, OnInit, computed, Signal } from '@angular/core';
+import { Component, ViewEncapsulation, ChangeDetectionStrategy, inject, ViewChild, ElementRef, computed, Signal, signal, OnDestroy, AfterViewInit } from '@angular/core';
 
 import { TableModule } from "primeng/table";
 
@@ -7,6 +7,10 @@ import { MaisonModel } from '../../classes/models/maison-model';
 import { GridPosition } from '../../classes/models/grid-position';
 import { CellElement } from '../../classes/models/cellElement';
 import { MaisonService } from '../../services/maison-service/maison.service';
+import { RobotAspiratorModel } from '../../classes/models/robot-aspirator-model';
+import { RobotAspiratorDataService } from '../../services/robot-aspirator-data-service/robot-aspirator-data.service';
+import { AssetService } from '../../services/asset-service/asset.service';
+import { PixelPosition } from '../../classes/models/pixel-position';
 
 @Component({
   selector: 'app-maison',
@@ -27,24 +31,29 @@ import { MaisonService } from '../../services/maison-service/maison.service';
   //   ]),
   // ]
 })
-export class MaisonComponent implements OnInit {
+export class MaisonComponent implements AfterViewInit, OnDestroy {
   @ViewChild('maisonCanvas', { static: true }) maisonCanvas!: ElementRef<HTMLCanvasElement>;
 
   private maisonService = inject(MaisonService);
+  public robotAspiratorDataService = inject(RobotAspiratorDataService);
+  private assetService = inject(AssetService);
   private messageService = inject(MessageService);
 
   private ctx!: CanvasRenderingContext2D;
 
+  /* Variables de la maison: */
+
   // Dimensions de la Maison et des Robots sur canvas
-  private width = 500;
-  private height = 400;
+  private readonly WIDTH = 500;
+  private readonly HEIGHT = 400;
+  private readonly CELL_SIZE = 50;        // td-maison: width / height: 50px
+  private readonly CELL_PADDING = 8;      // td-maison: padding: 0.5rem (≈ 8px)
+  private readonly ROW_COLOR = 'rgb(0, 140, 133)'; // tr-maison: background
 
   // variables de template binding (@input vers le composant robot):
   public readonly maisonViewModel: Signal<MaisonModel> = computed(() =>
     this.maisonService.maisonSignal()
   );
-
-  public aspiroViewSize = 50;
 
   // Params de la maison (tableau)
   static largeurMaison: number = 10;
@@ -52,33 +61,335 @@ export class MaisonComponent implements OnInit {
   static obstacles: GridPosition[] = [];
   static maison: CellElement[][] = [[]];
 
+  /* Variables des robots: */
+  public robotNames = signal<string[]>([]);
+
+  // TODO: refacto - faire passer datas à partir du service, et plus du parent:
+  private robotNameInput!: string;
+
+  // Injecter le signal une seule fois à l'initialisation
+  // Map de robots
+  private readonly _robotSignals: Map<string, Signal<RobotAspiratorModel>> = this.robotAspiratorDataService.robotSignals;
+  // Signal computed qui expose les valeurs de la Map de robots sous forme de tableau
+  public readonly robotList: Signal<RobotAspiratorModel[]> = computed(() =>
+    Array.from(this._robotSignals.values()).map(signal => signal())
+  );
+
+  // Robot à l'unité:
+  // Computed dédié pour le robot — pas d'effet de bord
+  private readonly _robotServiceSignal: Signal<Signal<RobotAspiratorModel | undefined>> = computed(() =>
+    this.robotAspiratorDataService.getRobotSignal(this.robotNameInput)
+  );
+
+  // Computed dédié pour le robot — pas d'effet de bord
+  // Un computed() doit être une fonction pure: même entrées → même sortie, sans toucher à l'état extérieur
+  public readonly robotViewModel = computed(() => {
+    const signal = this._robotServiceSignal();
+    return signal ? signal() : undefined;
+  });
+
+  public readonly hasActiveRobots = computed(() =>
+    [...this._robotSignals.values()].some(signal => signal()?.isRobotStarted)
+  );
+
+  // Variables pour la Vue - animation des robots
+  private animationFrameId?: number;
+  private isRunning = false;
+
+  // Signal pour le progress (0 à 1)
+  private animationProgress = signal(0);
+
+  // Configuration de l'animation
+  private readonly STEP_DURATION = 600; // Durée d'un déplacement complet (ms)
+
   constructor() {
     console.log("MaisonComponent - constructor()");
   }
 
-  // on dessine une seule fois la maison, à son initialisation :
-  ngOnInit(): void {
-    this.drawCanvasElements();
+  /**
+ * Fix Firefox — le contexte canvas reste en état "lazy"
+ * jusqu'au premier appel de dessin synchrone.
+ * On dessine le fond de la maison pour activer le contexte.
+ */
+  private initCanvasContext(canvas: HTMLCanvasElement): void {
+    this.ctx = canvas.getContext('2d')!;
+    this.ctx.fillStyle = this.ROW_COLOR;
+    this.ctx.fillRect(0, 0, canvas.width, canvas.height);
   }
 
-  // TODO: la maison peut être dessinée seulement 1 fois à l'initialisation
-  private drawCanvasElements(): void {
-    console.log("MaisonComponent - drawCanvasElements()");
+  async ngAfterViewInit(): Promise<void> {
+    if (this.isRunning) return;
 
-    if (!this.ctx) return;
+    const canvas = this.maisonCanvas.nativeElement;
+    const maison = this.maisonService.maisonSignal();
+    canvas.width = maison.maison[0].length * this.CELL_SIZE;
+    canvas.height = maison.maison.length * this.CELL_SIZE;
 
-    // Effacer le canvas
-    this.ctx.clearRect(0, 0, this.width, this.height);
+    //  Fix Firefox
+    this.initCanvasContext(canvas);
 
-    // Redessine le canevas
-    this.ctx.fillStyle = 'transparent';
-    this.ctx.fillRect(0, 0, this.width, this.height);
+    await this.assetService.loadAssets();
+    this.render();
+  }
 
-    // aspirateur avec image
-    this.ctx.save();
+  /**
+* Nettoyage complet du service
+*/
+  public ngOnDestroy(): void {
+    console.log("MaisonComponent - ngOnDestroy()");
+    this.stopAllAnimation();
+    console.log('Service de robots arrêté');
+  }
 
-    // Restaure l'état le plus récent du canevas
-    this.ctx.restore();
+  /**
+* Nettoyage complet du service (animation où tous les robots s'arrêtent)
+*/
+  public onRobotsPause(): void {
+    console.log("MaisonComponent - onRobotsPause()");
+    this.isRunning = false;
+    console.log('Service de robots mis en pause');
+  }
+
+  private stopAllAnimation(): void {
+    console.log('Animation stopped');
+    this.isRunning = false;
+
+    if (this.animationFrameId !== undefined) {
+      cancelAnimationFrame(this.animationFrameId);
+      this.animationFrameId = undefined;
+    }
+    // On vide la map de signaux (réinitialisation complète des robots)
+    this._robotSignals.clear();
+  }
+
+  private pauseAllAnimation(): void {
+    console.log('Animation stopped');
+    // important pour stopper l'animation quand plus de robot actif:
+    this.isRunning = false;
+
+    if (this.animationFrameId !== undefined) {
+      cancelAnimationFrame(this.animationFrameId);
+      this.animationFrameId = undefined;
+    }
+    // On ne supprime pas la map de signaux pour une simple mise en pause
+  }
+
+  private getImageForCell(type: string): HTMLImageElement | undefined {
+    switch (type) {
+      case 'O': return this.assetService.getImage('nonVisitee');
+      case 'X': return this.assetService.getImage('mur');
+      case 'B': return this.assetService.getImage('base');
+      case '_': return this.assetService.getImage('visitee');
+      default: return undefined;
+    }
+  }
+
+  private drawGrille(): void {
+    const maison = this.maisonService.maisonSignal();
+
+    maison.maison.forEach((row, rowIndex) => {
+
+      //  tr-maison → background: rgb(0, 140, 133)
+      // On peint d'abord toute la ligne en vert
+      this.ctx.fillStyle = this.ROW_COLOR;
+      this.ctx.fillRect(
+        0,
+        rowIndex * this.CELL_SIZE,
+        maison.maison[0].length * this.CELL_SIZE,  // largeur totale de la ligne
+        this.CELL_SIZE
+      );
+
+      row.forEach((cell, colIndex) => {
+        const x = colIndex * this.CELL_SIZE;
+        const y = rowIndex * this.CELL_SIZE;
+
+        //  td-maison → border-style: none (pas de strokeRect)
+        //  td-maison → text-align: center + padding: 0.5rem
+        // Le padding s'applique des deux côtés → innerSize réduit de 2 * padding
+        const innerSize = this.CELL_SIZE - this.CELL_PADDING * 2;  // 50 - 16 = 34px
+
+        //  Centrage horizontal équivalent à text-align: center
+        const offsetX = (this.CELL_SIZE - innerSize) / 2;
+        const offsetY = (this.CELL_SIZE - innerSize) / 2;
+
+        const img = this.getImageForCell(cell.type);
+        if (img) {
+          this.ctx.drawImage(
+            img,
+            x + offsetX,   // centré horizontalement
+            y + offsetY,   // centré verticalement
+            innerSize,
+            innerSize
+          );
+        }
+      });
+    });
+  }
+
+  // Bonus — couleur batterie selon niveau (vert/orange/rouge)
+  private getBatterieColor(batterie: number | undefined): string {
+    if (batterie === undefined || batterie < 0) return '#ffffff';
+    if (batterie > 20) return '#00ff00';  // vert
+    if (batterie > 10) return '#ffa500';  // orange
+    return '#ff0000';                      // rouge
+  }
+
+  private drawRobotLabels(robot: RobotAspiratorModel, x: number, y: number): void {
+    const LABEL_HEIGHT = 28;  // hauteur totale des deux labels (12 + 16)
+
+    // Détecte si les labels dépassent du canvas en bas
+    const isNearBottom = (y + robot.robotWidth + LABEL_HEIGHT) > this.HEIGHT;
+
+    // Bascule les labels au dessus du robot si trop près du bord
+    const labelBaseY = isNearBottom
+      ? y - 4                      // au dessus du robot
+      : y + robot.robotWidth + 12;   // en dessous du robot
+
+    const batterieOffsetY = isNearBottom ? -14 : 12;  // écart entre les deux labels
+
+    // Label nom
+    this.ctx.font = 'bold 8px Arial';
+    this.ctx.fillStyle = robot.labelColor;
+    this.ctx.textAlign = 'center';
+    this.ctx.fillText(
+      robot.robotName ?? 'Theodule',
+      x + robot.robotWidth / 2,
+      labelBaseY
+    );
+
+    // Label batterie
+    this.ctx.font = '8px Arial';
+    this.ctx.fillStyle = this.getBatterieColor(robot.batterie);
+    this.ctx.fillText(
+      `${robot.batterie ?? -1}%`,
+      x + robot.robotWidth / 2,
+      labelBaseY + batterieOffsetY
+    );
+  }
+
+  // Computed réactif basé sur le signal animationProgress
+  private updateCurrentCoordinates(name: string): PixelPosition {
+    // console.log("MaisonComponent - updateCurrentCoordinates()");
+
+    const robotSignal: Signal<RobotAspiratorModel | undefined> = this.robotAspiratorDataService.getRobotSignal(name);
+    if (!robotSignal) return new PixelPosition(-50, -50);
+    // console.log(robotSignal);
+
+    const robot: RobotAspiratorModel | undefined = robotSignal();
+    if (!robot) return new PixelPosition(-50, -50);
+
+    // Dépend du signal animationProgress
+    const progress = this.animationProgress();
+
+    // Interpolation linéaire (calcul de valeurs intermédiaires) entre startCoordinate et targetCoordinate
+    const newXCoordinate = robot.startCoordinate.x + (robot.targetCoordinate.x - robot.startCoordinate.x) * progress;
+    const newYCoordinate = robot.startCoordinate.y + (robot.targetCoordinate.y - robot.startCoordinate.y) * progress;
+
+    // Attention: inversion des coordonnées pour l'affichage: col = x, row = y
+    return new PixelPosition(newXCoordinate, newYCoordinate);
+  };
+
+  private drawRobots() {
+    const robotImage: HTMLImageElement = this.assetService.getImage('robot');
+    //  Guard clause — on ne dessine pas si l'image n'est pas chargée
+    if (!robotImage) {
+      console.warn('Image robot non chargée');
+      return;
+    }
+
+    for (const [robotName, robotSignal] of this._robotSignals) {
+      const robot: RobotAspiratorModel | undefined = robotSignal();
+      if (!robot) continue;
+
+      // save() AVANT toute modification — isole complètement chaque robot
+      this.ctx.save();
+
+      const pixelPosition: PixelPosition = this.updateCurrentCoordinates(robotName);
+      const x = pixelPosition.x;
+      const y = pixelPosition.y;
+
+      // Equivalent [style.width.px] / [style.height.px] → aspiroViewSize
+      this.ctx.drawImage(
+        robotImage,
+        x, y,
+        robot.robotWidth, robot.robotWidth
+      );
+
+      this.drawRobotLabels(robot, x, y);
+
+      // restore() APRÈS tout le rendu du robot
+      this.ctx.restore();
+    }
+  }
+
+  private render(): void {
+    // Efface tout
+    this.ctx.clearRect(0, 0, this.WIDTH, this.HEIGHT);
+    // Dessine tout
+    this.drawGrille();
+    this.drawRobots();
+  }
+
+  /**
+* Méthode principale de déclenchement de l'animation de la Map de robots
+* @param maisonModel
+* @returns
+*/
+  public startRobotsMapInterval(): void {
+    console.log("MaisonComponent - startRobotsMapInterval()");
+
+    if (this._robotSignals.size <= 0) return;
+
+    // on ne démarre ici que si l'animation n'est pas encore activée
+    if (this.isRunning) return;
+    this.isRunning = true;
+
+    let lastStepTime = performance.now();
+
+    const animate = (currentTime: number) => {
+
+      const deltaTime = currentTime - lastStepTime;
+
+      const sequenceEnded = deltaTime >= this.STEP_DURATION;
+      // on termine la séquence actuelle avant de mettre en pause l'animation
+      if (!this.isRunning && sequenceEnded) {
+        this.pauseAllAnimation();
+        return;
+      }
+      // Nouvelle direction selon la durée de STEP_DURATION
+      else if (sequenceEnded) {
+        // s'il n'y a plus de robot actif à la fin de la séquence d'animation, on stoppe directement l'animation
+        if (!this.hasActiveRobots()) {
+          this.pauseAllAnimation();
+          return;
+        }
+
+        // 1. Reset du temps
+        lastStepTime = currentTime;
+        // 2. Reset du progress à 0
+        this.animationProgress.set(0);
+
+        // 3. Calcul des nouvelles directions (qui lit progress = 0)
+        this.robotAspiratorDataService.calculateNewDirectionsForAllRobots();
+        this.robotAspiratorDataService.updateMaisonVisitedCells();
+      } else {
+        // En cours d'animation
+        const progress = deltaTime / this.STEP_DURATION;
+        // Mettre à jour le signal de progression
+        this.animationProgress.set(progress);
+      }
+
+      // 4. Mise à jour de la position du robot (vue)
+      this.render();
+      this.animationFrameId = requestAnimationFrame(animate);
+    };
+
+    this.robotAspiratorDataService.calculateNewDirectionsForAllRobots();
+    this.robotAspiratorDataService.updateMaisonVisitedCells();
+
+    // Mise à jour de la position du robot (vue)
+    this.render();
+    this.animationFrameId = requestAnimationFrame(animate);
   }
 
   private log(message: string): void {

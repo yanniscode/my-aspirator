@@ -11,12 +11,7 @@
 
         <h1>Aspiro-Man</h1>
 
-        <app-maison></app-maison>
-
-        @for (robotName of robotNames(); track robotName) {
-        <app-robot-aspirator [robotNameInput]="robotName">
-        </app-robot-aspirator>
-        }
+        <app-maison />
 
         <div class="buttons">
             <form (ngSubmit)="start()" #maisonForm="ngForm">
@@ -39,6 +34,7 @@
 <div class="maison-container"><!-- TODO: utiliser classe maison-container ?? -->
     <h2>Main Test Signaux avec {{ robotViewModelTab.length }} robots</h2>
 
+    <!-- TODO - utiliser ici pour test -->
     <!-- @for (robot of robotViewModelTab; track robot) {
     <div class="robot-card">
         @if (getRobotDataView(robot.robotName)(); as robot) {

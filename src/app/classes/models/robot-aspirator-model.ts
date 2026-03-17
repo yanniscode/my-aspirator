@@ -3,7 +3,7 @@ import { PixelPosition } from "./pixel-position";
 
 export class RobotAspiratorModel {
 
-    public robotName: string;
+    public robotName;
     // Position de la base de charge du robot
     public basePosition: GridPosition;
     // Positions précédente et actuelle
@@ -13,11 +13,13 @@ export class RobotAspiratorModel {
     public targetCoordinate: PixelPosition;
 
     // Niveau de batterie (en pourcentage)
-    public batterie: number;
+    public batterie;
     // Combien d'énergie est consommée par mouvement
-    public consommationParMouvement: number;
-    public isRobotStarted: boolean;
-    public isRobotReturningToBase: boolean;
+    public consommationParMouvement;
+    public isRobotStarted;
+    public isRobotReturningToBase;
+    public robotWidth;
+    public labelColor
 
     constructor() {
         this.robotName = "Theodule";
@@ -32,12 +34,13 @@ export class RobotAspiratorModel {
         // Combien d'énergie est consommée par mouvement
         this.consommationParMouvement = 0.5;
         this.isRobotReturningToBase = false;
+        this.robotWidth = 0;
+        this.labelColor = '#000000';
     }
 
     public static logger(robot: RobotAspiratorModel): void {
         console.debug("*******************");
         console.debug("RobotAspiratorModel - logger()");
-        // console.debug(robot);
         console.debug("robot.robotName = " + robot.robotName);
         console.debug("robot.basePosition :");
         console.debug(robot.basePosition);
@@ -53,6 +56,8 @@ export class RobotAspiratorModel {
         console.debug("robot.isRobotStarted = " + robot.isRobotStarted);
         console.debug("robot.consommationParMouvement = " + robot.consommationParMouvement);
         console.debug("robot.isRobotReturningToBase = " + robot.isRobotReturningToBase);
+        console.debug("robot.robotWidth = " + robot.robotWidth);
+        console.debug("robot.labelColor = " + robot.labelColor);
         console.debug("*******************");
     }
 }

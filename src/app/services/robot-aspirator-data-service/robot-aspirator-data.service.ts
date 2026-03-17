@@ -7,6 +7,7 @@ import { MessageService } from '../message-service/message.service';
 import { MaisonService } from '../maison-service/maison.service';
 import { PixelPosition } from '../../classes/models/pixel-position';
 import { CellElement } from '../../classes/models/cellElement';
+import { AssetService } from '../asset-service/asset.service';
 
 @Injectable({
   providedIn: 'root'
@@ -14,31 +15,16 @@ import { CellElement } from '../../classes/models/cellElement';
 export class RobotAspiratorDataService implements OnDestroy {
 
   private messageService: MessageService = inject(MessageService);
+  private assetService = inject(AssetService);
   private maisonService = inject(MaisonService);
   private cheminOptimalService: CheminOptimalService = inject(CheminOptimalService);
 
   // Map en lecture seule pour stocker les signaux computed de chaque robot à afficher
   // TODO: pourquoi readonly si WritableSignal ici ?? c'est la map qui est en lecture seule, pas les éléments ??
-  private readonly robotSignals = new Map<string, WritableSignal<RobotAspiratorModel>>();
-
-  /**
-  * s'il n'y a plus de robot actif en liste, on stoppe l'animation
-  * TODO: revoir si trop couteux
-  */
-  public readonly hasActiveRobots = computed(() =>
-    [...this.robotSignals.values()].some(sig => sig()?.isRobotStarted)
-  );
-
-  // variables pour la vue: animation des robots
-  private animationId?: number;
-  private isRunning = false;
-
-  // nouvelle version :
-  // Signal public pour le progress (0 à 1)
-  public animationProgress = signal(0);
+  private readonly _robotSignals: Map<string, WritableSignal<RobotAspiratorModel>> = new Map<string, WritableSignal<RobotAspiratorModel>>();
+  public robotSignals: Map<string, Signal<RobotAspiratorModel>> = this._robotSignals;
 
   // Configuration de l'animation
-  private readonly STEP_DURATION = 600; // Durée d'un déplacement complet (ms)
   private readonly PIXELS_PER_STEP = 50; // Pixels à parcourir en 1000ms
 
   public readonly maisonSignal: Signal<MaisonModel> = computed(() =>
@@ -52,19 +38,10 @@ export class RobotAspiratorDataService implements OnDestroy {
   /**
   * Nettoyage complet du service
   */
-  ngOnDestroy(): void {
+  public ngOnDestroy(): void {
     console.log("RobotAspiratorDataService - ngOnDestroy()");
-    this.stopAllAnimation();
+    // this.stopAllAnimation();
     console.log('Service de robots arrêté');
-  }
-
-  /**
-  * Nettoyage complet du service (animation où tous les robots s'arrêtent)
-  */
-  public onRobotsPause(): void {
-    console.log("RobotAspiratorDataService - onRobotsPause()");
-    this.isRunning = false;
-    console.log('Service de robots mis en pause');
   }
 
   // TODO ?? refacto dans service robot-data
@@ -81,11 +58,13 @@ export class RobotAspiratorDataService implements OnDestroy {
     let position = { ...basePosition };
     let startCoordinate = this.calculatePixelCoordinates(basePosition);
     let targetCoordinate = this.calculatePixelCoordinates(basePosition);
-    let batterie = 3.5;
+    let batterie = 3;
     let isRobotStarted = false;
     let isRobotReturningToBase = false;
+    let robotWidth = 50;
+    let labelColor = this.assetService.getRandomRobotLabelColor();
 
-    // 2 - Instanciation du RobotAspiratorModel:
+    // 2 - Instanciation d'un robot:
     let robot1Model = new RobotAspiratorModel();
     robot1Model.robotName = robotName;
     robot1Model.basePosition = { ...basePosition };
@@ -96,6 +75,8 @@ export class RobotAspiratorDataService implements OnDestroy {
     robot1Model.batterie = batterie;
     robot1Model.isRobotStarted = isRobotStarted;
     robot1Model.isRobotReturningToBase = isRobotReturningToBase;
+    robot1Model.robotWidth = robotWidth;
+    robot1Model.labelColor = labelColor;
 
     console.log(robot1Model);
 
@@ -109,6 +90,8 @@ export class RobotAspiratorDataService implements OnDestroy {
     batterie = 20;
     isRobotStarted = false;
     isRobotReturningToBase = false;
+    robotWidth = 50;
+    labelColor = this.assetService.getRandomRobotLabelColor();
 
     let robot2Model = new RobotAspiratorModel();
     robot2Model.robotName = robotName;
@@ -120,6 +103,8 @@ export class RobotAspiratorDataService implements OnDestroy {
     robot2Model.batterie = batterie;
     robot2Model.isRobotStarted = isRobotStarted;
     robot2Model.isRobotReturningToBase = isRobotReturningToBase;
+    robot2Model.labelColor = labelColor;
+    robot2Model.robotWidth = robotWidth;
 
     console.log(robot2Model);
 
@@ -133,6 +118,8 @@ export class RobotAspiratorDataService implements OnDestroy {
     batterie = 30;
     isRobotStarted = false;
     isRobotReturningToBase = false;
+    robotWidth = 50;
+    labelColor = this.assetService.getRandomRobotLabelColor();
 
     let robot3Model = new RobotAspiratorModel();
     robot3Model.robotName = robotName;
@@ -144,6 +131,8 @@ export class RobotAspiratorDataService implements OnDestroy {
     robot3Model.batterie = batterie;
     robot3Model.isRobotStarted = isRobotStarted;
     robot3Model.isRobotReturningToBase = isRobotReturningToBase;
+    robot3Model.robotWidth = robotWidth;
+    robot3Model.labelColor = labelColor;
 
     console.log(robot3Model);
 
@@ -157,6 +146,8 @@ export class RobotAspiratorDataService implements OnDestroy {
     batterie = 40;
     isRobotStarted = false;
     isRobotReturningToBase = false;
+    robotWidth = 50;
+    labelColor = this.assetService.getRandomRobotLabelColor();
 
     let robot4Model = new RobotAspiratorModel();
     robot4Model.robotName = robotName;
@@ -168,12 +159,15 @@ export class RobotAspiratorDataService implements OnDestroy {
     robot4Model.batterie = batterie;
     robot4Model.isRobotStarted = isRobotStarted;
     robot4Model.isRobotReturningToBase = isRobotReturningToBase;
+    robot4Model.robotWidth = robotWidth;
+    robot4Model.labelColor = labelColor;
 
     console.log(robot4Model);
 
     // pour test de 1 ou plusieurs robots
-    //     const robotModelTab: RobotAspiratorModel[] = [{ ...robot1Model }, { ...robot2Model }, { ...robot3Model }, { ...robot4Model }];
+    // const robotModelTab: RobotAspiratorModel[] = [{ ...robot1Model }, { ...robot2Model }, { ...robot3Model }, { ...robot4Model }];
     const robotModelTab = [{ ...robot1Model }, { ...robot4Model }];
+    // const robotModelTab = [{ ...robot1Model }];
 
     return robotModelTab;
   }
@@ -184,8 +178,8 @@ export class RobotAspiratorDataService implements OnDestroy {
   public registerRobotInList(robotModel: RobotAspiratorModel): void {
     console.log("RobotAspiratorDataService - registerRobotInList()");
 
-    if (!this.robotSignals.has(robotModel.robotName)) {
-      this.robotSignals.set(robotModel.robotName, signal(robotModel));
+    if (!this._robotSignals.has(robotModel.robotName)) {
+      this._robotSignals.set(robotModel.robotName, signal(robotModel));
     } else {
       console.warn(`Robot ${robotModel.robotName} déjà enregistré`);
     }
@@ -197,7 +191,7 @@ export class RobotAspiratorDataService implements OnDestroy {
   public unregisterRobotFromList(robotName: string): void {
     console.log("RobotAspiratorDataService - unregisterRobotFromList()");
 
-    if (this.robotSignals.delete(robotName)) {
+    if (this._robotSignals.delete(robotName)) {
       console.log(`Robot ${robotName} désenregistré`);
     }
   }
@@ -212,7 +206,7 @@ export class RobotAspiratorDataService implements OnDestroy {
   public getRobotSignal(robotName: string): Signal<RobotAspiratorModel | undefined> {
     console.log("RobotAspiratorDataService - getRobotSignal()");
 
-    const writableSignal: WritableSignal<RobotAspiratorModel> | undefined = this.robotSignals.get(robotName);
+    const writableSignal: WritableSignal<RobotAspiratorModel> | undefined = this._robotSignals.get(robotName);
     return writableSignal?.asReadonly() ?? signal(undefined);
   }
 
@@ -245,86 +239,16 @@ export class RobotAspiratorDataService implements OnDestroy {
   //   }
   // }
 
-  // TODO:SUPPRIMER ??
-  // private getRobotDirection(lastPosition: Position, nextPosition: Position): Position {
-  //   console.log("RobotAspiratorDataService - setAspiroDirection()");
-  //   // Directions du robot (Attention: c'est un index dans le tableau de la maison ici, pas la position en px)
-  //   const aspiroDirRow = (nextPosition.row - lastPosition.row) === 1 ? 1 :
-  //     (nextPosition.row - lastPosition.row) === -1 ? -1 : 0;
-  //   const aspiroDirCol = (nextPosition.col - lastPosition.col) === 1 ? 1 :
-  //     (nextPosition.col - lastPosition.col) === -1 ? -1 : 0;
-  //   return new Position(aspiroDirRow, aspiroDirCol);
-  // }
-
-  // ************ méthodes pour l'animation des déplacements du robot (vue)
-
-  /**
-   * Méthode principale de déclenchement de l'animation de la Map de robots
-   * @param maisonModel
-   * @returns
-   */
-  public startRobotsMapInterval(): void {
-
-    if (this.robotSignals.size <= 0) return;
-
-    // on ne démarre ici que si l'animation n'est pas encore activée
-    if (this.isRunning) return;
-    this.isRunning = true;
-
-    let lastStepTime = performance.now();
-
-    const animate = (currentTime: number) => {
-
-      const deltaTime = currentTime - lastStepTime;
-
-      const sequenceEnded = deltaTime >= this.STEP_DURATION;
-      // on termine la séquence actuelle avant de mettre en pause l'animation
-      if (!this.isRunning && sequenceEnded) {
-        this.pauseAllAnimation();
-        return;
-      }
-      // Nouvelle direction selon la durée de STEP_DURATION
-      else if (sequenceEnded) {
-        // s'il n'y a plus de robot actif à la fin de la séquence d'animation, on stoppe directement l'animation
-        if (!this.hasActiveRobots()) {
-          this.pauseAllAnimation();
-          return;
-        }
-
-        // 1. Reset du temps
-        lastStepTime = currentTime;
-        // 2. Reset du progress à 0
-        this.animationProgress.set(0);
-
-        // 3. Calcul des nouvelles directions (qui lit progress = 0)
-        this.calculateNewDirectionsForAllRobots();
-        this.updateMaisonVisitedCells();
-      } else {
-        // En cours d'animation
-        const progress = deltaTime / this.STEP_DURATION;
-        // Mettre à jour le signal de progression
-        this.animationProgress.set(progress);
-      }
-
-      this.animationId = requestAnimationFrame(animate);
-    };
-
-    this.calculateNewDirectionsForAllRobots();
-    this.updateMaisonVisitedCells();
-
-    this.animationId = requestAnimationFrame(animate);
-  }
-
   /**
  * Calcule de nouvelles directions toutes les 1000ms
  */
-  private calculateNewDirectionsForAllRobots(): void {
+  public calculateNewDirectionsForAllRobots(): void {
     console.log("RobotAspiratorDataService - calculateNewDirectionsForAllRobots()");
 
-    if (this.robotSignals.size <= 0) return;
+    if (this._robotSignals.size <= 0) return;
 
     // Parcourt tous les robots
-    this.robotSignals.forEach((robotSignal: WritableSignal<RobotAspiratorModel>, robotName) => {
+    this._robotSignals.forEach((robotSignal: WritableSignal<RobotAspiratorModel>, robotName) => {
 
       const robot = robotSignal();
       if (!robot) return;
@@ -408,7 +332,7 @@ export class RobotAspiratorDataService implements OnDestroy {
 
   private setRobotIsReturningToBase(robotName: string, position: GridPosition, nextPosition: GridPosition): void {
     console.log("RobotAspiratorDataService - setRobotIsReturningToBase()");
-    const robotSignal: WritableSignal<RobotAspiratorModel> | undefined = this.robotSignals.get(robotName);
+    const robotSignal: WritableSignal<RobotAspiratorModel> | undefined = this._robotSignals.get(robotName);
     if (!robotSignal) return;
 
     const robot = robotSignal();
@@ -439,7 +363,7 @@ export class RobotAspiratorDataService implements OnDestroy {
   private moveCleaningRobot(robotName: string, position: GridPosition, nextPosition: GridPosition): void {
     console.log("RobotAspiratorDataService - moveRobot()");
 
-    const robotSignal: WritableSignal<RobotAspiratorModel> | undefined = this.robotSignals.get(robotName);
+    const robotSignal: WritableSignal<RobotAspiratorModel> | undefined = this._robotSignals.get(robotName);
     if (!robotSignal) return;
 
     const robot = robotSignal();
@@ -474,7 +398,7 @@ export class RobotAspiratorDataService implements OnDestroy {
   private stopRobot(robotName: string, position: GridPosition, nextPosition: GridPosition): void {
     console.log("RobotAspiratorDataService - stopRobot()");
 
-    const robotSignal: WritableSignal<RobotAspiratorModel> | undefined = this.robotSignals.get(robotName);
+    const robotSignal: WritableSignal<RobotAspiratorModel> | undefined = this._robotSignals.get(robotName);
     if (!robotSignal) return;
 
     const newStartCoordinate: PixelPosition = this.calculatePixelCoordinates(position);
@@ -490,30 +414,6 @@ export class RobotAspiratorDataService implements OnDestroy {
       targetCoordinate: { ...newTargetCoordinate }, // la nouvelle coordonnée prend sa valeur suivante
     }));
     // }
-  }
-
-  private stopAllAnimation(): void {
-    console.log('Animation stopped');
-    this.isRunning = false;
-
-    if (this.animationId !== undefined) {
-      cancelAnimationFrame(this.animationId);
-      this.animationId = undefined;
-    }
-    // On vide la map de signaux (réinitialisation complète des robots)
-    this.robotSignals.clear();
-  }
-
-  private pauseAllAnimation(): void {
-    console.log('Animation stopped');
-    // important pour stopper l'animation quand plus de robot actif:
-    this.isRunning = false;
-
-    if (this.animationId !== undefined) {
-      cancelAnimationFrame(this.animationId);
-      this.animationId = undefined;
-    }
-    // On ne supprime pas la map de signaux pour une simple mise en pause
   }
 
   /** méthodes propres au robot Aspirateur: */
@@ -615,8 +515,8 @@ export class RobotAspiratorDataService implements OnDestroy {
     );
   }
 
-  private updateMaisonVisitedCells(): void {
-    this.robotSignals.forEach((robotSignal) => {
+  public updateMaisonVisitedCells(): void {
+    this._robotSignals.forEach((robotSignal) => {
       console.log("RobotAspiratorDataService - updateMaisonVisitedCells");
       const robot: RobotAspiratorModel = robotSignal();
       // maj des datas de la maison: position visitée

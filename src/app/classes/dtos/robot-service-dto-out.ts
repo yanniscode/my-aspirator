@@ -1,5 +1,8 @@
 import { GridPosition } from "../models/grid-position";
 
+/**
+ * Utilisée pour algo V2 - RobotAspiratorWithNextPositionsTabService (à revoir avec Canvas + Signals si nécessaire)
+ */
 export class RobotServiceDtoOut {
     batterie: number;
     isNettoyageComplete: boolean;
