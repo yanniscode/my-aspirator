@@ -39,6 +39,7 @@ export class RobotCoreAnimationService {
       // save() AVANT toute modification — isole complètement chaque robot
       this.ctx.save();
 
+      // mise à jour des coordonnées du robot dans l'espace (en pixels), pour la vue
       const pixelPosition: PixelPosition = this.robotDataService.updateCurrentCoordinates(robotName);
       const x = pixelPosition.x;
       const y = pixelPosition.y;

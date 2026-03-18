@@ -4,6 +4,7 @@ import { RobotModel } from '../../../../classes/models/robot-model';
 import { RobotDataService } from '../../../data-services/robot-data-services/robot-data.service';
 import { RobotActionAspiratorService } from "../../../action-services/robot-action-services/robot-action-aspirator-service/robot-action-aspirator.service";
 import { CoreAnimationService } from '../core-animation-service/core-animation.service';
+import { RobotActionService } from '../../../action-services/robot-action-services/robot-action.service';
 
 @Injectable({
   providedIn: 'root',
@@ -11,8 +12,11 @@ import { CoreAnimationService } from '../core-animation-service/core-animation.s
 export abstract class RobotAnimationService extends AnimationService implements OnDestroy {
 
   private robotDataService = inject(RobotDataService);
-  public robotActionAspiratorService = inject(RobotActionAspiratorService);
   private coreAnimationService = inject(CoreAnimationService);
+  // Pattern factory: on injecte le service robot spécifique (ex: "aspirator") en tant que service robot générique
+  private robotActionAspiratorService = inject(RobotActionAspiratorService) as RobotActionService;
+  // ce qui permet de passer un tableau de robots générique, avec des caractéristiques spécifiques:
+  private robotActionServicesTab: RobotActionService[] = [this.robotActionAspiratorService];
 
   protected ctx!: CanvasRenderingContext2D;
 
@@ -131,14 +135,15 @@ export abstract class RobotAnimationService extends AnimationService implements 
 
         // 1. Reset du temps
         lastStepTime = currentTime;
-        // 2. Reset du progress à 0
-        // TODO: prio - besoin ? supprimer ? crée bug anim après refacto ( position précédente qui clignotte)
-        // this.robotDataService.animationProgress.set(0);
 
-        // 3. Calcul des nouvelles directions (qui lit progress = 0)
-        // TODO: PRIO - revoir avec factory pour un appel générique ici (méthode spécifique aux robots aspirateurs, actuellement)
-        this.robotActionAspiratorService.calculateNewDirectionsForAllRobots();
-        this.robotActionAspiratorService.updateRobotsVisitedCells();
+        // 2. Calcul des nouvelles directions (qui lit progress = 0)
+
+        // On appelle les méthodes d'action de chaque service de robot spécifique, à partir du type générique de service robot
+        for (let i = 0; i < this.robotActionServicesTab.length; i++) {
+          this.robotActionServicesTab[i].calculateNewDirectionsForAllRobots();
+          this.robotActionServicesTab[i].updateRobotsVisitedCells();
+        }
+
       } else {
         // En cours d'animation
         progress = deltaTime / this.STEP_DURATION;
@@ -146,15 +151,18 @@ export abstract class RobotAnimationService extends AnimationService implements 
         this.robotDataService.animationProgress.set(progress);
       }
 
-      // 4. Mise à jour de la position du robot (vue)
+      // 3. Mise à jour de la position du robot (vue)
       this.ctx = this.coreAnimationService.renderAnimation(this.ctx);
       this.animationFrameId = requestAnimationFrame(animate);
 
       return this.ctx;
     };
 
-    this.robotActionAspiratorService.calculateNewDirectionsForAllRobots();
-    this.robotActionAspiratorService.updateRobotsVisitedCells();
+    // on appelle les méthodes d'action de chaque service de robot spécifique, à partir du type de service robot générique
+    for (let i = 0; i < this.robotActionServicesTab.length; i++) {
+      this.robotActionServicesTab[i].calculateNewDirectionsForAllRobots();
+      this.robotActionServicesTab[i].updateRobotsVisitedCells();
+    }
 
     // Mise à jour de la position du robot (vue)
     this.ctx = this.coreAnimationService.renderAnimation(this.ctx);

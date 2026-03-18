@@ -26,7 +26,7 @@ export class RobotAspiratorDataService extends RobotDataService {
     console.log("RobotAspiratorDataService - createRobotsParams()");
 
     // 1 - Récupération des datas :
-    // TODO: evol - possible récupération des données dans des objets JSON / appels HTTP
+
     // robot1 test
     let robotName = "Aspiroman 1";
     let robotType = "aspirator";

@@ -18,7 +18,7 @@ export class AnimationFactoryService {
  * Chargement des images pour le canvas
  */
   public async loadCanvasImages(): Promise<void> {
-    console.log("RobotAnimationService - loadCanvasImages()");
+    console.log("AnimationFactoryService - loadCanvasImages()");
 
     await this.assetMaisonService.loadAssets();
     await this.assetRobotService.loadAssets();
@@ -30,7 +30,7 @@ export class AnimationFactoryService {
 * On dessine le fond de la maison pour activer le contexte.
 */
   public initCanvasContext(canvas: HTMLCanvasElement): CanvasRenderingContext2D {
-    console.log("RobotAnimationService - initCanvasContext()");
+    console.log("AnimationFactoryService - initCanvasContext()");
 
     this.ctx = canvas.getContext('2d')!;
     this.ctx.fillStyle = this.ROW_COLOR;

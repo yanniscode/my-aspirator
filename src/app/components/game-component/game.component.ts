@@ -56,6 +56,7 @@ export class GameComponent implements AfterViewInit, OnDestroy {
     canvas.height = maison.maison.length * this.CELL_SIZE;
 
     // Fix Firefox
+    // on doit assigner la valeur du ctx pour le Canvas
     this.ctx = this.animationFactoryService.initCanvasContext(canvas);
 
     // Attente du chargement des images (maison) avant le rendu
@@ -65,7 +66,7 @@ export class GameComponent implements AfterViewInit, OnDestroy {
     this.ctx = this.coreAnimationService.renderAnimation(this.ctx);
   }
 
-  public async onStart(TYPE_ACTION_ROBOT: string) {
+  public onStart(TYPE_ACTION_ROBOT: string) {
     console.log("GameComponent - onStart()");
 
     this.ctx = this.robotFactoryService.declencheAnimationService(TYPE_ACTION_ROBOT, this.ctx);

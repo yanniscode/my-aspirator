@@ -19,7 +19,7 @@ export class CoreAnimationService {
  * Affichage des images sur le canvas
  */
   public renderAnimation(ctx: CanvasRenderingContext2D): CanvasRenderingContext2D {
-    // console.log("RobotAnimationService - render()");
+    // console.log("CoreAnimationService - render()");
     this.ctx = ctx;
     // Efface tout
     this.ctx.clearRect(0, 0, this.WIDTH, this.HEIGHT);

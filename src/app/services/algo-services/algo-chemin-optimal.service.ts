@@ -35,8 +35,7 @@ export class AlgoCheminOptimalService {
     }
   }
 
-  // TODO: voir si on passe en abstract
-  // Trouver la prochaine cellule accessible non visitée la plus proche
+  // Trouver la prochaine cellule accessible non visitée la plus proche (méthode générique)
   public trouverProchaineDestination(maison: CellElement[][], position: GridPosition): CellElement | null {
     // console.log("AlgoCheminOptimalService - trouverProchaineDestination()");
 
@@ -100,8 +99,7 @@ export class AlgoCheminOptimalService {
     return Math.abs(a.col - b.col) + Math.abs(a.row - b.row); // Distance de Manhattan
   }
 
-  // TODO: voir si on passe en abstract
-  // Algorithme A* pour trouver le chemin optimal
+  // Algorithme A* pour trouver le chemin optimal (méthode générique)
   public trouverChemin(maison: CellElement[][], depart: GridPosition, fin: GridPosition): GridPosition[] {
     // console.log("AlgoCheminOptimalService - trouverChemin()");
 
