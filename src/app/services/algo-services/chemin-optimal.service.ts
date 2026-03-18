@@ -13,6 +13,7 @@ export class CheminOptimalService {
 
   constructor() { }
 
+  // méthode utilisée par RobotAspiratorWithNextPositionsTabService
   public calculerCheminSuivant(isRetourAlaBase: boolean, maison: CellElement[][], basePosition: GridPosition, position: GridPosition): GridPosition[] {
     console.log("CheminOptimalService - calculerCheminSuivant()");
 
@@ -40,26 +41,34 @@ export class CheminOptimalService {
     // console.log("CheminOptimalService - trouverProchaineDestination()");
 
     // Utiliser un algorithme de recherche en largeur (BFS) pour trouver la cellule non visitée la plus proche
+    // Cellules adjacentes:
     const queue: { cellElement: CellElement; distance: number }[] = [];
+    // Positions visitées:
     const visited: Set<string> = new Set();
 
+    // Ajout de la position actuelle aux positions visitées:
     const positionKey = `${position.col},${position.row}`;
     visited.add(positionKey);
 
+    // Recherche des cases d'à côté:
     // Ajouter les cellules adjacentes à la position actuelle
     this.obtenirCellulesAdjacentes(maison, position).forEach(cellElement => {
       queue.push({ cellElement: cellElement, distance: 1 });
       visited.add(`${cellElement.position.col},${cellElement.position.row}`);
     });
 
+    // Pour chaque case d'à côté, on refait l'opération, jusqu'à ce qu'on aie trouvé une case non-visitée
+    // On ajoute la position adjacente à la queue
     while (queue.length > 0) {
       const { cellElement: cellElement, distance } = queue.shift()!;
 
-      // Si la cellule n'est pas visitée et n'est pas un obstacle, la retourner
+      // TODO: Si la cellule n'est pas "réservée" par un autre robot
+      // Si la cellule n'est pas encore visitée et n'est pas un obstacle, la retourner
       if (!cellElement.visited && cellElement.type !== 'X' && cellElement.type !== 'B') {
         return cellElement;
       }
 
+      // TODO: REVOIR LE CHIFFRE SI NÉCESSAIRE
       // Si la distance est trop grande, ne pas continuer la recherche
       if (distance > 20) { // Une limite arbitraire pour éviter une boucle infinie
         continue;
@@ -140,13 +149,13 @@ export class CheminOptimalService {
       openSet.sort((a, b) => a.f - b.f);
 
       // Récupérer le nœud avec le plus petit f
-      const current = openSet.shift()!;
+      const current: Node = openSet.shift()!;
       const currentKey = positionKey(current.position);
 
       // Si nous sommes arrivés à destination
       if (current.position.col === fin.col && current.position.row === fin.row) {
         // Reconstruire le chemin
-        return this.reconstruireChemin(depart, cameFrom, fin);
+        return this.reconstruireChemin(depart, cameFrom, current.position);
       }
 
       // Marquer le nœud comme exploré
