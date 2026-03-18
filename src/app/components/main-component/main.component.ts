@@ -4,12 +4,12 @@ import { TableModule } from 'primeng/table';
 import { GameComponent } from '../game-component/game.component';
 import { MessagesComponent } from '../messages-component/messages.component';
 import { MaisonModel } from '../../classes/models/maison-model';
-import { LoggerService } from '../../services/data-services/logger-service/logger.service';
-import { MaisonDataNettoyageService } from '../../services/data-services/maison-data-services/maison-data-nettoyage-service/maison-data-nettoyage.service';
+import { LoggerService } from '../../services/logger-service/logger.service';
 import { RobotDataService } from '../../services/robot-services/robot-data-services/robot-data.service';
 import { RobotModel } from '../../classes/models/robot-model';
 import { RobotDataFactoryService } from '../../services/robot-services/robot-data-factory-service/robot-data-factory.service';
 import { RobotAspiratorWithNextPositionsTabService } from '../../services/robot-services/robot-algos-deplacement-services/robot-aspirator-with-next-positions-tab-service/robot-aspirator-with-next-positions-tab.service';
+import { MaisonDataNettoyageService } from '../../services/maison-services/maison-data-services/maison-data-nettoyage-service/maison-data-nettoyage.service';
 
 @Component({
   selector: 'app-main',

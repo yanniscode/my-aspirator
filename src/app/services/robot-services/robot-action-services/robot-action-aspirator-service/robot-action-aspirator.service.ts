@@ -4,10 +4,10 @@ import { GridPosition } from '../../../../classes/models/grid-position';
 import { MaisonModel } from '../../../../classes/models/maison-model';
 import { PixelPosition } from '../../../../classes/models/pixel-position';
 import { RobotAspiratorModel } from '../../../../classes/models/robot-aspirator-model';
-import { MaisonDataNettoyageService } from '../../../data-services/maison-data-services/maison-data-nettoyage-service/maison-data-nettoyage.service';
 import { RobotActionService } from '../robot-action.service';
 import { RobotDataService } from '../../robot-data-services/robot-data.service';
 import { AlgoNettoyageService } from '../../robot-algos-deplacement-services/algo-nettoyage-service/algo-nettoyage.service';
+import { MaisonDataNettoyageService } from '../../../maison-services/maison-data-services/maison-data-nettoyage-service/maison-data-nettoyage.service';
 
 @Injectable({
   providedIn: 'root'

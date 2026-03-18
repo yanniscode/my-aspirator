@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 
-import { LoggerService } from '../../services/data-services/logger-service/logger.service';
+import { LoggerService } from '../../services/logger-service/logger.service';
 
 @Component({
   selector: 'app-messages',

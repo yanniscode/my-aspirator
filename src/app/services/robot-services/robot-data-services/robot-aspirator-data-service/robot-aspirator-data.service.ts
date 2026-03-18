@@ -2,10 +2,10 @@ import { inject, Injectable } from '@angular/core';
 import { RobotDataService as RobotDataService } from '../robot-data.service';
 import { RobotAspiratorModel } from '../../../../classes/models/robot-aspirator-model';
 import { GridPosition } from '../../../../classes/models/grid-position';
-import { MaisonDataNettoyageService } from '../../../data-services/maison-data-services/maison-data-nettoyage-service/maison-data-nettoyage.service';
-import { LoggerService } from '../../../data-services/logger-service/logger.service';
+import { LoggerService } from '../../../logger-service/logger.service';
 import { RobotActionAspiratorService } from '../../robot-action-services/robot-action-aspirator-service/robot-action-aspirator.service';
 import { AssetRobotService } from '../../robot-graphics-services/asset-robot-service/asset-robot.service';
+import { MaisonDataNettoyageService } from '../../../maison-services/maison-data-services/maison-data-nettoyage-service/maison-data-nettoyage.service';
 
 @Injectable({
   providedIn: 'root',

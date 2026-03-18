@@ -5,7 +5,7 @@ import { GridPosition } from "../../../../classes/models/grid-position";
 import { MaisonModel } from "../../../../classes/models/maison-model";
 import { RobotAspiratorModel } from "../../../../classes/models/robot-aspirator-model";
 import { AlgoCheminOptimalService } from "../../../algos-deplacement-services/algo-chemin-optimal.service";
-import { LoggerService } from "../../../data-services/logger-service/logger.service";
+import { LoggerService } from "../../../logger-service/logger.service";
 
 @Injectable() // Pas de providedIn: 'root' car on veut une instance du service par composant appelant RobotAspiratorComponent, pas un singleton
 export class RobotAspiratorWithNextPositionsTabService {

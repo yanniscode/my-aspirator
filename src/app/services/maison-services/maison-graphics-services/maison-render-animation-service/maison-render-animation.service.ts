@@ -1,9 +1,9 @@
 import { inject, Injectable, WritableSignal } from '@angular/core';
+import { MaisonDataNettoyageService } from '../../maison-data-services/maison-data-nettoyage-service/maison-data-nettoyage.service';
 import { MaisonModel } from '../../../../classes/models/maison-model';
 import { RobotModel } from '../../../../classes/models/robot-model';
-import { MaisonDataNettoyageService } from '../../../data-services/maison-data-services/maison-data-nettoyage-service/maison-data-nettoyage.service';
 import { RobotDataService } from '../../../robot-services/robot-data-services/robot-data.service';
-import { AssetMaisonService } from '../../asset-service/asset-maison-service/asset-maison.service';
+import { AssetMaisonService } from '../asset-maison-service/asset-maison.service';
 
 @Injectable({
   providedIn: 'root',
