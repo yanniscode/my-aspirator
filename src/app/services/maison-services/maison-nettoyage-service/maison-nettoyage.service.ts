@@ -1,9 +1,9 @@
 import { inject, Injectable } from '@angular/core';
-import { MaisonService } from './maison.service';
-import { CellElement } from '../../classes/models/cellElement';
-import { GridPosition } from '../../classes/models/grid-position';
-import { MaisonModel } from '../../classes/models/maison-model';
-import { LoggerService } from '../logger-service/logger.service';
+import { MaisonService } from '../maison.service';
+import { CellElement } from '../../../classes/models/cellElement';
+import { GridPosition } from '../../../classes/models/grid-position';
+import { MaisonModel } from '../../../classes/models/maison-model';
+import { LoggerService } from '../../logger-service/logger.service';
 
 @Injectable({
   providedIn: 'root'

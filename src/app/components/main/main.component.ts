@@ -8,8 +8,8 @@ import { RobotAspiratorModel } from '../../classes/models/robot-aspirator-model'
 import { LoggerService } from '../../services/logger-service/logger.service';
 import { RobotAspiratorWithNextPositionsTabService } from '../../services/robot-actions-service/robot-aspirator-with-next-positions-tab-service/robot-aspirator/robot-aspirator/robot-aspirator-with-next-positions-tab-service/robot-aspirator-with-next-positions-tab.service';
 import { GridPosition } from '../../classes/models/grid-position';
-import { RobotAspiratorService } from '../../services/robot-aspirator-service/robot-aspirator.service';
-import { MaisonNettoyageService } from '../../services/maison-services/maison-nettoyage.service';
+import { RobotAspiratorService } from '../../services/robot-services/robot-aspirator-service/robot-aspirator.service';
+import { MaisonNettoyageService } from '../../services/maison-services/maison-nettoyage-service/maison-nettoyage.service';
 
 @Component({
   selector: 'app-main',

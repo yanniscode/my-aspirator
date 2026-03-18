@@ -1,11 +1,11 @@
 import { computed, inject, Injectable, OnDestroy, Signal, WritableSignal } from '@angular/core';
-import { RobotAspiratorModel } from '../../classes/models/robot-aspirator-model';
-import { MaisonModel } from '../../classes/models/maison-model';
-import { GridPosition } from '../../classes/models/grid-position';
-import { PixelPosition } from '../../classes/models/pixel-position';
-import { CellElement } from '../../classes/models/cellElement';
-import { RobotService } from '../robot-service/robot.service';
-import { MaisonNettoyageService } from '../maison-services/maison-nettoyage.service';
+import { RobotAspiratorModel } from '../../../classes/models/robot-aspirator-model';
+import { MaisonModel } from '../../../classes/models/maison-model';
+import { GridPosition } from '../../../classes/models/grid-position';
+import { PixelPosition } from '../../../classes/models/pixel-position';
+import { CellElement } from '../../../classes/models/cellElement';
+import { RobotService } from '../robot.service';
+import { MaisonNettoyageService } from '../../maison-services/maison-nettoyage-service/maison-nettoyage.service';
 
 @Injectable({
   providedIn: 'root'

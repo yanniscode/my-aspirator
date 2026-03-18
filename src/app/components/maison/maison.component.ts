@@ -6,8 +6,8 @@ import { GridPosition } from '../../classes/models/grid-position';
 import { CellElement } from '../../classes/models/cellElement';
 import { RobotAspiratorModel } from '../../classes/models/robot-aspirator-model';
 import { PixelPosition } from '../../classes/models/pixel-position';
-import { RobotAspiratorService } from '../../services/robot-aspirator-service/robot-aspirator.service';
-import { MaisonNettoyageService } from '../../services/maison-services/maison-nettoyage.service';
+import { RobotAspiratorService } from '../../services/robot-services/robot-aspirator-service/robot-aspirator.service';
+import { MaisonNettoyageService } from '../../services/maison-services/maison-nettoyage-service/maison-nettoyage.service';
 import { AssetRobotService } from '../../services/asset-service/asset-robot-service/asset-robot.service';
 import { AssetMaisonService } from '../../services/asset-service/asset-maison-service/asset-maison.service';
 
