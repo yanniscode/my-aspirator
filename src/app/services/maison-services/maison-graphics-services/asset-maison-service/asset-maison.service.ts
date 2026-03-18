@@ -11,7 +11,6 @@ export class AssetMaisonService extends AssetService {
     super();
 
     this.ASSETS = [
-      { name: 'robot', path: '/assets/megaman.png' },
       { name: 'mur', path: '/assets/texture-mur.png' },
       { name: 'base', path: '/assets/texture-base.png' },
       { name: 'visitee', path: '/assets/texture-visitee.png' },

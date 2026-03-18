@@ -1,5 +1,4 @@
 import { GridPosition } from "./grid-position";
-import { PixelPosition } from "./pixel-position";
 import { RobotModel } from "./robot-model";
 
 export class RobotAspiratorModel extends RobotModel {

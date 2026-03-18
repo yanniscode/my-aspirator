@@ -1,5 +1,6 @@
 import { Injectable, Signal, signal, WritableSignal } from '@angular/core';
 import { AssetConfig } from '../../../../classes/config/asset-config';
+import { Direction } from '../../../../classes/utils/direction';
 
 @Injectable({
   providedIn: 'root',
@@ -16,9 +17,9 @@ export abstract class AssetService {
   private _loadingError: WritableSignal<string | null> = signal(null);
   public loadingError: Signal<string | null> = this._loadingError.asReadonly();
 
-  // Variables pour les couleurs du robot (actuellement: pour le nom)
-  protected colorLetters = '0123456789ABCDEF';
-  public robotColor = '#';
+  // Variables pour les couleurs du personnage (ex: label du nom d'un robot)
+  protected lettersColor = '0123456789ABCDEF';
+  public labelColor = '#';
 
   constructor() {
     this.images = new Map<string, HTMLImageElement>();
@@ -37,6 +38,31 @@ export abstract class AssetService {
       throw new Error(`Asset "${name}" non trouvé. loadAssets() a-t-il été appelé ?`);
     }
     return img; // TypeScript sait que c'est HTMLImageElement, plus de undefined
+  }
+
+  /**
+   * Récupère la trame d'animation du robot selon sa direction et son index (animationProgress)
+   * @param direction
+   * @param indexImage
+   * @returns
+   */
+  public getRobotImageByHisFrameAndDirection(direction: Direction, animationProgress: number): HTMLImageElement {
+
+    let dir = "e";
+
+    if (direction === Direction.NORTH) {
+      dir = "n";
+    }
+    else if (direction === Direction.EAST) {
+      dir = "e";
+    }
+    else if (direction === Direction.SOUTH) {
+      dir = "s";
+    }
+    else if (direction === Direction.WEST) {
+      dir = "w";
+    }
+    return this.getImage('robot-' + dir + animationProgress);
   }
 
   /**

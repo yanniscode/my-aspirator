@@ -6,6 +6,7 @@ import { LoggerService } from '../../../main-services/logger-service/logger.serv
 import { RobotActionAspiratorService } from '../../robot-action-services/robot-action-aspirator-service/robot-action-aspirator.service';
 import { AssetRobotService } from '../../robot-graphics-services/asset-robot-service/asset-robot.service';
 import { MaisonDataNettoyageService } from '../../../maison-services/maison-data-services/maison-data-nettoyage-service/maison-data-nettoyage.service';
+import { Direction } from '../../../../classes/utils/direction';
 
 @Injectable({
   providedIn: 'root',
@@ -34,6 +35,7 @@ export class RobotAspiratorDataService extends RobotDataService {
     let robotType = "aspirator";
     let basePosition = new GridPosition(0, 0);
     // au départ, le robot est à la base:
+    let robotDirection = Direction.EAST;
     let lastPosition = { ...basePosition };
     let position = { ...basePosition };
     let startCoordinate = this.robotActionAspiratorService.calculatePixelCoordinates(basePosition);
@@ -49,6 +51,7 @@ export class RobotAspiratorDataService extends RobotDataService {
     robot1Model.robotName = robotName;
     robot1Model.robotType = robotType;
     robot1Model.basePosition = { ...basePosition };
+    robot1Model.robotDirection = robotDirection;
     robot1Model.lastPosition = { ...lastPosition };
     robot1Model.position = { ...position };
     robot1Model.startCoordinate = { ...startCoordinate };
@@ -65,6 +68,7 @@ export class RobotAspiratorDataService extends RobotDataService {
     robotName = "Aspiroman 2";
     robotType = "aspirator";
     basePosition = new GridPosition(0, 9);
+    robotDirection = Direction.WEST;
     lastPosition = { ...basePosition };
     position = { ...basePosition };
     startCoordinate = this.robotActionAspiratorService.calculatePixelCoordinates(basePosition);
@@ -79,6 +83,7 @@ export class RobotAspiratorDataService extends RobotDataService {
     robot2Model.robotName = robotName;
     robot2Model.robotType = robotType;
     robot2Model.basePosition = { ...basePosition };
+    robot2Model.robotDirection = robotDirection;
     robot2Model.lastPosition = { ...lastPosition };
     robot2Model.position = { ...position };
     robot2Model.startCoordinate = { ...startCoordinate };
@@ -95,6 +100,7 @@ export class RobotAspiratorDataService extends RobotDataService {
     robotName = "Aspiroman 3";
     robotType = "aspirator";
     basePosition = new GridPosition(7, 9);
+    robotDirection = Direction.WEST;
     lastPosition = { ...basePosition };
     position = { ...basePosition };
     startCoordinate = this.robotActionAspiratorService.calculatePixelCoordinates(basePosition);
@@ -109,6 +115,7 @@ export class RobotAspiratorDataService extends RobotDataService {
     robot3Model.robotName = robotName;
     robot3Model.robotType = robotType;
     robot3Model.basePosition = { ...basePosition };
+    robot3Model.robotDirection = robotDirection;
     robot3Model.lastPosition = { ...lastPosition };
     robot3Model.position = { ...position };
     robot3Model.startCoordinate = { ...startCoordinate };
@@ -125,6 +132,7 @@ export class RobotAspiratorDataService extends RobotDataService {
     robotName = "Aspiroman 4";
     robotType = "aspirator";
     basePosition = new GridPosition(7, 0);
+    robotDirection = Direction.EAST;
     lastPosition = { ...basePosition };
     position = { ...basePosition };
     startCoordinate = this.robotActionAspiratorService.calculatePixelCoordinates(basePosition);
@@ -139,6 +147,7 @@ export class RobotAspiratorDataService extends RobotDataService {
     robot4Model.robotName = robotName;
     robot4Model.robotType = robotType;
     robot4Model.basePosition = { ...basePosition };
+    robot4Model.robotDirection = robotDirection;
     robot4Model.lastPosition = { ...lastPosition };
     robot4Model.position = { ...position };
     robot4Model.startCoordinate = { ...startCoordinate };

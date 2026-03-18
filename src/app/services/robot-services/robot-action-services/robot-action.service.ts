@@ -3,6 +3,7 @@ import { GridPosition } from '../../../classes/models/grid-position';
 import { PixelPosition } from '../../../classes/models/pixel-position';
 import { RobotAspiratorModel } from '../../../classes/models/robot-aspirator-model';
 import { LoggerService } from '../../main-services/logger-service/logger.service';
+import { Direction } from '../../../classes/utils/direction';
 
 @Injectable({
   providedIn: 'root'
@@ -33,7 +34,31 @@ export abstract class RobotActionService {
    * @param position
    * @param nextPosition
    */
-  protected abstract setRobotIsReturningToBase(robotName: string, position: GridPosition, nextPosition: GridPosition): void;
+  protected abstract moveRobotReturningToBase(robotName: string, position: GridPosition, nextPosition: GridPosition): void;
+
+  protected getRobotDirection(position: GridPosition, nextPosition: GridPosition): string {
+    // dx: 0, dy: -1  // Nord
+    if (position.col - nextPosition.col === 0 && position.row - nextPosition.row === -1) {
+      return Direction.NORTH;
+    }
+    // dx: -1, dy: 0   // Est
+    else if (position.col - nextPosition.col === -1 && position.row - nextPosition.row === 0) {
+      return Direction.EAST;
+    }
+    // dx: 0, dy: 1   // Sud
+    else if (position.col - nextPosition.col === 0 && position.row - nextPosition.row === 1) {
+      return Direction.SOUTH;
+    }
+    // dx: 1, dy: 0  // Ouest
+    else if (position.col - nextPosition.col === 1 && position.row - nextPosition.row === 0) {
+      return Direction.WEST;
+    }
+
+    let direction = "";
+
+
+    return direction;
+  }
 
   /**
    * Déplace manuellement un robot à une position pour le nettoyage

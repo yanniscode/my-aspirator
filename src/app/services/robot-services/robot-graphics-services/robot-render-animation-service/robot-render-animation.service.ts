@@ -26,19 +26,21 @@ export class RobotRenderAnimationService {
 
     this.ctx = ctx;
 
-    const robotImage: HTMLImageElement = this.assetRobotService.getImage('robot');
-    //  Guard clause — on ne dessine pas si l'image n'est pas chargée
-    if (!robotImage) {
-      console.warn('Image robot non chargée');
-      return this.ctx;
-    }
-
     for (const [robotName, robotSignal] of this._robotSignals) {
       const robot: RobotModel | undefined = robotSignal();
       if (!robot) continue;
 
       // save() AVANT toute modification — isole complètement chaque robot
       this.ctx.save();
+
+      // trame d'animation du robot adaptée à sa direction (nord, sud, est, ouest)
+      let robotImage: HTMLImageElement = this.getRobotCtxFrame(robot);
+
+      //  Guard clause — on ne dessine pas si l'image n'est pas chargée
+      if (!robotImage) {
+        console.warn('Image robot non chargée');
+        return this.ctx;
+      }
 
       // mise à jour des coordonnées du robot dans l'espace (en pixels), pour la vue
       const pixelPosition: PixelPosition = this.robotDataService.updateCurrentCoordinates(robotName);
@@ -60,6 +62,32 @@ export class RobotRenderAnimationService {
       this.ctx.restore();
     }
     return this.ctx;
+  }
+
+  private getRobotCtxFrame(robot: RobotModel): HTMLImageElement {
+    console.log("RobotRenderAnimationService - getRobotCtxFrame()");
+
+    const robotAnimationFrame = (Number(this.robotDataService.animationProgress().toPrecision(2)) * 100);
+    if (!robotAnimationFrame || !robot.isRobotStarted) {
+      return this.assetRobotService.getRobotImageByHisFrameAndDirection(robot.robotDirection, 1);
+    }
+
+    if (20 <= robotAnimationFrame && robotAnimationFrame < 40) {
+      return this.assetRobotService.getRobotImageByHisFrameAndDirection(robot.robotDirection, 2);
+    }
+    else if (40 <= robotAnimationFrame && robotAnimationFrame < 60) {
+      return this.assetRobotService.getRobotImageByHisFrameAndDirection(robot.robotDirection, 3);
+    }
+    else if (60 <= robotAnimationFrame && robotAnimationFrame < 80) {
+      return this.assetRobotService.getRobotImageByHisFrameAndDirection(robot.robotDirection, 4);
+    }
+    else if (80 <= robotAnimationFrame && robotAnimationFrame < 100) {
+      return this.assetRobotService.getRobotImageByHisFrameAndDirection(robot.robotDirection, 5);
+    }
+    else {
+      // cas où la trame est < 20 ou > 100
+      return this.assetRobotService.getRobotImageByHisFrameAndDirection(robot.robotDirection, 1);
+    }
   }
 
   protected drawRobotLabels(robot: RobotModel, x: number, y: number): void {

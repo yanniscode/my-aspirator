@@ -3,8 +3,8 @@ import { GridPosition } from "./grid-position";
 export class CellElement {
     position: GridPosition;
     type: 'O' | 'X' | 'B' | '_'; // 'O' = nonVisitée, 'X' = mur, 'B' = base, '_' = visitée
-    visited: boolean;
-    reserved: boolean;
+    visited;
+    reserved;
 
     constructor() {
         this.position = new GridPosition();

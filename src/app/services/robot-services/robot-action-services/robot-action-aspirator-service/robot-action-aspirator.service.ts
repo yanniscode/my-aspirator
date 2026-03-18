@@ -107,7 +107,7 @@ export class RobotActionAspiratorService extends RobotActionService {
 
           console.log(`### Nouvelle position de nettoyage trouvée pour le Robot ${robot.robotName} : row = ${nextPosition.row}, col = ${nextPosition.col} - Batterie: ${robot.batterie}%`);
           // MAJ du robot: déplacement normal
-          this.moveRobot(robotName, robot.position, nextPosition);
+          this.moveRobot(robotName, nextPosition);
         }
       }
     });
@@ -123,13 +123,13 @@ export class RobotActionAspiratorService extends RobotActionService {
     }
 
     // MAJ du robot: retour à la base
-    this.setRobotIsReturningToBase(robot.robotName, robot.position, nextPosition);
+    this.moveRobotReturningToBase(robot.robotName, robot.position, nextPosition);
 
     console.log(`### Nouvelle position de retour à la base trouvée pour le Robot ${robot.robotName} : row = ${nextPosition.col}, col = ${nextPosition.row} - Batterie: ${robot.batterie}%`);
   }
 
-  protected setRobotIsReturningToBase(robotName: string, position: GridPosition, nextPosition: GridPosition): void {
-    console.log("RobotActionAspiratorService - setRobotIsReturningToBase()");
+  protected moveRobotReturningToBase(robotName: string, position: GridPosition, nextPosition: GridPosition): void {
+    console.log("RobotActionAspiratorService - moveRobotReturningToBase()");
 
     const robotSignal: WritableSignal<RobotAspiratorModel> | undefined = this._robotSignals.get(robotName);
     if (!robotSignal) return;
@@ -144,6 +144,7 @@ export class RobotActionAspiratorService extends RobotActionService {
         ...robot,
         isRobotStarted: true,
         isRobotReturningToBase: true,
+        robotDirection: this.getRobotDirection(robot.position, nextPosition),
         lastPosition: { ...robot.position }, // la précédente position est modifiée avec l'actuelle
         position: { ...nextPosition },        // la nouvelle position prend sa valeur suivante
         batterie: robot.batterie - robot.consommationParMouvement
@@ -157,7 +158,7 @@ export class RobotActionAspiratorService extends RobotActionService {
   /**
   * Déplace manuellement un robot à une position pour le nettoyage
   */
-  protected moveRobot(robotName: string, position: GridPosition, nextPosition: GridPosition): void {
+  protected moveRobot(robotName: string, nextPosition: GridPosition): void {
     console.log("RobotActionAspiratorService - moveRobot()");
 
     const robotSignal: WritableSignal<RobotAspiratorModel> | undefined = this._robotSignals.get(robotName);
@@ -170,6 +171,7 @@ export class RobotActionAspiratorService extends RobotActionService {
       ...robot,
       isRobotStarted: true,
       isRobotReturningToBase: false,        // le robot ne rentre pas à la base
+      robotDirection: this.getRobotDirection(robot.position, nextPosition),
       lastPosition: { ...robot.position },  // la précédente position est modifiée avec l'actuelle
       position: { ...nextPosition },        // la nouvelle position prend sa valeur suivante
       batterie: robot.batterie - robot.consommationParMouvement

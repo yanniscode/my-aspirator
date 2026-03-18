@@ -4,10 +4,10 @@ import { GridPosition } from "../models/grid-position";
  * Utilisée pour algo V2 - RobotAspiratorWithNextPositionsTabService (à revoir avec Canvas + Signals si nécessaire)
  */
 export class RobotServiceDtoOut {
-    batterie: number;
-    isNettoyageComplete: boolean;
-    positions: GridPosition[]; // Contient [lastPosition, currentPosition]
-    isRobotReturningToBase: boolean;
+    batterie;
+    isNettoyageComplete;
+    positions;    // tableau de GridPosition pour la logique : Contient [lastPosition, currentPosition]
+    isRobotReturningToBase;
 
     constructor() {
         this.batterie = -1;
