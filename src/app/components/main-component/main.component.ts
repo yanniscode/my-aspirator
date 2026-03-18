@@ -7,7 +7,7 @@ import { MaisonModel } from '../../classes/models/maison-model';
 import { LoggerService } from '../../services/logger-service/logger.service';
 import { RobotDataService } from '../../services/robot-services/robot-data-services/robot-data.service';
 import { RobotModel } from '../../classes/models/robot-model';
-import { RobotDataFactoryService } from '../../services/robot-services/robot-data-factory-service/robot-data-factory.service';
+import { RobotAspiratorDataFactoryService } from '../../services/robot-services/robot-data-factory-services/robot-aspirator-data-factory-service/robot-aspirator-data-factory.service';
 import { RobotAspiratorWithNextPositionsTabService } from '../../services/robot-services/robot-algos-deplacement-services/robot-aspirator-with-next-positions-tab-service/robot-aspirator-with-next-positions-tab.service';
 import { MaisonDataNettoyageService } from '../../services/maison-services/maison-data-services/maison-data-nettoyage-service/maison-data-nettoyage.service';
 
@@ -31,7 +31,7 @@ export class MainComponent implements AfterViewInit, OnDestroy {
 
   private maisonDataNettoyageService = inject(MaisonDataNettoyageService);
   public robotDataService = inject(RobotDataService);
-  private robotDataFactoryService = inject(RobotDataFactoryService);
+  private robotDataFactoryService = inject(RobotAspiratorDataFactoryService);
   private loggerService = inject(LoggerService);
 
   private TYPE_ACTION_ROBOT = "";

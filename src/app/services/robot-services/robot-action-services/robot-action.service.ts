@@ -1,4 +1,4 @@
-import { inject, Injectable, OnDestroy } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { GridPosition } from '../../../classes/models/grid-position';
 import { PixelPosition } from '../../../classes/models/pixel-position';
 import { RobotAspiratorModel } from '../../../classes/models/robot-aspirator-model';

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { AnimationService } from '../animation.service';
+import { AnimationService } from '../../../graphics-services/animation-service/animation.service';
 
 @Injectable({
   providedIn: 'root',

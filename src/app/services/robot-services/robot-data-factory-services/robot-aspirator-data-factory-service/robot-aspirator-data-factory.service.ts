@@ -1,13 +1,13 @@
 import { inject, Injectable, signal, WritableSignal } from '@angular/core';
-import { DataFactoryService } from '../../data-factory-services/data-factory.service';
-import { RobotModel } from '../../../classes/models/robot-model';
-import { RobotAspiratorDataService } from '../robot-data-services/robot-aspirator-data-service/robot-aspirator-data.service';
-import { RobotDataService } from '../robot-data-services/robot-data.service';
+import { RobotDataFactoryService } from '../robot-data-factory.service';
+import { RobotModel } from '../../../../classes/models/robot-model';
+import { RobotAspiratorDataService } from '../../robot-data-services/robot-aspirator-data-service/robot-aspirator-data.service';
+import { RobotDataService } from '../../robot-data-services/robot-data.service';
 
 @Injectable({
   providedIn: 'root',
 })
-export class RobotDataFactoryService extends DataFactoryService {
+export class RobotAspiratorDataFactoryService extends RobotDataFactoryService {
 
   private robotDataService = inject(RobotDataService);
   private robotAspiratorDataService = inject(RobotAspiratorDataService);
@@ -25,7 +25,7 @@ export class RobotDataFactoryService extends DataFactoryService {
    * @returns
    */
   public getRobotsParams(TYPE_ACTION_ROBOT: string): RobotModel[] {
-    console.log("RobotDataFactoryService - getRobotsParams()");
+    console.log("RobotAspiratorDataFactoryService - getRobotsParams()");
 
     // pattern "factory": upcast du type enfant RobotAspiratorModel vers le type parent RobotModel
     if (TYPE_ACTION_ROBOT === "aspirator") {
@@ -41,7 +41,7 @@ export class RobotDataFactoryService extends DataFactoryService {
    * @returns
    */
   public setRobotSignalsList(robotModelTab: RobotModel[]): WritableSignal<string[]> {
-    console.log("RobotDataFactoryService - setRobotSignalsList()");
+    console.log("RobotAspiratorDataFactoryService - setRobotSignalsList()");
 
     robotModelTab.forEach((robotModel: RobotModel) => {
       // 1/ ajout du robot dans le type générique RobotModel à la liste:

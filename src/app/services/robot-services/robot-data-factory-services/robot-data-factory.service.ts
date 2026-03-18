@@ -1,10 +1,10 @@
 import { Injectable, WritableSignal } from '@angular/core';
-import { RobotModel } from '../../classes/models/robot-model';
+import { RobotModel } from '../../../classes/models/robot-model';
 
 @Injectable({
   providedIn: 'root',
 })
-export abstract class DataFactoryService {
+export abstract class RobotDataFactoryService {
 
   /**
    * Méthode de factory : renvoie les paramètres des robots avec un upcast vers le type générique RobotModel[]
