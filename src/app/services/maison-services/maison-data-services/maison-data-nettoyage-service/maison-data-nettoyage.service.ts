@@ -3,7 +3,7 @@ import { MaisonDataService as MaisonDataService } from '../maison-data.service';
 import { CellElement } from '../../../../classes/models/cellElement';
 import { GridPosition } from '../../../../classes/models/grid-position';
 import { MaisonModel } from '../../../../classes/models/maison-model';
-import { LoggerService } from '../../../logger-service/logger.service';
+import { LoggerService } from '../../../main-services/logger-service/logger.service';
 
 @Injectable({
   providedIn: 'root'

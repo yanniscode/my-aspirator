@@ -2,7 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { GridPosition } from '../../../classes/models/grid-position';
 import { PixelPosition } from '../../../classes/models/pixel-position';
 import { RobotAspiratorModel } from '../../../classes/models/robot-aspirator-model';
-import { LoggerService } from '../../logger-service/logger.service';
+import { LoggerService } from '../../main-services/logger-service/logger.service';
 
 @Injectable({
   providedIn: 'root'

@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
-import { RobotRenderAnimationService } from '../../../robot-services/robot-graphics-services/robot-render-animation-service/robot-render-animation.service';
 import { MaisonRenderAnimationService } from '../../../maison-services/maison-graphics-services/maison-render-animation-service/maison-render-animation.service';
+import { RobotRenderAnimationService } from '../../../robot-services/robot-graphics-services/robot-render-animation-service/robot-render-animation.service';
 
 @Injectable({
   providedIn: 'root',

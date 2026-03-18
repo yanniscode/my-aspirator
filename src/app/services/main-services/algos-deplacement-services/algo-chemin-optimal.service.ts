@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { CellElement } from '../../classes/models/cellElement';
-import { GridPosition } from '../../classes/models/grid-position';
+import { CellElement } from '../../../classes/models/cellElement';
+import { GridPosition } from '../../../classes/models/grid-position';
 
 @Injectable({
   providedIn: 'root'

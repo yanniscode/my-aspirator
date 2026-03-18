@@ -4,7 +4,7 @@ import { TableModule } from 'primeng/table';
 import { GameComponent } from '../game-component/game.component';
 import { MessagesComponent } from '../messages-component/messages.component';
 import { MaisonModel } from '../../classes/models/maison-model';
-import { LoggerService } from '../../services/logger-service/logger.service';
+import { LoggerService } from '../../services/main-services/logger-service/logger.service';
 import { RobotDataService } from '../../services/robot-services/robot-data-services/robot-data.service';
 import { RobotModel } from '../../classes/models/robot-model';
 import { RobotAspiratorDataFactoryService } from '../../services/robot-services/robot-data-factory-services/robot-aspirator-data-factory-service/robot-aspirator-data-factory.service';

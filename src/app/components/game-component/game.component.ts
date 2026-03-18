@@ -1,10 +1,10 @@
 import { Component, ViewEncapsulation, ChangeDetectionStrategy, inject, ViewChild, ElementRef, OnDestroy, AfterViewInit } from '@angular/core';
 import { TableModule } from "primeng/table";
-import { LoggerService } from '../../services/logger-service/logger.service';
-import { AnimationFactoryService } from '../../services/graphics-services/animation-factory-service/animation-factory.service';
-import { MainRenderAnimationService } from '../../services/graphics-services/render-animation-services/main-render-animation-service/main-render-animation.service';
+import { LoggerService } from '../../services/main-services/logger-service/logger.service';
 import { RobotAnimationService } from '../../services/robot-services/robot-graphics-services/robot-animation-service/robot-animation.service';
 import { MaisonDataNettoyageService } from '../../services/maison-services/maison-data-services/maison-data-nettoyage-service/maison-data-nettoyage.service';
+import { AnimationFactoryService } from '../../services/main-services/graphics-services/animation-factory-service/animation-factory.service';
+import { MainRenderAnimationService } from '../../services/main-services/graphics-services/main-render-animation-service/main-render-animation.service';
 
 @Component({
   selector: 'app-game',
