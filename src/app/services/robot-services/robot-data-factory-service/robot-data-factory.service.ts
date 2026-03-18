@@ -8,8 +8,8 @@ import { RobotDataService } from '../robot-data-services/robot-data.service';
 })
 export class RobotDataFactoryService {
 
-  private robotAspiratorDataService = inject(RobotAspiratorDataService);
   private robotDataService = inject(RobotDataService);
+  private robotAspiratorDataService = inject(RobotAspiratorDataService);
   // Pattern factory: tableau de Robot Data Services de type spécifiques vers un type générique
   private robotDataServicesTab: RobotDataService[] = [this.robotAspiratorDataService];
 

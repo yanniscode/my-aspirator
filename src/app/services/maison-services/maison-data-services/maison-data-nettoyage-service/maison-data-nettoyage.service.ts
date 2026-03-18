@@ -23,8 +23,8 @@ export class MaisonDataNettoyageService extends MaisonDataService {
    *
    * @returns
    */
-  public getMaisonParams(): MaisonModel {
-    console.log("MaisonDataNettoyageService - getMaisonParams()");
+  public setMaisonParams(): void {
+    console.log("MaisonDataNettoyageService - setMaisonParams()");
 
     // Création des paramètres de la maison
     const largeurMaison: number = 10;
@@ -45,7 +45,7 @@ export class MaisonDataNettoyageService extends MaisonDataService {
     newMaison.obstacles = obstacles;
     newMaison.isNettoyageComplete = isNettoyageComplete;
 
-    return newMaison;
+    this.initMaison(newMaison);
   }
 
   /**
@@ -53,7 +53,7 @@ export class MaisonDataNettoyageService extends MaisonDataService {
    *
    * @param maisonModel
    */
-  public initMaison(maisonModel: MaisonModel): void {
+  protected initMaison(maisonModel: MaisonModel): void {
     console.log("MaisonDataNettoyageService - initMaison()");
 
     this._maisonSignal.set({

@@ -7,8 +7,8 @@ import { MaisonModel } from '../../classes/models/maison-model';
 import { LoggerService } from '../../services/main-services/logger-service/logger.service';
 import { RobotModel } from '../../classes/models/robot-model';
 import { RobotAspiratorWithNextPositionsTabService } from '../../services/robot-services/robot-algos-deplacement-services/robot-aspirator-with-next-positions-tab-service/robot-aspirator-with-next-positions-tab.service';
-import { MaisonDataNettoyageService } from '../../services/maison-services/maison-data-services/maison-data-nettoyage-service/maison-data-nettoyage.service';
 import { RobotDataFactoryService } from '../../services/robot-services/robot-data-factory-service/robot-data-factory.service';
+import { MaisonDataFactoryService } from '../../services/maison-services/maison-data-factory-service/maison-data-factory.service';
 
 @Component({
   selector: 'app-main',
@@ -28,15 +28,13 @@ export class MainComponent implements AfterViewInit, OnDestroy {
 
   private gameComponent: GameComponent;
 
-  private maisonDataNettoyageService = inject(MaisonDataNettoyageService);
-  // appel dans le template, donc public:
+  private maisonDataFactoryService = inject(MaisonDataFactoryService);
+  // appel dans le template du service, donc public:
   public robotDataFactoryService = inject(RobotDataFactoryService);
   private loggerService = inject(LoggerService);
 
   // pour le template
-  public readonly maisonViewModel: Signal<MaisonModel> = computed(() =>
-    this.maisonDataNettoyageService.maisonSignal()
-  );
+  public readonly maisonViewModel: Signal<MaisonModel> = this.maisonDataFactoryService.getMaisonSignal();
 
   // on récupère la liste de signals à partir de la factory de robots dans un type générique (RobotModel)
   private readonly _robotSignals: Map<string, Signal<RobotModel>> = this.robotDataFactoryService.getRobotSignalsList();
@@ -55,8 +53,7 @@ export class MainComponent implements AfterViewInit, OnDestroy {
     this.gameComponent = this.maisonChildComponent;
 
     // initialisation des params de la maison et des robots
-    const maisonModel: MaisonModel = { ...this.maisonDataNettoyageService.getMaisonParams() };
-    this.maisonDataNettoyageService.initMaison(maisonModel);
+    this.maisonDataFactoryService.setMaisonParams();
 
     this.robotViewModelTab = [...this.robotDataFactoryService.getRobotsParams()];
     this.isRobotMapStarted = false;

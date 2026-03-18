@@ -27,18 +27,18 @@ export abstract class MaisonDataService {
 
   // TODO: EVOL - possible refactoring de méthode dans un service API (récupération des données dans des objets JSON / appels HTTP)
   /**
-   * Appel des paramètres de la Maison
+   * initialisation des datas de la Maison
    *
    * @returns
    */
-  public abstract getMaisonParams(): MaisonModel;
+  public abstract setMaisonParams(): void;
 
   /**
    * Initialisation de la maison
    *
    * @param maisonModel
    */
-  public abstract initMaison(maisonModel: MaisonModel): void;
+  protected abstract initMaison(maisonModel: MaisonModel): void;
 
   /**
    * Construction de la maison (datas)
