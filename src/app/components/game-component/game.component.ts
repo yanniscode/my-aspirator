@@ -29,7 +29,7 @@ export class GameComponent implements AfterViewInit {
 
   private maisonDataNettoyageService = inject(MaisonDataNettoyageService);
   private animationFactoryService = inject(AnimationFactoryService);
-  private mainRenderAnimationService = inject(RenderFactoryService);
+  private renderFactoryService = inject(RenderFactoryService);
   private loggerService = inject(LoggerService);
 
   protected ctx!: CanvasRenderingContext2D;
@@ -77,7 +77,7 @@ export class GameComponent implements AfterViewInit {
     // Attente du chargement des images (maison) avant le rendu
     await this.animationFactoryService.loadCanvasImages();
 
-    this.ctx = this.mainRenderAnimationService.renderAnimation(this.ctx);
+    this.ctx = this.renderFactoryService.renderAnimation(this.ctx);
   }
 
   private log(message: string): void {

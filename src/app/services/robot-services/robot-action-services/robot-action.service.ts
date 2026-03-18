@@ -28,14 +28,6 @@ export abstract class RobotActionService {
    */
   protected abstract activateReturnToBase(robot: RobotAspiratorModel): void;
 
-  /**
-   *
-   * @param robotName
-   * @param position
-   * @param nextPosition
-   */
-  protected abstract moveRobotReturningToBase(robotName: string, position: GridPosition, nextPosition: GridPosition): void;
-
   protected getRobotDirection(position: GridPosition, nextPosition: GridPosition): string {
     // dx: 0, dy: -1  // Nord
     if (position.col - nextPosition.col === 0 && position.row - nextPosition.row === -1) {
@@ -68,6 +60,14 @@ export abstract class RobotActionService {
    * @param nextPosition
    */
   protected abstract moveRobot(robotName: string, position: GridPosition, nextPosition: GridPosition): void;
+
+  /**
+   *
+   * @param robotName
+   * @param position
+   * @param nextPosition
+   */
+  protected abstract moveRobotReturningToBase(robotName: string, position: GridPosition, nextPosition: GridPosition): void;
 
   /**
    * Arrêt d'un robot à une position

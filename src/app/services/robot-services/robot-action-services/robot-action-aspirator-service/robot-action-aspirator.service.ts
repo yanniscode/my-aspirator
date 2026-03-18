@@ -128,6 +128,30 @@ export class RobotActionAspiratorService extends RobotActionService {
     console.log(`### Nouvelle position de retour à la base trouvée pour le Robot ${robot.robotName} : row = ${nextPosition.col}, col = ${nextPosition.row} - Batterie: ${robot.batterie}%`);
   }
 
+  /**
+  * Déplace manuellement un robot à une position pour le nettoyage
+  */
+  protected moveRobot(robotName: string, nextPosition: GridPosition): void {
+    console.log("RobotActionAspiratorService - moveRobot()");
+
+    const robotSignal: WritableSignal<RobotAspiratorModel> | undefined = this._robotSignals.get(robotName);
+    if (!robotSignal) return;
+
+    const robot = robotSignal();
+    if (!robot) return;
+
+    robotSignal.update(robot => ({
+      ...robot,
+      isRobotStarted: true,
+      isRobotReturningToBase: false,        // le robot ne rentre pas à la base
+      robotDirection: this.getRobotDirection(robot.position, nextPosition),
+      lastPosition: { ...robot.position },  // la précédente position est modifiée avec l'actuelle
+      position: { ...nextPosition },        // la nouvelle position prend sa valeur suivante
+      batterie: robot.batterie - robot.consommationParMouvement
+    }));
+    console.log(`### ${robotName}: tableau[${nextPosition.col},${nextPosition.row}]- batterie(${robot.batterie})`);
+  }
+
   protected moveRobotReturningToBase(robotName: string, position: GridPosition, nextPosition: GridPosition): void {
     console.log("RobotActionAspiratorService - moveRobotReturningToBase()");
 
@@ -153,30 +177,6 @@ export class RobotActionAspiratorService extends RobotActionService {
     } else {
       this.stopRobot(robotName);
     }
-  }
-
-  /**
-  * Déplace manuellement un robot à une position pour le nettoyage
-  */
-  protected moveRobot(robotName: string, nextPosition: GridPosition): void {
-    console.log("RobotActionAspiratorService - moveRobot()");
-
-    const robotSignal: WritableSignal<RobotAspiratorModel> | undefined = this._robotSignals.get(robotName);
-    if (!robotSignal) return;
-
-    const robot = robotSignal();
-    if (!robot) return;
-
-    robotSignal.update(robot => ({
-      ...robot,
-      isRobotStarted: true,
-      isRobotReturningToBase: false,        // le robot ne rentre pas à la base
-      robotDirection: this.getRobotDirection(robot.position, nextPosition),
-      lastPosition: { ...robot.position },  // la précédente position est modifiée avec l'actuelle
-      position: { ...nextPosition },        // la nouvelle position prend sa valeur suivante
-      batterie: robot.batterie - robot.consommationParMouvement
-    }));
-    console.log(`### ${robotName}: tableau[${nextPosition.col},${nextPosition.row}]- batterie(${robot.batterie})`);
   }
 
   /**

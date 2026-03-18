@@ -30,9 +30,9 @@ export class MaisonRenderAnimationService extends RenderAnimationService {
     // récupération du canvas avec ses données pour ajouter les données de la maison
     this.ctx = ctx;
     // récupération des données de la maison à partir de son Signal
-    const maison: MaisonModel = this.maisonDataNettoyageService.maisonSignal();
+    const maisonModel: MaisonModel = this.maisonDataNettoyageService.maisonSignal();
 
-    maison.maison.forEach((row, rowIndex) => {
+    maisonModel.maison.forEach((row, rowIndex) => {
 
       //  tr-maison → background: rgb(0, 140, 133)
       // On peint d'abord toute la ligne en vert
@@ -40,7 +40,7 @@ export class MaisonRenderAnimationService extends RenderAnimationService {
       this.ctx.fillRect(
         0,
         rowIndex * this.CELL_SIZE,
-        maison.maison[0].length * this.CELL_SIZE,  // largeur totale de la ligne
+        maisonModel.maison[0].length * this.CELL_SIZE,  // largeur totale de la ligne
         this.CELL_SIZE
       );
 
