@@ -1,10 +1,10 @@
 import { inject, Injectable, OnDestroy, WritableSignal, computed } from '@angular/core';
-import { AnimationService } from '../animation.service';
 import { RobotModel } from '../../../../classes/models/robot-model';
-import { RobotDataService } from '../../../data-services/robot-data-services/robot-data.service';
-import { RobotActionAspiratorService } from "../../../action-services/robot-action-services/robot-action-aspirator-service/robot-action-aspirator.service";
-import { RobotActionService } from '../../../action-services/robot-action-services/robot-action.service';
-import { MainRenderAnimationService } from '../../render-animation-services/main-render-animation-service/main-render-animation.service';
+import { AnimationService } from '../../../graphics-services/animation-service/animation.service';
+import { MainRenderAnimationService } from '../../../graphics-services/render-animation-services/main-render-animation-service/main-render-animation.service';
+import { RobotActionAspiratorService } from '../../robot-action-services/robot-action-aspirator-service/robot-action-aspirator.service';
+import { RobotActionService } from '../../robot-action-services/robot-action.service';
+import { RobotDataService } from '../../robot-data-services/robot-data.service';
 
 @Injectable({
   providedIn: 'root',

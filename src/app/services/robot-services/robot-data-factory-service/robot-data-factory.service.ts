@@ -1,9 +1,8 @@
 import { inject, Injectable, signal, WritableSignal } from '@angular/core';
-import { RobotModel } from '../../../classes/models/robot-model';
-import { RobotAspiratorDataService } from '../../data-services/robot-data-services/robot-aspirator-data-service/robot-aspirator-data.service';
-import { RobotDataService } from '../../data-services/robot-data-services/robot-data.service';
-import { RobotAnimationService } from '../../graphics-services/animation-service/robot-animation-service/robot-animation.service';
 import { DataFactoryService } from '../../data-factory-services/data-factory.service';
+import { RobotModel } from '../../../classes/models/robot-model';
+import { RobotAspiratorDataService } from '../robot-data-services/robot-aspirator-data-service/robot-aspirator-data.service';
+import { RobotDataService } from '../robot-data-services/robot-data.service';
 
 @Injectable({
   providedIn: 'root',

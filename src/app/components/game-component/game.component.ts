@@ -3,8 +3,8 @@ import { TableModule } from "primeng/table";
 import { LoggerService } from '../../services/data-services/logger-service/logger.service';
 import { AnimationFactoryService } from '../../services/graphics-services/animation-factory-service/animation-factory.service';
 import { MaisonDataNettoyageService } from '../../services/data-services/maison-data-services/maison-data-nettoyage-service/maison-data-nettoyage.service';
-import { RobotAnimationService } from '../../services/graphics-services/animation-service/robot-animation-service/robot-animation.service';
 import { MainRenderAnimationService } from '../../services/graphics-services/render-animation-services/main-render-animation-service/main-render-animation.service';
+import { RobotAnimationService } from '../../services/robot-services/robot-graphics-services/robot-animation-service/robot-animation.service';
 
 @Component({
   selector: 'app-game',

@@ -1,13 +1,13 @@
 import { computed, inject, Injectable, Signal, WritableSignal } from '@angular/core';
-import { RobotActionService } from '../robot-action.service';
-import { AlgoNettoyageService } from '../../../algo-services/algo-nettoyage-service/algo-nettoyage.service';
 import { CellElement } from '../../../../classes/models/cellElement';
 import { GridPosition } from '../../../../classes/models/grid-position';
 import { MaisonModel } from '../../../../classes/models/maison-model';
 import { PixelPosition } from '../../../../classes/models/pixel-position';
 import { RobotAspiratorModel } from '../../../../classes/models/robot-aspirator-model';
 import { MaisonDataNettoyageService } from '../../../data-services/maison-data-services/maison-data-nettoyage-service/maison-data-nettoyage.service';
-import { RobotDataService } from '../../../data-services/robot-data-services/robot-data.service';
+import { RobotActionService } from '../robot-action.service';
+import { RobotDataService } from '../../robot-data-services/robot-data.service';
+import { AlgoNettoyageService } from '../../robot-algos-deplacement-services/algo-nettoyage-service/algo-nettoyage.service';
 
 @Injectable({
   providedIn: 'root'

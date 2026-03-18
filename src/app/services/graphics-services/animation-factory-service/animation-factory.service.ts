@@ -1,9 +1,9 @@
 import { inject, Injectable } from '@angular/core';
 import { AssetMaisonService } from '../asset-service/asset-maison-service/asset-maison.service';
-import { AssetRobotService } from '../asset-service/asset-robot-service/asset-robot.service';
-import { RobotAnimationService } from '../animation-service/robot-animation-service/robot-animation.service';
 import { AssetService } from '../asset-service/asset.service';
 import { AnimationService } from '../animation-service/animation.service';
+import { AssetRobotService } from '../../robot-services/robot-graphics-services/asset-robot-service/asset-robot.service';
+import { RobotAnimationService } from '../../robot-services/robot-graphics-services/robot-animation-service/robot-animation.service';
 
 @Injectable({
   providedIn: 'root',
