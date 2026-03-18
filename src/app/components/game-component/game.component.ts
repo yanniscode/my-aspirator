@@ -3,7 +3,7 @@ import { TableModule } from "primeng/table";
 import { LoggerService } from '../../services/main-services/logger-service/logger.service';
 import { MaisonDataNettoyageService } from '../../services/maison-services/maison-data-services/maison-data-nettoyage-service/maison-data-nettoyage.service';
 import { AnimationFactoryService } from '../../services/main-services/graphics-services/animation-factory-service/animation-factory.service';
-import { MainRenderAnimationService } from '../../services/main-services/graphics-services/main-render-animation-service/main-render-animation.service';
+import { RenderFactoryService } from '../../services/main-services/graphics-services/render-factory-service/render-factory.service';
 
 @Component({
   selector: 'app-game',
@@ -29,7 +29,7 @@ export class GameComponent implements AfterViewInit {
 
   private maisonDataNettoyageService = inject(MaisonDataNettoyageService);
   private animationFactoryService = inject(AnimationFactoryService);
-  private mainRenderAnimationService = inject(MainRenderAnimationService);
+  private mainRenderAnimationService = inject(RenderFactoryService);
   private loggerService = inject(LoggerService);
 
   protected ctx!: CanvasRenderingContext2D;

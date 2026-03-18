@@ -4,11 +4,12 @@ import { MaisonModel } from '../../../../classes/models/maison-model';
 import { RobotModel } from '../../../../classes/models/robot-model';
 import { RobotDataService } from '../../../robot-services/robot-data-services/robot-data.service';
 import { AssetMaisonService } from '../asset-maison-service/asset-maison.service';
+import { RenderAnimationService } from '../../../main-services/graphics-services/render-animation-service/render-animation.service';
 
 @Injectable({
   providedIn: 'root',
 })
-export class MaisonRenderAnimationService {
+export class MaisonRenderAnimationService extends RenderAnimationService {
 
   private maisonDataNettoyageService = inject(MaisonDataNettoyageService);
   private assetMaisonService = inject(AssetMaisonService);
@@ -23,8 +24,8 @@ export class MaisonRenderAnimationService {
   protected readonly _robotSignals: Map<string, WritableSignal<RobotModel>>
     = this.robotDataService.robotSignals;
 
-  public drawMaison(ctx: CanvasRenderingContext2D): CanvasRenderingContext2D {
-    console.log("MaisonRenderAnimationService - drawMaison()");
+  public drawObject(ctx: CanvasRenderingContext2D): CanvasRenderingContext2D {
+    console.log("MaisonRenderAnimationService - drawObject()");
 
     // récupération du canvas avec ses données pour ajouter les données de la maison
     this.ctx = ctx;

@@ -4,7 +4,7 @@ import { RobotActionAspiratorService } from '../../robot-action-services/robot-a
 import { RobotActionService } from '../../robot-action-services/robot-action.service';
 import { RobotDataService } from '../../robot-data-services/robot-data.service';
 import { AnimationService } from '../../../main-services/graphics-services/animation-service/animation.service';
-import { MainRenderAnimationService } from '../../../main-services/graphics-services/main-render-animation-service/main-render-animation.service';
+import { RenderFactoryService } from '../../../main-services/graphics-services/render-factory-service/render-factory.service';
 
 @Injectable({
   providedIn: 'root',
@@ -12,7 +12,7 @@ import { MainRenderAnimationService } from '../../../main-services/graphics-serv
 export abstract class RobotAnimationService extends AnimationService implements OnDestroy {
 
   private robotDataService = inject(RobotDataService);
-  private mainRenderAnimationService = inject(MainRenderAnimationService);
+  private mainRenderAnimationService = inject(RenderFactoryService);
   // Pattern factory: on injecte le service robot spécifique (ex: "aspirator") en tant que service robot générique...
   private robotActionAspiratorService = inject(RobotActionAspiratorService) as RobotActionService;
   // ...ce qui permet de passer un tableau de robots générique, avec des caractéristiques spécifiques:

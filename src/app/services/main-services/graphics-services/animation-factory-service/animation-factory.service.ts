@@ -12,7 +12,7 @@ export class AnimationFactoryService {
 
   private assetMaisonService = inject(AssetMaisonService) as AssetService;
   private assetRobotService = inject(AssetRobotService) as AssetService;
-  // pattern factory: tableau d'AssetService dans un type générique pour le chargement des images
+  // pattern factory: tableau d'Asset Services de type spécifiques vers un type générique pour le chargement des images
   private assetServicesTab: AssetService[] = [this.assetMaisonService, this.assetRobotService];
 
   private robotAnimationService = inject(RobotAnimationService) as AnimationService;

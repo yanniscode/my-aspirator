@@ -4,11 +4,12 @@ import { RobotAspiratorModel } from '../../../../classes/models/robot-aspirator-
 import { RobotModel } from '../../../../classes/models/robot-model';
 import { RobotDataService } from '../../robot-data-services/robot-data.service';
 import { AssetRobotService } from '../asset-robot-service/asset-robot.service';
+import { RenderAnimationService } from '../../../main-services/graphics-services/render-animation-service/render-animation.service';
 
 @Injectable({
   providedIn: 'root',
 })
-export class RobotRenderAnimationService {
+export class RobotRenderAnimationService extends RenderAnimationService {
 
   private robotDataService = inject(RobotDataService);
   private assetRobotService = inject(AssetRobotService);
@@ -21,8 +22,8 @@ export class RobotRenderAnimationService {
   protected readonly _robotSignals: Map<string, WritableSignal<RobotModel>>
     = this.robotDataService.robotSignals;
 
-  public drawRobots(ctx: CanvasRenderingContext2D): CanvasRenderingContext2D {
-    console.log("RobotRenderAnimationService - drawRobots()");
+  public drawObject(ctx: CanvasRenderingContext2D): CanvasRenderingContext2D {
+    console.log("RobotRenderAnimationService - drawObject()");
 
     this.ctx = ctx;
 
