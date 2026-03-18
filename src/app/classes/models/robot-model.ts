@@ -4,6 +4,7 @@ import { PixelPosition } from "./pixel-position";
 export class RobotModel {
 
     public robotName;
+    public robotType;
     // Positions précédente et actuelle
     public lastPosition: GridPosition;
     public position: GridPosition;
@@ -15,8 +16,9 @@ export class RobotModel {
     public labelColor
 
     constructor() {
+        // valeurs par défaut pour l'init du robot
         this.robotName = "Theo";
-        // valeurs par défaut pour l'init du robot:
+        this.robotType = "aspirator"
         this.lastPosition = new GridPosition();
         this.position = new GridPosition();
         this.startCoordinate = new PixelPosition();

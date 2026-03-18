@@ -281,18 +281,20 @@ export class GameComponent implements AfterViewInit, OnDestroy {
       labelBaseY
     );
 
-    // TODO: idée - rajouter un type (famille) au robot (model), pour checker si c'est aspirateur ou autre type
-    const robotAspirator: RobotAspiratorModel = robot as RobotAspiratorModel;
-    if (!robotAspirator) return;
+    // utilisation du type de RobotModel, pour checker si c'est aspirateur ou autre type
+    if (robot.robotType === "aspirator") {
+      const robotAspirator: RobotAspiratorModel = robot as RobotAspiratorModel;
+      if (!robotAspirator) return;
 
-    // Label batterie (spécifique aux robots avec batteries - ex: aspirateur...)
-    this.ctx.font = '8px Arial';
-    this.ctx.fillStyle = this.assetRobotService.getRobotBatterieColor(robotAspirator.batterie);
-    this.ctx.fillText(
-      `${robotAspirator.batterie ?? -1}%`,
-      x + robot.robotWidth / 2,
-      labelBaseY + batterieOffsetY
-    );
+      // Label batterie (spécifique aux robots avec batteries - ex: aspirateur...)
+      this.ctx.font = '8px Arial';
+      this.ctx.fillStyle = this.assetRobotService.getRobotBatterieColor(robotAspirator.batterie);
+      this.ctx.fillText(
+        `${robotAspirator.batterie ?? -1}%`,
+        x + robot.robotWidth / 2,
+        labelBaseY + batterieOffsetY
+      );
+    }
   }
 
   // Computed réactif basé sur le signal animationProgress

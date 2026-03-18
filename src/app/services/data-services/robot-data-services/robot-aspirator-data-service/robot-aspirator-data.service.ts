@@ -30,6 +30,7 @@ export class RobotAspiratorDataService extends RobotDataService {
     // TODO: possible récupération des données dans des objets JSON / appels HTTP
     // robot1 test
     let robotName = "Aspiroman 1";
+    let robotType = "aspirator";
     let basePosition = new GridPosition(0, 0);
     // au départ, le robot est à la base:
     let lastPosition = { ...basePosition };
@@ -45,6 +46,7 @@ export class RobotAspiratorDataService extends RobotDataService {
     // 2 - Instanciation d'un robot:
     let robot1Model = new RobotAspiratorModel();
     robot1Model.robotName = robotName;
+    robot1Model.robotType = robotType;
     robot1Model.basePosition = { ...basePosition };
     robot1Model.lastPosition = { ...lastPosition };
     robot1Model.position = { ...position };
@@ -60,6 +62,7 @@ export class RobotAspiratorDataService extends RobotDataService {
 
     // robot2 test
     robotName = "Aspiroman 2";
+    robotType = "aspirator";
     basePosition = new GridPosition(0, 9);
     lastPosition = { ...basePosition };
     position = { ...basePosition };
@@ -73,6 +76,7 @@ export class RobotAspiratorDataService extends RobotDataService {
 
     let robot2Model = new RobotAspiratorModel();
     robot2Model.robotName = robotName;
+    robot2Model.robotType = robotType;
     robot2Model.basePosition = { ...basePosition };
     robot2Model.lastPosition = { ...lastPosition };
     robot2Model.position = { ...position };
@@ -88,6 +92,7 @@ export class RobotAspiratorDataService extends RobotDataService {
 
     // robot3 test
     robotName = "Aspiroman 3";
+    robotType = "aspirator";
     basePosition = new GridPosition(7, 9);
     lastPosition = { ...basePosition };
     position = { ...basePosition };
@@ -101,6 +106,7 @@ export class RobotAspiratorDataService extends RobotDataService {
 
     let robot3Model = new RobotAspiratorModel();
     robot3Model.robotName = robotName;
+    robot3Model.robotType = robotType;
     robot3Model.basePosition = { ...basePosition };
     robot3Model.lastPosition = { ...lastPosition };
     robot3Model.position = { ...position };
@@ -116,6 +122,7 @@ export class RobotAspiratorDataService extends RobotDataService {
 
     // robot4 test
     robotName = "Aspiroman 4";
+    robotType = "aspirator";
     basePosition = new GridPosition(7, 0);
     lastPosition = { ...basePosition };
     position = { ...basePosition };
@@ -129,6 +136,7 @@ export class RobotAspiratorDataService extends RobotDataService {
 
     let robot4Model = new RobotAspiratorModel();
     robot4Model.robotName = robotName;
+    robot4Model.robotType = robotType;
     robot4Model.basePosition = { ...basePosition };
     robot4Model.lastPosition = { ...lastPosition };
     robot4Model.position = { ...position };
