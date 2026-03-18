@@ -1,11 +1,10 @@
 import { Component, ViewEncapsulation, ChangeDetectionStrategy, inject, ViewChild, ElementRef, OnDestroy, AfterViewInit } from '@angular/core';
 import { TableModule } from "primeng/table";
 import { LoggerService } from '../../services/data-services/logger-service/logger.service';
-import { AnimationFactoryService } from '../../services/graphic-services/animation-factory-service/animation-factory.service';
+import { AnimationFactoryService } from '../../services/graphics-services/animation-factory-service/animation-factory.service';
 import { MaisonDataNettoyageService } from '../../services/data-services/maison-data-services/maison-data-nettoyage-service/maison-data-nettoyage.service';
-import { RobotAnimationService } from '../../services/graphic-services/animation-service/robot-animation-service/robot-animation.service';
-import { RobotFactoryService } from '../../services/factory-services/robot-factory-service/robot-factory.service';
-import { CoreAnimationService } from '../../services/graphic-services/animation-service/core-animation-service/core-animation.service';
+import { RobotAnimationService } from '../../services/graphics-services/animation-service/robot-animation-service/robot-animation.service';
+import { MainRenderAnimationService } from '../../services/graphics-services/render-animation-services/main-render-animation-service/main-render-animation.service';
 
 @Component({
   selector: 'app-game',
@@ -30,12 +29,11 @@ export class GameComponent implements AfterViewInit, OnDestroy {
   @ViewChild('gameCanvas', { static: true }) gameCanvas!: ElementRef<HTMLCanvasElement>;
 
   private robotAnimationService = inject(RobotAnimationService);
-  private robotFactoryService = inject(RobotFactoryService);
 
   private maisonDataNettoyageService = inject(MaisonDataNettoyageService);
 
   private animationFactoryService = inject(AnimationFactoryService);
-  private coreAnimationService = inject(CoreAnimationService);
+  private mainRenderAnimationService = inject(MainRenderAnimationService);
   private loggerService = inject(LoggerService);
 
   protected ctx!: CanvasRenderingContext2D;
@@ -65,16 +63,16 @@ export class GameComponent implements AfterViewInit, OnDestroy {
     console.log('Service de robots arrêté');
   }
 
-  public onStart(TYPE_ACTION_ROBOT: string) {
+  public onStart() {
     console.log("GameComponent - onStart()");
 
-    this.ctx = this.robotFactoryService.declencheAnimationService(TYPE_ACTION_ROBOT, this.ctx);
+    this.ctx = this.animationFactoryService.declencheAnimationService(this.ctx);
   }
 
-  public onPause(TYPE_ACTION_ROBOT: string): void {
+  public onPause(): void {
     console.log("GameComponent - onPause");
 
-    this.robotFactoryService.pauseAnimationService(TYPE_ACTION_ROBOT, this.ctx);
+    this.animationFactoryService.pauseAnimationService(this.ctx);
   }
 
   public async initialiseAfterView(gameCanvas: ElementRef<HTMLCanvasElement>): Promise<void> {
@@ -92,7 +90,7 @@ export class GameComponent implements AfterViewInit, OnDestroy {
     // Attente du chargement des images (maison) avant le rendu
     await this.animationFactoryService.loadCanvasImages();
 
-    this.ctx = this.coreAnimationService.renderAnimation(this.ctx);
+    this.ctx = this.mainRenderAnimationService.renderAnimation(this.ctx);
   }
 
   private log(message: string): void {

@@ -4,7 +4,7 @@ import { RobotAspiratorModel } from '../../../../classes/models/robot-aspirator-
 import { GridPosition } from '../../../../classes/models/grid-position';
 import { MaisonDataNettoyageService } from '../../maison-data-services/maison-data-nettoyage-service/maison-data-nettoyage.service';
 import { RobotActionAspiratorService } from '../../../action-services/robot-action-services/robot-action-aspirator-service/robot-action-aspirator.service';
-import { AssetRobotService } from '../../../graphic-services/asset-service/asset-robot-service/asset-robot.service';
+import { AssetRobotService } from '../../../graphics-services/asset-service/asset-robot-service/asset-robot.service';
 import { LoggerService } from '../../logger-service/logger.service';
 
 @Injectable({

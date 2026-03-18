@@ -8,7 +8,7 @@ import { LoggerService } from '../../services/data-services/logger-service/logge
 import { MaisonDataNettoyageService } from '../../services/data-services/maison-data-services/maison-data-nettoyage-service/maison-data-nettoyage.service';
 import { RobotDataService } from '../../services/data-services/robot-data-services/robot-data.service';
 import { RobotModel } from '../../classes/models/robot-model';
-import { RobotFactoryService } from '../../services/factory-services/robot-factory-service/robot-factory.service';
+import { RobotDataFactoryService } from '../../services/data-factory-services/robot-data-factory-service/robot-data-factory.service';
 import { RobotAspiratorWithNextPositionsTabService } from '../../services/action-services/robot-action-services/robot-aspirator-with-next-positions-tab-service/robot-aspirator/robot-aspirator/robot-aspirator-with-next-positions-tab-service/robot-aspirator-with-next-positions-tab.service';
 
 @Component({
@@ -31,7 +31,7 @@ export class MainComponent implements AfterViewInit, OnDestroy {
 
   private maisonDataNettoyageService = inject(MaisonDataNettoyageService);
   public robotDataService = inject(RobotDataService);
-  private robotFactoryService = inject(RobotFactoryService);
+  private robotDataFactoryService = inject(RobotDataFactoryService);
   private loggerService = inject(LoggerService);
 
   private TYPE_ACTION_ROBOT = "";
@@ -62,9 +62,9 @@ export class MainComponent implements AfterViewInit, OnDestroy {
     const maisonModel: MaisonModel = { ...this.maisonDataNettoyageService.getMaisonParams() };
     this.maisonDataNettoyageService.initMaison(maisonModel);
 
-    this.robotViewModelTab = [...this.robotFactoryService.getRobotsParams(this.TYPE_ACTION_ROBOT)];
+    this.robotViewModelTab = [...this.robotDataFactoryService.getRobotsParams(this.TYPE_ACTION_ROBOT)];
     this.isRobotMapStarted = false;
-    this.robotNames = this.robotFactoryService.setRobotSignalsList(this.robotViewModelTab);
+    this.robotNames = this.robotDataFactoryService.setRobotSignalsList(this.robotViewModelTab);
     if (!this.robotNames) return;
   }
 
@@ -87,7 +87,7 @@ export class MainComponent implements AfterViewInit, OnDestroy {
     console.log("MainComponent - pause");
 
     if (this.isRobotMapStarted) {
-      this.gameComponent.onPause(this.TYPE_ACTION_ROBOT);
+      this.gameComponent.onPause();
       this.isRobotMapStarted = false;
     } else {
       console.log("robot(s) actuellement en pause");
@@ -99,7 +99,7 @@ export class MainComponent implements AfterViewInit, OnDestroy {
 
     // Démarrage avec des signaux:
     if (!this.isRobotMapStarted) {
-      this.gameComponent.onStart(this.TYPE_ACTION_ROBOT);
+      this.gameComponent.onStart();
       this.isRobotMapStarted = true;
     } else {
       console.log("(re)démarrage impossible");

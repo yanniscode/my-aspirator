@@ -3,8 +3,8 @@ import { AnimationService } from '../animation.service';
 import { RobotModel } from '../../../../classes/models/robot-model';
 import { RobotDataService } from '../../../data-services/robot-data-services/robot-data.service';
 import { RobotActionAspiratorService } from "../../../action-services/robot-action-services/robot-action-aspirator-service/robot-action-aspirator.service";
-import { CoreAnimationService } from '../core-animation-service/core-animation.service';
 import { RobotActionService } from '../../../action-services/robot-action-services/robot-action.service';
+import { MainRenderAnimationService } from '../../render-animation-services/main-render-animation-service/main-render-animation.service';
 
 @Injectable({
   providedIn: 'root',
@@ -12,7 +12,7 @@ import { RobotActionService } from '../../../action-services/robot-action-servic
 export abstract class RobotAnimationService extends AnimationService implements OnDestroy {
 
   private robotDataService = inject(RobotDataService);
-  private coreAnimationService = inject(CoreAnimationService);
+  private mainRenderAnimationService = inject(MainRenderAnimationService);
   // Pattern factory: on injecte le service robot spécifique (ex: "aspirator") en tant que service robot générique...
   private robotActionAspiratorService = inject(RobotActionAspiratorService) as RobotActionService;
   // ...ce qui permet de passer un tableau de robots générique, avec des caractéristiques spécifiques:
@@ -104,8 +104,8 @@ export abstract class RobotAnimationService extends AnimationService implements 
   *
   * @returns void
   */
-  public startRobotsAnimation(ctx: CanvasRenderingContext2D): CanvasRenderingContext2D {
-    console.log("RobotAnimationService - startRobotsAnimation()");
+  public startAnimation(ctx: CanvasRenderingContext2D): CanvasRenderingContext2D {
+    console.log("RobotAnimationService - startAnimation()");
     this.ctx = ctx;
 
     if (this._robotSignals.size <= 0) return this.ctx;
@@ -156,7 +156,7 @@ export abstract class RobotAnimationService extends AnimationService implements 
       }
 
       // 3. Mise à jour de la position du robot (vue)
-      this.ctx = this.coreAnimationService.renderAnimation(this.ctx);
+      this.ctx = this.mainRenderAnimationService.renderAnimation(this.ctx);
       this.animationFrameId = requestAnimationFrame(animate);
 
       return this.ctx;
@@ -169,7 +169,7 @@ export abstract class RobotAnimationService extends AnimationService implements 
     }
 
     // Mise à jour de la position du robot (vue)
-    this.ctx = this.coreAnimationService.renderAnimation(this.ctx);
+    this.ctx = this.mainRenderAnimationService.renderAnimation(this.ctx);
     this.animationFrameId = requestAnimationFrame(animate);
 
     return this.ctx;

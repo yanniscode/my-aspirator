@@ -26,5 +26,5 @@ export abstract class AnimationService {
   *
   * @returns void
   */
-  public abstract startRobotsAnimation(ctx: CanvasRenderingContext2D): void;
+  public abstract startAnimation(ctx: CanvasRenderingContext2D): CanvasRenderingContext2D;
 }

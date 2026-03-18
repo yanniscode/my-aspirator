@@ -1,18 +1,18 @@
 import { inject, Injectable, signal, WritableSignal } from '@angular/core';
-import { FactoryService } from '../factory.service';
 import { RobotModel } from '../../../classes/models/robot-model';
 import { RobotAspiratorDataService } from '../../data-services/robot-data-services/robot-aspirator-data-service/robot-aspirator-data.service';
 import { RobotDataService } from '../../data-services/robot-data-services/robot-data.service';
-import { RobotAnimationService } from '../../graphic-services/animation-service/robot-animation-service/robot-animation.service';
+import { RobotAnimationService } from '../../graphics-services/animation-service/robot-animation-service/robot-animation.service';
+import { DataFactoryService } from '../../data-factory-services/data-factory.service';
 
 @Injectable({
   providedIn: 'root',
 })
-export class RobotFactoryService extends FactoryService {
+export class RobotDataFactoryService extends DataFactoryService {
 
   private robotDataService = inject(RobotDataService);
   private robotAspiratorDataService = inject(RobotAspiratorDataService);
-  private robotAnimationService = inject(RobotAnimationService);
+  // private robotAnimationService = inject(RobotAnimationService);
 
   public robotNames = signal<string[]>([]);
 
@@ -26,7 +26,7 @@ export class RobotFactoryService extends FactoryService {
    * @returns
    */
   public getRobotsParams(TYPE_ACTION_ROBOT: string): RobotModel[] {
-    console.log("RobotFactoryService - getRobotsParams()");
+    console.log("RobotDataFactoryService - getRobotsParams()");
 
     // pattern "factory": upcast du type enfant RobotAspiratorModel vers le type parent RobotModel
     if (TYPE_ACTION_ROBOT === "aspirator") {
@@ -42,7 +42,7 @@ export class RobotFactoryService extends FactoryService {
    * @returns
    */
   public setRobotSignalsList(robotModelTab: RobotModel[]): WritableSignal<string[]> {
-    console.log("RobotFactoryService - setRobotSignalsList()");
+    console.log("RobotDataFactoryService - setRobotSignalsList()");
 
     robotModelTab.forEach((robotModel: RobotModel) => {
       // 1/ ajout du robot dans le type générique RobotModel à la liste:
@@ -54,32 +54,5 @@ export class RobotFactoryService extends FactoryService {
     });
 
     return this.robotNames;
-  }
-
-  /**
-   * déclenche le type d'animation souhaité
-   */
-  public declencheAnimationService(TYPE_ACTION_ROBOT: string, ctx: CanvasRenderingContext2D): CanvasRenderingContext2D {
-    console.log("RobotFactoryService - setRobotListSignals()");
-    this.ctx = ctx;
-
-    if (TYPE_ACTION_ROBOT === "aspirator") {
-      console.log("déclenchement de l'animation du robot Aspirateur");
-      this.ctx = this.robotAnimationService.startRobotsAnimation(ctx);
-    }
-
-    return this.ctx;
-  }
-
-  /**
-   * met en pause selon le type d'animation souhaité
-   */
-  public pauseAnimationService(TYPE_ACTION_ROBOT: string, ctx: CanvasRenderingContext2D): void {
-    console.log("RobotFactoryService - setRobotListSignals()");
-
-    if (TYPE_ACTION_ROBOT === "aspirator") {
-      console.log("déclenchement de l'animation du robot Aspirateur");
-      this.robotAnimationService.onRobotsPause(ctx);
-    }
   }
 }

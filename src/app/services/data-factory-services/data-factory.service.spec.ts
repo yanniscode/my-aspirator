@@ -1,13 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 
-import { RobotFactoryService } from './robot-factory.service';
+import { DataFactoryService } from './data-factory.service';
 
-describe('RobotFactoryService', () => {
-  let service: RobotFactoryService;
+describe('DataFactoryService', () => {
+  let service: DataFactoryService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(RobotFactoryService);
+    service = TestBed.inject(DataFactoryService);
   });
 
   it('should be created', () => {

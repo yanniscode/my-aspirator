@@ -1,14 +1,14 @@
 import { inject, Injectable, WritableSignal } from '@angular/core';
-import { RobotModel } from '../../../../../classes/models/robot-model';
-import { MaisonDataNettoyageService } from '../../../../data-services/maison-data-services/maison-data-nettoyage-service/maison-data-nettoyage.service';
-import { RobotDataService } from '../../../../data-services/robot-data-services/robot-data.service';
-import { AssetMaisonService } from '../../../asset-service/asset-maison-service/asset-maison.service';
-import { MaisonModel } from '../../../../../classes/models/maison-model';
+import { MaisonModel } from '../../../../classes/models/maison-model';
+import { RobotModel } from '../../../../classes/models/robot-model';
+import { MaisonDataNettoyageService } from '../../../data-services/maison-data-services/maison-data-nettoyage-service/maison-data-nettoyage.service';
+import { RobotDataService } from '../../../data-services/robot-data-services/robot-data.service';
+import { AssetMaisonService } from '../../asset-service/asset-maison-service/asset-maison.service';
 
 @Injectable({
   providedIn: 'root',
 })
-export class MaisonCoreAnimationService {
+export class MaisonRenderAnimationService {
 
   private maisonDataNettoyageService = inject(MaisonDataNettoyageService);
   private assetMaisonService = inject(AssetMaisonService);
@@ -24,7 +24,7 @@ export class MaisonCoreAnimationService {
     = this.robotDataService.robotSignals;
 
   public drawMaison(ctx: CanvasRenderingContext2D): CanvasRenderingContext2D {
-    console.log("MaisonCoreAnimationService - drawMaison()");
+    console.log("MaisonRenderAnimationService - drawMaison()");
 
     // récupération du canvas avec ses données pour ajouter les données de la maison
     this.ctx = ctx;

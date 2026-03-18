@@ -1,14 +1,14 @@
 import { inject, Injectable, WritableSignal } from '@angular/core';
-import { PixelPosition } from '../../../../../classes/models/pixel-position';
-import { RobotAspiratorModel } from '../../../../../classes/models/robot-aspirator-model';
-import { RobotModel } from '../../../../../classes/models/robot-model';
-import { RobotDataService } from '../../../../data-services/robot-data-services/robot-data.service';
-import { AssetRobotService } from '../../../asset-service/asset-robot-service/asset-robot.service';
+import { PixelPosition } from '../../../../classes/models/pixel-position';
+import { RobotAspiratorModel } from '../../../../classes/models/robot-aspirator-model';
+import { RobotModel } from '../../../../classes/models/robot-model';
+import { RobotDataService } from '../../../data-services/robot-data-services/robot-data.service';
+import { AssetRobotService } from '../../asset-service/asset-robot-service/asset-robot.service';
 
 @Injectable({
   providedIn: 'root',
 })
-export class RobotCoreAnimationService {
+export class RobotRenderAnimationService {
 
   private robotDataService = inject(RobotDataService);
   private assetRobotService = inject(AssetRobotService);
@@ -21,7 +21,7 @@ export class RobotCoreAnimationService {
     = this.robotDataService.robotSignals;
 
   public drawRobots(ctx: CanvasRenderingContext2D): CanvasRenderingContext2D {
-    console.log("RobotCoreAnimationService - drawRobots()");
+    console.log("RobotRenderAnimationService - drawRobots()");
 
     this.ctx = ctx;
 
@@ -61,7 +61,7 @@ export class RobotCoreAnimationService {
   }
 
   protected drawRobotLabels(robot: RobotModel, x: number, y: number): void {
-    // console.log("RobotCoreAnimationService - drawRobotLabels()");
+    // console.log("RobotRenderAnimationService - drawRobotLabels()");
 
     const LABEL_HEIGHT = 28;  // hauteur totale des deux labels (12 + 16)
 

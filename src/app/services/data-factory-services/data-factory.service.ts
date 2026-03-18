@@ -4,7 +4,7 @@ import { RobotModel } from '../../classes/models/robot-model';
 @Injectable({
   providedIn: 'root',
 })
-export abstract class FactoryService {
+export abstract class DataFactoryService {
 
   /**
    * Méthode de factory : renvoie les paramètres des robots avec un upcast vers le type générique RobotModel[]
@@ -17,10 +17,4 @@ export abstract class FactoryService {
    * @param robotModel
    */
   public abstract setRobotSignalsList(robotModel: RobotModel[]): WritableSignal<string[]>;
-
-  /**
-   * Méthode de factory qui déclenche l'animation globale
-   * @param typeAnimation
-   */
-  public abstract declencheAnimationService(TYPE_ACTION_ROBOT: string, ctx: CanvasRenderingContext2D): void;
 }
