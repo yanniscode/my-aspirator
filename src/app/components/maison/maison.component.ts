@@ -9,6 +9,7 @@ import { PixelPosition } from '../../classes/models/pixel-position';
 import { RobotAspiratorService } from '../../services/robot-aspirator-service/robot-aspirator.service';
 import { MaisonNettoyageService } from '../../services/maison-services/maison-nettoyage.service';
 import { AssetRobotService } from '../../services/asset-service/asset-robot-service/asset-robot.service';
+import { AssetMaisonService } from '../../services/asset-service/asset-maison-service/asset-maison.service';
 
 @Component({
   selector: 'app-maison',
@@ -35,6 +36,7 @@ export class MaisonComponent implements AfterViewInit, OnDestroy {
   private maisonNettoyageService = inject(MaisonNettoyageService);
   public robotAspiratorService = inject(RobotAspiratorService);
   private assetRobotService = inject(AssetRobotService);
+  private assetMaisonService = inject(AssetMaisonService);
   private loggerService = inject(LoggerService);
 
   private ctx!: CanvasRenderingContext2D;
@@ -105,14 +107,33 @@ export class MaisonComponent implements AfterViewInit, OnDestroy {
   }
 
   /**
- * Fix Firefox — le contexte canvas reste en état "lazy"
- * jusqu'au premier appel de dessin synchrone.
- * On dessine le fond de la maison pour activer le contexte.
- */
+   * Fix Firefox — le contexte canvas reste en état "lazy"
+   * jusqu'au premier appel de dessin synchrone.
+   * On dessine le fond de la maison pour activer le contexte.
+   */
   private initCanvasContext(canvas: HTMLCanvasElement): void {
     this.ctx = canvas.getContext('2d')!;
     this.ctx.fillStyle = this.ROW_COLOR;
     this.ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
+
+  /**
+   * Chargement des images pour le canvas
+   */
+  private async loadCanvasImages(): Promise<void> {
+    await this.assetMaisonService.loadAssets();
+    await this.assetRobotService.loadAssets();
+  }
+
+  /**
+   * Affichage des images sur le canvas
+   */
+  private render(): void {
+    // Efface tout
+    this.ctx.clearRect(0, 0, this.WIDTH, this.HEIGHT);
+    // Dessine tout
+    this.drawGrille();
+    this.drawRobots();
   }
 
   async ngAfterViewInit(): Promise<void> {
@@ -123,16 +144,17 @@ export class MaisonComponent implements AfterViewInit, OnDestroy {
     canvas.width = maison.maison[0].length * this.CELL_SIZE;
     canvas.height = maison.maison.length * this.CELL_SIZE;
 
-    //  Fix Firefox
+    // Fix Firefox
     this.initCanvasContext(canvas);
 
-    await this.assetRobotService.loadAssets();
+    // Attente du chargement des images (maison + robots) avant le rendu
+    await this.loadCanvasImages();
     this.render();
   }
 
   /**
-* Nettoyage complet du service
-*/
+  * Nettoyage complet du service
+  */
   public ngOnDestroy(): void {
     console.log("MaisonComponent - ngOnDestroy()");
     this.stopAllAnimation();
@@ -200,7 +222,7 @@ export class MaisonComponent implements AfterViewInit, OnDestroy {
         const offsetX = (this.CELL_SIZE - innerSize) / 2;
         const offsetY = (this.CELL_SIZE - innerSize) / 2;
 
-        const img: HTMLImageElement | undefined = this.assetRobotService.getImageForCell(cell.type);
+        const img: HTMLImageElement | undefined = this.assetMaisonService.getImageForCell(cell.type);
         if (img) {
           this.ctx.drawImage(
             img,
@@ -300,14 +322,6 @@ export class MaisonComponent implements AfterViewInit, OnDestroy {
       // restore() APRÈS tout le rendu du robot
       this.ctx.restore();
     }
-  }
-
-  private render(): void {
-    // Efface tout
-    this.ctx.clearRect(0, 0, this.WIDTH, this.HEIGHT);
-    // Dessine tout
-    this.drawGrille();
-    this.drawRobots();
   }
 
   /**

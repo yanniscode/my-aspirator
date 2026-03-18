@@ -2,7 +2,7 @@ import { GridPosition } from "./grid-position";
 
 export class CellElement {
     position: GridPosition;
-    type: 'O' | 'X' | 'B' | '_' | 'R'; // 'O' = nonVisitée, 'X' = mur, 'B' = base, '_' = visitée, 'R' = robot
+    type: 'O' | 'X' | 'B' | '_'; // 'O' = nonVisitée, 'X' = mur, 'B' = base, '_' = visitée
     visited: boolean;
     reserved: boolean;
 

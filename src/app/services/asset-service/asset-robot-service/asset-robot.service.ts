@@ -4,18 +4,14 @@ import { AssetService } from '../asset.service';
 @Injectable({
   providedIn: 'root',
 })
-export class AssetRobotService extends AssetService {
+export abstract class AssetRobotService extends AssetService {
 
   constructor() {
     console.log("AssetRobotService - constructor()");
     super();
 
     this.ASSETS = [
-      { name: 'robot', path: '/assets/megaman.png' },
-      { name: 'mur', path: '/assets/texture-mur.png' },
-      { name: 'base', path: '/assets/texture-base.png' },
-      { name: 'visitee', path: '/assets/texture-visitee.png' },
-      { name: 'nonVisitee', path: '/assets/texture-non-visitee.png' },
+      { name: 'robot', path: '/assets/megaman.png' }
     ];
   }
 
@@ -50,19 +46,8 @@ export class AssetRobotService extends AssetService {
   }
 
   /**
-   *
-   * @param type
-   * @returns
+   * 
+   * @param type 
    */
-  public getImageForCell(type: string): HTMLImageElement | undefined {
-    // console.log("AssetRobotService - getImageForCell()");
-
-    switch (type) {
-      case 'O': return this.getImage('nonVisitee');
-      case 'X': return this.getImage('mur');
-      case 'B': return this.getImage('base');
-      case '_': return this.getImage('visitee');
-      default: return undefined;
-    }
-  }
+  public abstract override getImageForCell(type: string): HTMLImageElement | undefined;
 }
