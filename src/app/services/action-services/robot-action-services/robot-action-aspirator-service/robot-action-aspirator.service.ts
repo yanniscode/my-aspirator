@@ -1,4 +1,4 @@
-import { computed, inject, Injectable, OnDestroy, Signal, WritableSignal } from '@angular/core';
+import { computed, inject, Injectable, Signal, WritableSignal } from '@angular/core';
 import { RobotActionService } from '../robot-action.service';
 import { AlgoNettoyageService } from '../../../algo-services/algo-nettoyage-service/algo-nettoyage.service';
 import { CellElement } from '../../../../classes/models/cellElement';
@@ -12,7 +12,7 @@ import { RobotDataService } from '../../../data-services/robot-data-services/rob
 @Injectable({
   providedIn: 'root'
 })
-export class RobotActionAspiratorService extends RobotActionService implements OnDestroy {
+export class RobotActionAspiratorService extends RobotActionService {
 
   protected algoNettoyageService = inject(AlgoNettoyageService);
   private robotDataService = inject(RobotDataService);
@@ -39,7 +39,7 @@ export class RobotActionAspiratorService extends RobotActionService implements O
   /**
    * Calcule de nouvelles directions selon le temps donné
    */
-  public override calculateNewDirectionsForAllRobots(): void {
+  public calculateNewDirectionsForAllRobots(): void {
     console.log("RobotActionAspiratorService - calculateNewDirectionsForAllRobots()");
 
     if (this._robotSignals.size <= 0) return;

@@ -9,10 +9,6 @@ import { GridPosition } from '../../../classes/models/grid-position';
 })
 export abstract class MaisonDataService {
 
-  constructor() {
-    console.log("MaisonDataService - constructor()");
-  }
-
   // Instanciation de la maison:
   // Privé et mutable — seul le service peut écrire dedans
   // readonly sur la déclaration TypeScript signifie que la référence au signal ne peut pas être réassignée — pas que le signal lui-même est immuable
@@ -20,9 +16,14 @@ export abstract class MaisonDataService {
   // Public et lecture seule — les composants peuvent seulement lire
   public readonly maisonSignal: Signal<MaisonModel> = this._maisonSignal.asReadonly();
 
-  public updateMaison(maison: MaisonModel): void {
-    this._maisonSignal.set(maison);
-  }
+  // /**
+  //  * Mise à jour intégrale de la maison
+  //  * 
+  //  * @param maison 
+  //  */
+  // public updateMaison(maison: MaisonModel): void {
+  //   this._maisonSignal.set(maison);
+  // }
 
   // TODO: EVOL - possible refactoring de méthode dans un service API (récupération des données dans des objets JSON / appels HTTP)
   /**

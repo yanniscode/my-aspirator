@@ -189,7 +189,7 @@ export class MaisonDataNettoyageService extends MaisonDataService {
    * @returns
    */
   public toutEstVisite(): boolean {
-    console.log("MaisonDataNettoyageService - toutEstNettoye()");
+    console.log("MaisonDataNettoyageService - toutEstVisite()");
     const maisonModel = this.maisonSignal();
     if (!maisonModel) return true;
 

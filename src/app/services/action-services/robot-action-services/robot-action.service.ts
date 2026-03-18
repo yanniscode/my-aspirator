@@ -7,21 +7,9 @@ import { LoggerService } from '../../data-services/logger-service/logger.service
 @Injectable({
   providedIn: 'root'
 })
-export abstract class RobotActionService implements OnDestroy {
+export abstract class RobotActionService {
 
   protected loggerService: LoggerService = inject(LoggerService);
-
-  constructor() {
-    console.log("RobotActionService - constructor()");
-  }
-
-  /**
-  * Nettoyage complet du service
-  */
-  public ngOnDestroy(): void {
-    console.log("RobotActionService - ngOnDestroy()");
-    console.log('Service de robots arrêté');
-  }
 
   /**
    * Calcule de nouvelles directions selon l'intervale donnée

@@ -1,16 +1,11 @@
-import { inject, Injectable } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { CellElement } from '../../classes/models/cellElement';
 import { GridPosition } from '../../classes/models/grid-position';
-import { LoggerService } from '../data-services/logger-service/logger.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AlgoCheminOptimalService {
-
-  protected loggerService: LoggerService = inject(LoggerService);
-
-  constructor() { }
 
   // méthode utilisée par RobotAspiratorWithNextPositionsTabService
   public calculerCheminSuivant(isRetourAlaBase: boolean, maison: CellElement[][], basePosition: GridPosition, position: GridPosition): GridPosition[] {

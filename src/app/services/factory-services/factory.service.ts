@@ -16,7 +16,7 @@ export abstract class FactoryService {
    *
    * @param robotModel
    */
-  public abstract setRobotListSignals(robotModel: RobotModel[]): WritableSignal<string[]>;
+  public abstract setRobotSignalsList(robotModel: RobotModel[]): WritableSignal<string[]>;
 
   /**
    * Méthode de factory qui déclenche l'animation globale

@@ -32,19 +32,8 @@ export abstract class RobotDataService {
   // public abstract setRobotListSignals(robotModelTab: RobotModel[]): void;
 
   /**
-  * Désenregistre un robot et nettoie son signal
-  */
-  public unregisterRobotFromList(robotName: string): void {
-    console.log("RobotDataService - unregisterRobotFromList()");
-
-    if (this._robotSignals.delete(robotName)) {
-      console.log(`Robot ${robotName} désenregistré`);
-    }
-  }
-
-  /**
-  * Enregistre un nouveau robot dans la liste
-  */
+* Enregistre un nouveau robot dans la liste
+*/
   public registerRobotInList(robotModel: RobotModel): void {
     console.log("RobotDataService - registerRobotInList()");
 
@@ -52,6 +41,17 @@ export abstract class RobotDataService {
       this._robotSignals.set(robotModel.robotName, signal(robotModel));
     } else {
       console.warn(`Robot ${robotModel.robotName} déjà enregistré`);
+    }
+  }
+
+  /**
+  * Désenregistre un robot et nettoie son signal
+  */
+  public unregisterRobotFromList(robotName: string): void {
+    console.log("RobotDataService - unregisterRobotFromList()");
+
+    if (this._robotSignals.delete(robotName)) {
+      console.log(`Robot ${robotName} désenregistré`);
     }
   }
 

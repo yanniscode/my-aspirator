@@ -1,4 +1,4 @@
-import { Component, OnDestroy, ViewChild, ViewEncapsulation, inject, ChangeDetectionStrategy, computed, Signal, signal, AfterViewInit, OnInit } from '@angular/core';
+import { Component, OnDestroy, ViewChild, ViewEncapsulation, inject, ChangeDetectionStrategy, computed, Signal, signal, AfterViewInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
 import { GameComponent } from '../game-component/game.component';
@@ -28,7 +28,8 @@ export class MainComponent implements AfterViewInit, OnDestroy {
   @ViewChild(GameComponent) maisonChildComponent!: GameComponent;
 
   private gameComponent: GameComponent;
-  private maisonNettoyageService = inject(MaisonDataNettoyageService);
+
+  private maisonDataNettoyageService = inject(MaisonDataNettoyageService);
   public robotDataService = inject(RobotDataService);
   private robotFactoryService = inject(RobotFactoryService);
   private loggerService = inject(LoggerService);
@@ -37,7 +38,7 @@ export class MainComponent implements AfterViewInit, OnDestroy {
 
   // pour le template
   public readonly maisonViewModel: Signal<MaisonModel> = computed(() =>
-    this.maisonNettoyageService.maisonSignal()
+    this.maisonDataNettoyageService.maisonSignal()
   );
 
   private readonly _robotSignals: Map<string, Signal<RobotModel>> = this.robotDataService.robotSignals;
@@ -58,21 +59,24 @@ export class MainComponent implements AfterViewInit, OnDestroy {
     this.TYPE_ACTION_ROBOT = "aspirator";
 
     // initialisation des params de la maison et des robots
-    const maisonModel: MaisonModel = { ...this.maisonNettoyageService.getMaisonParams() };
-    this.maisonNettoyageService.initMaison(maisonModel);
+    const maisonModel: MaisonModel = { ...this.maisonDataNettoyageService.getMaisonParams() };
+    this.maisonDataNettoyageService.initMaison(maisonModel);
 
     this.robotViewModelTab = [...this.robotFactoryService.getRobotsParams(this.TYPE_ACTION_ROBOT)];
     this.isRobotMapStarted = false;
-    this.robotNames = this.robotFactoryService.setRobotListSignals(this.robotViewModelTab);
+    this.robotNames = this.robotFactoryService.setRobotSignalsList(this.robotViewModelTab);
     if (!this.robotNames) return;
   }
 
   ngAfterViewInit(): void {
+    console.log("MainComponent - ngAfterViewInit()");
+
     this.gameComponent = this.maisonChildComponent;
   }
 
-  public ngOnDestroy(): void {
+  ngOnDestroy(): void {
     console.log('MainComponent - ngOnDestroy()');
+
     this.robotViewModelTab.forEach(robotModel => {
       this.robotDataService.unregisterRobotFromList(robotModel.robotName);
     });

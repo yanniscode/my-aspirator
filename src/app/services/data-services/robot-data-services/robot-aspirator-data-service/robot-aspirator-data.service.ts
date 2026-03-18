@@ -5,6 +5,7 @@ import { GridPosition } from '../../../../classes/models/grid-position';
 import { MaisonDataNettoyageService } from '../../maison-data-services/maison-data-nettoyage-service/maison-data-nettoyage.service';
 import { RobotActionAspiratorService } from '../../../action-services/robot-action-services/robot-action-aspirator-service/robot-action-aspirator.service';
 import { AssetRobotService } from '../../../graphic-services/asset-service/asset-robot-service/asset-robot.service';
+import { LoggerService } from '../../logger-service/logger.service';
 
 @Injectable({
   providedIn: 'root',
@@ -14,6 +15,7 @@ export class RobotAspiratorDataService extends RobotDataService {
   private robotActionAspiratorService = inject(RobotActionAspiratorService);
   private assetRobotService = inject(AssetRobotService);
   private maisonDataNettoyageService = inject(MaisonDataNettoyageService);
+  private loggerService = inject(LoggerService);
 
   constructor() {
     console.log("RobotAspiratorDataService - constructor");
@@ -171,5 +173,9 @@ export class RobotAspiratorDataService extends RobotDataService {
       const robotBasePosition: GridPosition = { ...robotAspiratorModel.basePosition };
       this.maisonDataNettoyageService.updateMaisonRobotBase(robotBasePosition);
     });
+  }
+
+  private log(message: string) {
+    this.loggerService.add(`MainComponent: ${message}`);
   }
 }

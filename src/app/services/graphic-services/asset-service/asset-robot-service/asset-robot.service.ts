@@ -44,10 +44,4 @@ export abstract class AssetRobotService extends AssetService {
     if (batterie > 10) return '#ffa500';  // orange
     return '#ff0000';                      // rouge
   }
-
-  /**
-   * 
-   * @param type 
-   */
-  public abstract override getImageForCell(type: string): HTMLImageElement | undefined;
 }

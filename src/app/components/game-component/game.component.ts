@@ -33,6 +33,7 @@ export class GameComponent implements AfterViewInit, OnDestroy {
   private robotFactoryService = inject(RobotFactoryService);
 
   private maisonDataNettoyageService = inject(MaisonDataNettoyageService);
+
   private animationFactoryService = inject(AnimationFactoryService);
   private coreAnimationService = inject(CoreAnimationService);
   private loggerService = inject(LoggerService);
@@ -45,25 +46,23 @@ export class GameComponent implements AfterViewInit, OnDestroy {
     console.log("GameComponent - constructor()");
   }
 
-  public async initialiseAfterView(gameCanvas: ElementRef<HTMLCanvasElement>): Promise<void> {
+  /**
+ * initialise le canvas après la vue
+ */
+  async ngAfterViewInit(): Promise<void> {
     console.log("GameComponent - ngAfterViewInit()");
 
-    // if (this.isRunning) return;
+    await this.initialiseAfterView(this.gameCanvas);
+  }
 
-    const canvas = gameCanvas.nativeElement;
-    const maison = this.maisonDataNettoyageService.maisonSignal();
-    canvas.width = maison.maison[0].length * this.CELL_SIZE;
-    canvas.height = maison.maison.length * this.CELL_SIZE;
+  /**
+  * Nettoyage complet du service
+  */
+  public ngOnDestroy(): void {
+    console.log("GameComponent - ngOnDestroy()");
 
-    // Fix Firefox
-    // on doit assigner la valeur du ctx pour le Canvas
-    this.ctx = this.animationFactoryService.initCanvasContext(canvas);
-
-    // Attente du chargement des images (maison) avant le rendu
-    await this.animationFactoryService.loadCanvasImages();
-    // this.ctx = this.maisonAnimationService.renderAnimation(this.ctx);
-    // this.ctx = this.robotAnimationService.renderAnimation(this.ctx);
-    this.ctx = this.coreAnimationService.renderAnimation(this.ctx);
+    this.robotAnimationService.ngOnDestroy();
+    console.log('Service de robots arrêté');
   }
 
   public onStart(TYPE_ACTION_ROBOT: string) {
@@ -78,26 +77,22 @@ export class GameComponent implements AfterViewInit, OnDestroy {
     this.robotFactoryService.pauseAnimationService(TYPE_ACTION_ROBOT, this.ctx);
   }
 
-  /**
-   * initialise le canvas après la vue
-   */
-  async ngAfterViewInit(): Promise<void> {
+  public async initialiseAfterView(gameCanvas: ElementRef<HTMLCanvasElement>): Promise<void> {
     console.log("GameComponent - ngAfterViewInit()");
 
-    await this.initialiseAfterView(this.gameCanvas);
-    // await this.maisonAnimationService.initialiseAfterView(this.gameCanvas);
-    // await this.robotAspiratorAnimationService.initialiseAfterView(this.gameCanvas);
+    const canvas = gameCanvas.nativeElement;
+    const maison = this.maisonDataNettoyageService.maisonSignal();
+    canvas.width = maison.maison[0].length * this.CELL_SIZE;
+    canvas.height = maison.maison.length * this.CELL_SIZE;
 
-  }
+    // Fix Firefox
+    // on doit assigner la valeur du ctx pour le Canvas
+    this.ctx = this.animationFactoryService.initCanvasContext(canvas);
 
-  /**
-  * Nettoyage complet du service
-  */
-  public ngOnDestroy(): void {
-    console.log("GameComponent - ngOnDestroy()");
+    // Attente du chargement des images (maison) avant le rendu
+    await this.animationFactoryService.loadCanvasImages();
 
-    this.robotAnimationService.ngOnDestroy();
-    console.log('Service de robots arrêté');
+    this.ctx = this.coreAnimationService.renderAnimation(this.ctx);
   }
 
   private log(message: string): void {

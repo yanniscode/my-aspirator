@@ -3,6 +3,7 @@ import { RobotModel } from '../../../../../classes/models/robot-model';
 import { MaisonDataNettoyageService } from '../../../../data-services/maison-data-services/maison-data-nettoyage-service/maison-data-nettoyage.service';
 import { RobotDataService } from '../../../../data-services/robot-data-services/robot-data.service';
 import { AssetMaisonService } from '../../../asset-service/asset-maison-service/asset-maison.service';
+import { MaisonModel } from '../../../../../classes/models/maison-model';
 
 @Injectable({
   providedIn: 'root',
@@ -25,8 +26,10 @@ export class MaisonCoreAnimationService {
   public drawMaison(ctx: CanvasRenderingContext2D): CanvasRenderingContext2D {
     console.log("MaisonCoreAnimationService - drawMaison()");
 
+    // récupération du canvas avec ses données pour ajouter les données de la maison
     this.ctx = ctx;
-    const maison = this.maisonDataNettoyageService.maisonSignal();
+    // récupération des données de la maison à partir de son Signal
+    const maison: MaisonModel = this.maisonDataNettoyageService.maisonSignal();
 
     maison.maison.forEach((row, rowIndex) => {
 

@@ -13,10 +13,10 @@ export abstract class RobotAnimationService extends AnimationService implements 
 
   private robotDataService = inject(RobotDataService);
   private coreAnimationService = inject(CoreAnimationService);
-  // Pattern factory: on injecte le service robot spécifique (ex: "aspirator") en tant que service robot générique
+  // Pattern factory: on injecte le service robot spécifique (ex: "aspirator") en tant que service robot générique...
   private robotActionAspiratorService = inject(RobotActionAspiratorService) as RobotActionService;
-  // ce qui permet de passer un tableau de robots générique, avec des caractéristiques spécifiques:
-  private robotActionServicesTab: RobotActionService[] = [this.robotActionAspiratorService];
+  // ...ce qui permet de passer un tableau de robots générique, avec des caractéristiques spécifiques:
+  private robotActionServiceTab: RobotActionService[] = [this.robotActionAspiratorService];
 
   protected ctx!: CanvasRenderingContext2D;
 
@@ -45,9 +45,9 @@ export abstract class RobotAnimationService extends AnimationService implements 
   }
 
   /**
-* Nettoyage complet du service
-*/
-  public ngOnDestroy(): void {
+   * Nettoyage complet du service
+   */
+  ngOnDestroy(): void {
     console.log("RobotAnimationService - ngOnDestroy()");
 
     this.stopAllAnimation();
@@ -55,17 +55,9 @@ export abstract class RobotAnimationService extends AnimationService implements 
   }
 
   /**
-  * Nettoyage complet du service (animation où tous les robots s'arrêtent)
-  */
-  public onRobotsPause(ctx: CanvasRenderingContext2D): void {
-    console.log("RobotAnimationService - onRobotsPause()");
-    this.ctx = ctx;
-
-    this.isRunning = false;
-    console.log('Service de robots mis en pause');
-  }
-
-  private stopAllAnimation(): void {
+   *
+   */
+  protected stopAllAnimation(): void {
     console.log("MainAnimationService - stopAllAnimation()");
 
     console.log('Animation stopped');
@@ -79,8 +71,9 @@ export abstract class RobotAnimationService extends AnimationService implements 
     this._robotSignals.clear();
   }
 
-  public abstract override drawRobots(ctx: CanvasRenderingContext2D): void;
-
+  /**
+   * 
+   */
   protected pauseAllAnimation(): void {
     console.log("RobotAnimationService - pauseAllAnimation()");
 
@@ -93,6 +86,17 @@ export abstract class RobotAnimationService extends AnimationService implements 
       this.animationFrameId = undefined;
     }
     // On ne supprime pas la map de signaux pour une simple mise en pause
+  }
+
+  /**
+   * Nettoyage complet du service (animation où tous les robots s'arrêtent)
+   */
+  public onRobotsPause(ctx: CanvasRenderingContext2D): void {
+    console.log("RobotAnimationService - onRobotsPause()");
+    this.ctx = ctx;
+
+    this.isRunning = false;
+    console.log('Service de robots mis en pause');
   }
 
   /**
@@ -139,9 +143,9 @@ export abstract class RobotAnimationService extends AnimationService implements 
         // 2. Calcul des nouvelles directions (qui lit progress = 0)
 
         // On appelle les méthodes d'action de chaque service de robot spécifique, à partir du type générique de service robot
-        for (let i = 0; i < this.robotActionServicesTab.length; i++) {
-          this.robotActionServicesTab[i].calculateNewDirectionsForAllRobots();
-          this.robotActionServicesTab[i].updateRobotsVisitedCells();
+        for (let i = 0; i < this.robotActionServiceTab.length; i++) {
+          this.robotActionServiceTab[i].calculateNewDirectionsForAllRobots();
+          this.robotActionServiceTab[i].updateRobotsVisitedCells();
         }
 
       } else {
@@ -159,9 +163,9 @@ export abstract class RobotAnimationService extends AnimationService implements 
     };
 
     // on appelle les méthodes d'action de chaque service de robot spécifique, à partir du type de service robot générique
-    for (let i = 0; i < this.robotActionServicesTab.length; i++) {
-      this.robotActionServicesTab[i].calculateNewDirectionsForAllRobots();
-      this.robotActionServicesTab[i].updateRobotsVisitedCells();
+    for (let i = 0; i < this.robotActionServiceTab.length; i++) {
+      this.robotActionServiceTab[i].calculateNewDirectionsForAllRobots();
+      this.robotActionServiceTab[i].updateRobotsVisitedCells();
     }
 
     // Mise à jour de la position du robot (vue)

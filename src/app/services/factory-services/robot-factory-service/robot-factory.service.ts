@@ -25,7 +25,7 @@ export class RobotFactoryService extends FactoryService {
    *
    * @returns
    */
-  public override getRobotsParams(TYPE_ACTION_ROBOT: string): RobotModel[] {
+  public getRobotsParams(TYPE_ACTION_ROBOT: string): RobotModel[] {
     console.log("RobotFactoryService - getRobotsParams()");
 
     // pattern "factory": upcast du type enfant RobotAspiratorModel vers le type parent RobotModel
@@ -41,8 +41,8 @@ export class RobotFactoryService extends FactoryService {
    * @param robotModelTab
    * @returns
    */
-  public setRobotListSignals(robotModelTab: RobotModel[]): WritableSignal<string[]> {
-    console.log("RobotFactoryService - setRobotListSignals()");
+  public setRobotSignalsList(robotModelTab: RobotModel[]): WritableSignal<string[]> {
+    console.log("RobotFactoryService - setRobotSignalsList()");
 
     robotModelTab.forEach((robotModel: RobotModel) => {
       // 1/ ajout du robot dans le type générique RobotModel à la liste:

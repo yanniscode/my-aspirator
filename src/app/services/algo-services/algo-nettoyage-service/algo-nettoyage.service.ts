@@ -1,12 +1,15 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { CellElement } from '../../../classes/models/cellElement';
 import { GridPosition } from '../../../classes/models/grid-position';
 import { AlgoCheminOptimalService } from '../algo-chemin-optimal.service';
+import { LoggerService } from '../../data-services/logger-service/logger.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AlgoNettoyageService extends AlgoCheminOptimalService {
+
+  protected loggerService: LoggerService = inject(LoggerService);
 
   constructor() {
     super();
