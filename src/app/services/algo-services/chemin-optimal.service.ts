@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { CellElement } from '../../classes/models/cellElement';
 import { GridPosition } from '../../classes/models/grid-position';
-import { LoggerService } from '../logger-service/logger.service';
+import { LoggerService } from '../data-services/logger-service/logger.service';
 
 @Injectable({
   providedIn: 'root'

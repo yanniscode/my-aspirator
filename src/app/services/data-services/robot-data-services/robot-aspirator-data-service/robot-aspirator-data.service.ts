@@ -1,10 +1,10 @@
 import { inject, Injectable } from '@angular/core';
 import { RobotDataService as RobotDataService } from '../robot-data.service';
 import { RobotAspiratorModel } from '../../../../classes/models/robot-aspirator-model';
-import { AssetRobotService } from '../../../asset-service/asset-robot-service/asset-robot.service';
 import { GridPosition } from '../../../../classes/models/grid-position';
-import { RobotAspiratorService } from '../../../robot-action-services/robot-aspirator-service/robot-aspirator.service';
-import { MaisonNettoyageService } from '../../../maison-services/maison-nettoyage-service/maison-nettoyage.service';
+import { MaisonDataNettoyageService } from '../../maison-data-services/maison-data-nettoyage-service/maison-data-nettoyage.service';
+import { RobotAspiratorService } from '../../../action-services/robot-action-services/robot-aspirator-service/robot-aspirator.service';
+import { AssetRobotService } from '../../../graphic-services/asset-service/asset-robot-service/asset-robot.service';
 
 @Injectable({
   providedIn: 'root',
@@ -14,7 +14,7 @@ export class RobotAspiratorDataService extends RobotDataService {
   private robotAspiratorService = inject(RobotAspiratorService);
   private assetRobotService = inject(AssetRobotService);
 
-  private maisonNettoyageService = inject(MaisonNettoyageService);
+  private maisonNettoyageService = inject(MaisonDataNettoyageService);
 
   constructor() {
     console.log("RobotAspiratorDataService - constructor");

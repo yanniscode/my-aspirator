@@ -1,13 +1,13 @@
 import { computed, inject, Injectable, OnDestroy, Signal, WritableSignal } from '@angular/core';
-import { RobotAspiratorModel } from '../../../classes/models/robot-aspirator-model';
-import { MaisonModel } from '../../../classes/models/maison-model';
-import { GridPosition } from '../../../classes/models/grid-position';
-import { PixelPosition } from '../../../classes/models/pixel-position';
-import { CellElement } from '../../../classes/models/cellElement';
 import { RobotActionService } from '../robot-action.service';
-import { MaisonNettoyageService } from '../../maison-services/maison-nettoyage-service/maison-nettoyage.service';
-import { AlgoNettoyageService } from '../../algo-services/algo-nettoyage-service/algo-nettoyage.service';
-import { RobotDataService } from '../../data-services/robot-data-services/robot-data.service';
+import { AlgoNettoyageService } from '../../../algo-services/algo-nettoyage-service/algo-nettoyage.service';
+import { CellElement } from '../../../../classes/models/cellElement';
+import { GridPosition } from '../../../../classes/models/grid-position';
+import { MaisonModel } from '../../../../classes/models/maison-model';
+import { PixelPosition } from '../../../../classes/models/pixel-position';
+import { RobotAspiratorModel } from '../../../../classes/models/robot-aspirator-model';
+import { MaisonDataNettoyageService } from '../../../data-services/maison-data-services/maison-data-nettoyage-service/maison-data-nettoyage.service';
+import { RobotDataService } from '../../../data-services/robot-data-services/robot-data.service';
 
 @Injectable({
   providedIn: 'root'
@@ -16,7 +16,7 @@ export class RobotAspiratorService extends RobotActionService implements OnDestr
 
   protected nettoyageService = inject(AlgoNettoyageService);
   private robotFactoryService = inject(RobotDataService);
-  private maisonNettoyageService = inject(MaisonNettoyageService);
+  private maisonNettoyageService = inject(MaisonDataNettoyageService);
 
   // Map en lecture seule pour stocker les signaux computed de chaque robot à afficher
   // TODO: pourquoi readonly si WritableSignal ici ?? c'est la map qui est en lecture seule, pas les éléments ??

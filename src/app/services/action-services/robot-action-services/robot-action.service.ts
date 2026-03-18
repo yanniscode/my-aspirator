@@ -1,8 +1,8 @@
 import { inject, Injectable, OnDestroy } from '@angular/core';
-import { RobotAspiratorModel } from '../../classes/models/robot-aspirator-model';
-import { GridPosition } from '../../classes/models/grid-position';
-import { LoggerService } from '../logger-service/logger.service';
-import { PixelPosition } from '../../classes/models/pixel-position';
+import { GridPosition } from '../../../classes/models/grid-position';
+import { PixelPosition } from '../../../classes/models/pixel-position';
+import { RobotAspiratorModel } from '../../../classes/models/robot-aspirator-model';
+import { LoggerService } from '../../data-services/logger-service/logger.service';
 
 @Injectable({
   providedIn: 'root'

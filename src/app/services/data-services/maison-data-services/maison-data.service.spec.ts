@@ -1,13 +1,12 @@
 import { TestBed } from '@angular/core/testing';
+import { MaisonDataService } from './maison-data.service';
 
-import { LoggerService } from './logger.service';
-
-describe('MessagesService', () => {
-  let service: LoggerService;
+describe('MaisonDataService', () => {
+  let service: MaisonDataService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(LoggerService);
+    service = TestBed.inject(MaisonDataService);
   });
 
   it('should be created', () => {

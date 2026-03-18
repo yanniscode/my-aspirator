@@ -1,19 +1,19 @@
 import { inject, Injectable } from '@angular/core';
-import { MaisonService } from '../maison.service';
-import { CellElement } from '../../../classes/models/cellElement';
-import { GridPosition } from '../../../classes/models/grid-position';
-import { MaisonModel } from '../../../classes/models/maison-model';
+import { MaisonDataService as MaisonDataService } from '../maison-data.service';
+import { CellElement } from '../../../../classes/models/cellElement';
+import { GridPosition } from '../../../../classes/models/grid-position';
+import { MaisonModel } from '../../../../classes/models/maison-model';
 import { LoggerService } from '../../logger-service/logger.service';
 
 @Injectable({
   providedIn: 'root'
 })
-export class MaisonNettoyageService extends MaisonService {
+export class MaisonDataNettoyageService extends MaisonDataService {
 
   private loggerService = inject(LoggerService);
 
   constructor() {
-    console.log("MaisonNettoyageService - constructor()");
+    console.log("MaisonDataNettoyageService - constructor()");
     super();
   }
 
@@ -24,7 +24,7 @@ export class MaisonNettoyageService extends MaisonService {
    * @returns
    */
   public getMaisonParams(): MaisonModel {
-    console.log("MaisonNettoyageService - getMaisonParams()");
+    console.log("MaisonDataNettoyageService - getMaisonParams()");
 
     // Création des paramètres de la maison
     const largeurMaison: number = 10;
@@ -54,7 +54,7 @@ export class MaisonNettoyageService extends MaisonService {
    * @param maisonModel
    */
   public initMaison(maisonModel: MaisonModel): void {
-    console.log("MaisonNettoyageService - initMaison()");
+    console.log("MaisonDataNettoyageService - initMaison()");
 
     this._maisonSignal.set({
       ...new MaisonModel(),
@@ -79,7 +79,7 @@ export class MaisonNettoyageService extends MaisonService {
     hauteur: number,
     obstacles: GridPosition[]
   ): CellElement[][] {
-    console.log("MaisonNettoyageService - buildMaison()");
+    console.log("MaisonDataNettoyageService - buildMaison()");
 
     return Array.from({ length: hauteur }, (_, row) =>
       Array.from({ length: largeur }, (_, col) => {
@@ -98,7 +98,7 @@ export class MaisonNettoyageService extends MaisonService {
    * @param robotBasePosition
    */
   public updateMaisonRobotBase(robotBasePosition: GridPosition): void {
-    console.log("MaisonNettoyageService - updateMaisonRobotsBase()");
+    console.log("MaisonDataNettoyageService - updateMaisonRobotsBase()");
 
     console.log("maison dimensions:",
       this._maisonSignal().maison.length,     // hauteur
@@ -124,7 +124,7 @@ export class MaisonNettoyageService extends MaisonService {
    * @returns
    */
   public updateReservedCell(nextPosition: GridPosition, reservedStatus: boolean): void {
-    console.log("MaisonNettoyageService - updateReservedCell()");
+    console.log("MaisonDataNettoyageService - updateReservedCell()");
 
     const maisonModel = this.maisonSignal();
     if (!maisonModel) return;
@@ -155,7 +155,7 @@ export class MaisonNettoyageService extends MaisonService {
    * @returns
    */
   public updateVisitedCell(lastPosition: GridPosition, visitedStatus: boolean): void {
-    console.log("MaisonNettoyageService - updateVisitedCell()");
+    console.log("MaisonDataNettoyageService - updateVisitedCell()");
 
     const maisonModel = this.maisonSignal();
     if (!maisonModel) return;
@@ -186,7 +186,7 @@ export class MaisonNettoyageService extends MaisonService {
    * @returns
    */
   public toutEstVisite(): boolean {
-    console.log("MaisonNettoyageService - toutEstNettoye()");
+    console.log("MaisonDataNettoyageService - toutEstNettoye()");
     const maisonModel = this.maisonSignal();
     if (!maisonModel) return true;
 
@@ -201,6 +201,6 @@ export class MaisonNettoyageService extends MaisonService {
   }
 
   private log(message: string) {
-    this.loggerService.add(`MaisonNettoyageService: ${message}`);
+    this.loggerService.add(`MaisonDataNettoyageService: ${message}`);
   }
 }

@@ -1,16 +1,16 @@
 import { Injectable, Signal, signal, WritableSignal } from '@angular/core';
 
-import { MaisonModel } from '../../classes/models/maison-model';
-import { CellElement } from '../../classes/models/cellElement';
-import { GridPosition } from '../../classes/models/grid-position';
+import { MaisonModel } from '../../../classes/models/maison-model';
+import { CellElement } from '../../../classes/models/cellElement';
+import { GridPosition } from '../../../classes/models/grid-position';
 
 @Injectable({
   providedIn: 'root'
 })
-export abstract class MaisonService {
+export abstract class MaisonDataService {
 
   constructor() {
-    console.log("MaisonService - constructor()");
+    console.log("MaisonDataService - constructor()");
   }
 
   // Instanciation de la maison:
@@ -60,7 +60,7 @@ export abstract class MaisonService {
    * @returns
    */
   protected updateMaisonCell(newCellElement: CellElement): void {
-    console.log("MaisonService - updateMaisonCell()");
+    console.log("MaisonDataService - updateMaisonCell()");
 
     const maison: CellElement[][] = this._maisonSignal()?.maison;
 

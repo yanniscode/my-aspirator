@@ -1,17 +1,17 @@
 import { Component, ViewEncapsulation, ChangeDetectionStrategy, inject, ViewChild, ElementRef, computed, Signal, signal, OnDestroy, AfterViewInit, WritableSignal } from '@angular/core';
 import { TableModule } from "primeng/table";
-import { LoggerService } from '../../services/logger-service/logger.service';
+import { LoggerService } from '../../services/data-services/logger-service/logger.service';
 import { MaisonModel } from '../../classes/models/maison-model';
 import { GridPosition } from '../../classes/models/grid-position';
 import { CellElement } from '../../classes/models/cellElement';
 import { PixelPosition } from '../../classes/models/pixel-position';
-import { RobotAspiratorService } from '../../services/robot-action-services/robot-aspirator-service/robot-aspirator.service';
-import { MaisonNettoyageService } from '../../services/maison-services/maison-nettoyage-service/maison-nettoyage.service';
-import { AssetRobotService } from '../../services/asset-service/asset-robot-service/asset-robot.service';
-import { AssetMaisonService } from '../../services/asset-service/asset-maison-service/asset-maison.service';
+import { MaisonDataNettoyageService } from '../../services/data-services/maison-data-services/maison-data-nettoyage-service/maison-data-nettoyage.service';
 import { RobotDataService } from '../../services/data-services/robot-data-services/robot-data.service';
 import { RobotModel } from '../../classes/models/robot-model';
 import { RobotAspiratorModel } from '../../classes/models/robot-aspirator-model';
+import { RobotAspiratorService } from '../../services/action-services/robot-action-services/robot-aspirator-service/robot-aspirator.service';
+import { AssetRobotService } from '../../services/graphic-services/asset-service/asset-robot-service/asset-robot.service';
+import { AssetMaisonService } from '../../services/graphic-services/asset-service/asset-maison-service/asset-maison.service';
 
 @Component({
   selector: 'app-game',
@@ -35,7 +35,7 @@ import { RobotAspiratorModel } from '../../classes/models/robot-aspirator-model'
 export class GameComponent implements AfterViewInit, OnDestroy {
   @ViewChild('gameCanvas', { static: true }) gameCanvas!: ElementRef<HTMLCanvasElement>;
 
-  private maisonNettoyageService = inject(MaisonNettoyageService);
+  private maisonNettoyageService = inject(MaisonDataNettoyageService);
   public robotDataService = inject(RobotDataService);
   public robotAspiratorService = inject(RobotAspiratorService);
   private assetRobotService = inject(AssetRobotService);

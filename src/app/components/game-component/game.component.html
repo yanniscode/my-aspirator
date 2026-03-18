@@ -1,24 +1,3 @@
 <div class="game">
   <canvas #gameCanvas class="table-game"></canvas>
 </div>
-
-<!-- ne plus utiliser ici pour test -->
-<!-- @for (robot of robotList(); track robot) {
-<div class="robot-card">
-  @if (robotFactoryService.getRobotSignal(robot.robotName)(); as robot) {
-  <h3>🤖 {{ robot.robotName }}</h3>
-  <div class="robot-info">
-    <p>🔋 Batterie: {{ robot.batterie }}%</p>
-    <p>📍 Last Position: ({{ robot.lastPosition.col }}, {{ robot.lastPosition.row }})
-    <p>📍 Position: ({{ robot.position.col }}, {{ robot.position.row }})
-    </p>
-    <p>📍 StartCoordinate: ({{ robot.startCoordinate.x }}, {{ robot.startCoordinate.y }})
-    <p>📍 TargetCoordinate: ({{ robot.targetCoordinate.x }}, {{ robot.targetCoordinate.y }})
-    </p>
-    <p>⚡ Status: {{ robot.batterie > 0 ? 'Actif' : 'Inactif' }}</p>
-  </div>
-  } @else {
-  <p>⚠️ Robot {{ robot }} non trouvé</p>
-  }
-</div>
-} -->
