@@ -15,7 +15,8 @@ export class RobotRenderAnimationService {
 
   protected ctx!: CanvasRenderingContext2D;
 
-  private readonly HEIGHT = 400;
+  private readonly CELL_SIZE = 50;  // largeur d'une cellule de la maison
+  private readonly HEIGHT = 400;    // hauteur de la maison
 
   protected readonly _robotSignals: Map<string, WritableSignal<RobotModel>>
     = this.robotDataService.robotSignals;
@@ -41,8 +42,9 @@ export class RobotRenderAnimationService {
 
       // mise à jour des coordonnées du robot dans l'espace (en pixels), pour la vue
       const pixelPosition: PixelPosition = this.robotDataService.updateCurrentCoordinates(robotName);
-      const x = pixelPosition.x;
-      const y = pixelPosition.y;
+      // recentrage du robot dans la cellule
+      const x = pixelPosition.x + (this.CELL_SIZE - robot.robotWidth) / 2;
+      const y = pixelPosition.y + (this.CELL_SIZE - robot.robotWidth) / 2;
       // console.log("pixelPosition = " + x + " - " + y);
 
       // Equivalent [style.width.px] / [style.height.px] → aspiroViewSize

@@ -72,7 +72,7 @@ export abstract class RobotAnimationService extends AnimationService implements 
   }
 
   /**
-   * 
+   *
    */
   protected pauseAllAnimation(): void {
     console.log("RobotAnimationService - pauseAllAnimation()");
@@ -118,6 +118,7 @@ export abstract class RobotAnimationService extends AnimationService implements 
     let progress = 0;
     this.robotDataService.animationProgress.set(progress);
 
+    // boucle générale de l'animation
     const animate = (currentTime: number) => {
 
       const deltaTime = currentTime - lastStepTime;

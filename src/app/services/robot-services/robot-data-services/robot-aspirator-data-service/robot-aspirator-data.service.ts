@@ -41,7 +41,7 @@ export class RobotAspiratorDataService extends RobotDataService {
     let batterie = 4.5;
     let isRobotStarted = false;
     let isRobotReturningToBase = false;
-    let robotWidth = 50;
+    let robotWidth = 42;
     let labelColor = this.assetRobotService.getRandomRobotLabelColor();
 
     // 2 - Instanciation d'un robot:
@@ -72,7 +72,7 @@ export class RobotAspiratorDataService extends RobotDataService {
     batterie = 20;
     isRobotStarted = false;
     isRobotReturningToBase = false;
-    robotWidth = 50;
+    robotWidth = 42;
     labelColor = this.assetRobotService.getRandomRobotLabelColor();
 
     let robot2Model = new RobotAspiratorModel();
@@ -102,7 +102,7 @@ export class RobotAspiratorDataService extends RobotDataService {
     batterie = 30;
     isRobotStarted = false;
     isRobotReturningToBase = false;
-    robotWidth = 50;
+    robotWidth = 42;
     labelColor = this.assetRobotService.getRandomRobotLabelColor();
 
     let robot3Model = new RobotAspiratorModel();
@@ -132,7 +132,7 @@ export class RobotAspiratorDataService extends RobotDataService {
     batterie = 40;
     isRobotStarted = false;
     isRobotReturningToBase = false;
-    robotWidth = 50;
+    robotWidth = 42;
     labelColor = this.assetRobotService.getRandomRobotLabelColor();
 
     let robot4Model = new RobotAspiratorModel();
