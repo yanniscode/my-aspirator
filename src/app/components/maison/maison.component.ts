@@ -10,6 +10,7 @@ import { RobotAspiratorService } from '../../services/robot-services/robot-aspir
 import { MaisonNettoyageService } from '../../services/maison-services/maison-nettoyage-service/maison-nettoyage.service';
 import { AssetRobotService } from '../../services/asset-service/asset-robot-service/asset-robot.service';
 import { AssetMaisonService } from '../../services/asset-service/asset-maison-service/asset-maison.service';
+import { RobotFactoryService } from '../../services/factory-services/robot-factory-services/robot-factory.service';
 
 @Component({
   selector: 'app-maison',
@@ -34,6 +35,7 @@ export class MaisonComponent implements AfterViewInit, OnDestroy {
   @ViewChild('maisonCanvas', { static: true }) maisonCanvas!: ElementRef<HTMLCanvasElement>;
 
   private maisonNettoyageService = inject(MaisonNettoyageService);
+  public robotFactoryService = inject(RobotFactoryService);
   public robotAspiratorService = inject(RobotAspiratorService);
   private assetRobotService = inject(AssetRobotService);
   private assetMaisonService = inject(AssetMaisonService);
@@ -69,7 +71,7 @@ export class MaisonComponent implements AfterViewInit, OnDestroy {
 
   // Injecter le signal une seule fois à l'initialisation
   // Map de robots
-  private readonly _robotSignals: Map<string, Signal<RobotAspiratorModel>> = this.robotAspiratorService.robotSignals;
+  private readonly _robotSignals: Map<string, Signal<RobotAspiratorModel>> = this.robotFactoryService.robotSignals;
   // Signal computed qui expose les valeurs de la Map de robots sous forme de tableau
   public readonly robotList: Signal<RobotAspiratorModel[]> = computed(() =>
     Array.from(this._robotSignals.values()).map(signal => signal())
@@ -78,7 +80,7 @@ export class MaisonComponent implements AfterViewInit, OnDestroy {
   // Robot à l'unité:
   // Computed dédié pour le robot — pas d'effet de bord
   private readonly _robotServiceSignal: Signal<Signal<RobotAspiratorModel | undefined>> = computed(() =>
-    this.robotAspiratorService.getRobotSignal(this.robotNameInput)
+    this.robotFactoryService.getRobotSignal(this.robotNameInput)
   );
 
   // Computed dédié pour le robot — pas d'effet de bord
@@ -273,7 +275,7 @@ export class MaisonComponent implements AfterViewInit, OnDestroy {
   private updateCurrentCoordinates(name: string): PixelPosition {
     // console.log("MaisonComponent - updateCurrentCoordinates()");
 
-    const robotSignal: Signal<RobotAspiratorModel | undefined> = this.robotAspiratorService.getRobotSignal(name);
+    const robotSignal: Signal<RobotAspiratorModel | undefined> = this.robotFactoryService.getRobotSignal(name);
     if (!robotSignal) return new PixelPosition(-50, -50);
     // console.log(robotSignal);
 

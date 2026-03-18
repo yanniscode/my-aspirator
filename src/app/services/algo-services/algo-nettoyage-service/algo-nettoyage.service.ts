@@ -1,12 +1,12 @@
 import { Injectable } from '@angular/core';
-import { CellElement } from '../../classes/models/cellElement';
-import { GridPosition } from '../../classes/models/grid-position';
-import { CheminOptimalService } from './chemin-optimal.service';
+import { CellElement } from '../../../classes/models/cellElement';
+import { GridPosition } from '../../../classes/models/grid-position';
+import { CheminOptimalService } from '../chemin-optimal.service';
 
 @Injectable({
   providedIn: 'root'
 })
-export class NettoyageService extends CheminOptimalService {
+export class AlgoNettoyageService extends CheminOptimalService {
 
   constructor() {
     super();
@@ -14,7 +14,7 @@ export class NettoyageService extends CheminOptimalService {
 
   // Trouver la prochaine cellule accessible non visitée la plus proche
   public override trouverProchaineDestination(maison: CellElement[][], position: GridPosition): CellElement | null {
-    // console.log("NettoyageService - trouverProchaineDestination()");
+    // console.log("AlgoNettoyageService - trouverProchaineDestination()");
 
     // Utiliser un algorithme de recherche en largeur (BFS) pour trouver la cellule non visitée la plus proche
     // Cellules adjacentes:
@@ -65,7 +65,7 @@ export class NettoyageService extends CheminOptimalService {
 
   // Algorithme A* pour trouver le chemin optimal
   public override trouverChemin(maison: CellElement[][], depart: GridPosition, fin: GridPosition): GridPosition[] {
-    // console.log("NettoyageService - trouverChemin()");
+    // console.log("AlgoNettoyageService - trouverChemin()");
 
     // Structure pour représenter un nœud dans l'algorithme A*
     interface Node {
@@ -190,6 +190,6 @@ export class NettoyageService extends CheminOptimalService {
   }
 
   protected override log(message: string) {
-    this.loggerService.add(`CheminOptimalService: ${message}`);
+    this.loggerService.add(`AlgoNettoyageService: ${message}`);
   }
 }

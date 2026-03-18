@@ -6,17 +6,29 @@ import { PixelPosition } from '../../../classes/models/pixel-position';
 import { CellElement } from '../../../classes/models/cellElement';
 import { RobotService } from '../robot.service';
 import { MaisonNettoyageService } from '../../maison-services/maison-nettoyage-service/maison-nettoyage.service';
+import { AlgoNettoyageService } from '../../algo-services/algo-nettoyage-service/algo-nettoyage.service';
+import { RobotFactoryService } from '../../factory-services/robot-factory-services/robot-factory.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class RobotAspiratorService extends RobotService implements OnDestroy {
 
+  protected nettoyageService = inject(AlgoNettoyageService);
+  private robotFactoryService = inject(RobotFactoryService);
   private maisonNettoyageService = inject(MaisonNettoyageService);
+
+  // Map en lecture seule pour stocker les signaux computed de chaque robot à afficher
+  // TODO: pourquoi readonly si WritableSignal ici ?? c'est la map qui est en lecture seule, pas les éléments ??
+  private readonly _robotSignals: Map<string, WritableSignal<RobotAspiratorModel>> = this.robotFactoryService.robotSignals;
+  public robotSignals: Map<string, Signal<RobotAspiratorModel>> = this._robotSignals;
 
   public readonly maisonSignal: Signal<MaisonModel> = computed(() =>
     this.maisonNettoyageService.maisonSignal()
   );
+
+  // Configuration de l'animation
+  private PIXELS_PER_STEP: number = 0; // Pixels à parcourir dans un intervale donné
 
   constructor() {
     console.log("RobotAspiratorService - constructor()");
@@ -290,6 +302,19 @@ export class RobotAspiratorService extends RobotService implements OnDestroy {
 
     // Ajouter une marge de sécurité si on veut:
     return (distance * consommationParMouvement) * 1;
+  }
+
+  /**
+ * Conversion de l'index dans le tableau (GridPosition) en Coordonnée en Pixels (PixelPosition) pour l'affichage CSS
+ *
+ * @param grid
+ * @returns
+ */
+  public calculatePixelCoordinates(grid: GridPosition): PixelPosition {
+    return new PixelPosition(
+      grid.col * this.PIXELS_PER_STEP,  // col → x (left)
+      grid.row * this.PIXELS_PER_STEP   // row → y (top)
+    );
   }
 
   // MAJ des position visitée de la maison:

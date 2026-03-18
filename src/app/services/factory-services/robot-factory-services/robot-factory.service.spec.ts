@@ -1,12 +1,13 @@
 import { TestBed } from '@angular/core/testing';
-import { NettoyageService } from './nettoyage.service';
 
-describe('NettoyageService', () => {
-  let service: NettoyageService;
+import { RobotFactoryService } from './robot-factory.service';
+
+describe('RobotFactoryService', () => {
+  let service: RobotFactoryService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(NettoyageService);
+    service = TestBed.inject(RobotFactoryService);
   });
 
   it('should be created', () => {
