@@ -27,10 +27,11 @@ export class MaisonService {
     this._maisonSignal.set(maison);
   }
 
+  // TODO: possible refactoring de méthode dans un service API (récupération des données dans des objets JSON / appels HTTP)
+  // appelée par MainComponent
   public getMaisonParams(): MaisonModel {
     console.log("MaisonService - getMaisonParams()");
 
-    // TODO: possible récupération des données dans des objets JSON / appels HTTP
     // Création des paramètres de la maison
     const largeurMaison: number = 10;
     const hauteurMaison: number = 8;
@@ -52,6 +53,8 @@ export class MaisonService {
   }
 
   public initMaison(maisonModel: MaisonModel): void {
+    console.log("MaisonService - initMaison()");
+
     this._maisonSignal.set({
       ...new MaisonModel(),
       maison: this.buildMaison(maisonModel.largeurMaison, maisonModel.hauteurMaison, maisonModel.obstacles),
@@ -67,6 +70,8 @@ export class MaisonService {
     hauteur: number,
     obstacles: GridPosition[]
   ): CellElement[][] {
+    console.log("MaisonService - buildMaison()");
+
     return Array.from({ length: hauteur }, (_, row) =>
       Array.from({ length: largeur }, (_, col) => {
         const cell = new CellElement();
@@ -78,18 +83,22 @@ export class MaisonService {
     );
   }
 
-  private updateMaisonCell(row: number, col: number, newCellElement: CellElement) {
-    const maison = this._maisonSignal().maison;
-    if (row < 0 || row >= maison.length || col < 0 || col >= (maison[0]?.length ?? 0)) {
-      console.warn(`updateMaisonCell: position (${row}, ${col}) hors limites`);
+  private updateMaisonCell(gridPosition: GridPosition, newCellElement: CellElement) {
+    console.log("MaisonService - updateMaisonCell()");
+
+    const maison: CellElement[][] = this._maisonSignal()?.maison;
+    if (maison!.length <= 0 || maison[0]?.length <= 0) return;
+
+    if (gridPosition.row < 0 || gridPosition.row >= maison.length || gridPosition.col < 0 || gridPosition.col >= (maison[0]?.length ?? 0)) {
+      console.warn(`updateMaisonCell: position (${gridPosition.row}, ${gridPosition.col}) hors limites`);
       return;
     }
 
     this._maisonSignal.update(current => ({
       ...current,
       maison: current.maison.map((rowMaison, i) =>
-        i === row
-          ? rowMaison.map((cellElement, j) => j === col ? newCellElement : cellElement)
+        i === gridPosition.row
+          ? rowMaison.map((cellElement, j) => j === gridPosition.col ? newCellElement : cellElement)
           : rowMaison
       )
     }));
@@ -110,7 +119,7 @@ export class MaisonService {
       type: 'B',
       visited: false
     };
-    this.updateMaisonCell(newRobotBaseCell.position.row, newRobotBaseCell.position.col, newRobotBaseCell);
+    this.updateMaisonCell(newRobotBaseCell.position, newRobotBaseCell);
   }
 
   public updateMaisonCellules(lastPosition: GridPosition): void {
@@ -127,13 +136,14 @@ export class MaisonService {
     if (!lastVisitedCell) return;
 
     // Ici, l'update du  signal est automatique car on a une copie par référence
+
     // On ne veut pas que la case de la base soit modifiée
     if (lastVisitedCell.type !== 'B') {
       lastVisitedCell.visited = true;
       lastVisitedCell.type = '_';
     }
 
-    this.updateMaisonCell(lastVisitedCell.position.row, lastVisitedCell.position.col, lastVisitedCell);
+    this.updateMaisonCell(lastVisitedCell.position, lastVisitedCell);
   }
 
   public toutEstNettoye(): boolean {

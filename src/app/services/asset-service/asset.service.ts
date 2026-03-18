@@ -39,6 +39,14 @@ export class AssetService {
     return this.robotColor;
   }
 
+  // Bonus — couleur batterie selon niveau (vert/orange/rouge)
+  public getBatterieColor(batterie: number | undefined): string {
+    if (batterie === undefined || batterie < 0) return '#ffffff';
+    if (batterie > 20) return '#00ff00';  // vert
+    if (batterie > 10) return '#ffa500';  // orange
+    return '#ff0000';                      // rouge
+  }
+
   /**
 * Récupère une image chargée par son nom.
 * Retourne undefined si l'image n'existe pas ou n'est pas encore chargée.
@@ -49,6 +57,16 @@ export class AssetService {
       throw new Error(`Asset "${name}" non trouvé. loadAssets() a-t-il été appelé ?`);
     }
     return img; // TypeScript sait que c'est HTMLImageElement, plus de undefined
+  }
+
+  public getImageForCell(type: string): HTMLImageElement | undefined {
+    switch (type) {
+      case 'O': return this.getImage('nonVisitee');
+      case 'X': return this.getImage('mur');
+      case 'B': return this.getImage('base');
+      case '_': return this.getImage('visitee');
+      default: return undefined;
+    }
   }
 
   public isLoaded(): boolean {

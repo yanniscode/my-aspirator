@@ -174,16 +174,6 @@ export class MaisonComponent implements AfterViewInit, OnDestroy {
     // On ne supprime pas la map de signaux pour une simple mise en pause
   }
 
-  private getImageForCell(type: string): HTMLImageElement | undefined {
-    switch (type) {
-      case 'O': return this.assetService.getImage('nonVisitee');
-      case 'X': return this.assetService.getImage('mur');
-      case 'B': return this.assetService.getImage('base');
-      case '_': return this.assetService.getImage('visitee');
-      default: return undefined;
-    }
-  }
-
   private drawGrille(): void {
     const maison = this.maisonService.maisonSignal();
 
@@ -212,7 +202,7 @@ export class MaisonComponent implements AfterViewInit, OnDestroy {
         const offsetX = (this.CELL_SIZE - innerSize) / 2;
         const offsetY = (this.CELL_SIZE - innerSize) / 2;
 
-        const img = this.getImageForCell(cell.type);
+        const img: HTMLImageElement | undefined = this.assetService.getImageForCell(cell.type);
         if (img) {
           this.ctx.drawImage(
             img,
@@ -224,14 +214,6 @@ export class MaisonComponent implements AfterViewInit, OnDestroy {
         }
       });
     });
-  }
-
-  // Bonus — couleur batterie selon niveau (vert/orange/rouge)
-  private getBatterieColor(batterie: number | undefined): string {
-    if (batterie === undefined || batterie < 0) return '#ffffff';
-    if (batterie > 20) return '#00ff00';  // vert
-    if (batterie > 10) return '#ffa500';  // orange
-    return '#ff0000';                      // rouge
   }
 
   private drawRobotLabels(robot: RobotAspiratorModel, x: number, y: number): void {
@@ -259,7 +241,7 @@ export class MaisonComponent implements AfterViewInit, OnDestroy {
 
     // Label batterie
     this.ctx.font = '8px Arial';
-    this.ctx.fillStyle = this.getBatterieColor(robot.batterie);
+    this.ctx.fillStyle = this.assetService.getBatterieColor(robot.batterie);
     this.ctx.fillText(
       `${robot.batterie ?? -1}%`,
       x + robot.robotWidth / 2,

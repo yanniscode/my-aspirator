@@ -44,7 +44,8 @@ export class RobotAspiratorDataService implements OnDestroy {
     console.log('Service de robots arrêté');
   }
 
-  // TODO ?? refacto dans service robot-data
+  // TODO: possible refactoring de méthode dans un service API (récupération des données dans des objets JSON / appels HTTP)
+  // appelée par MainComponent
   public getRobotsParams(): RobotAspiratorModel[] {
     console.log("RobotAspiratorDataService - getRobotsParams()");
 
@@ -165,15 +166,15 @@ export class RobotAspiratorDataService implements OnDestroy {
     console.log(robot4Model);
 
     // pour test de 1 ou plusieurs robots
-    // const robotModelTab: RobotAspiratorModel[] = [{ ...robot1Model }, { ...robot2Model }, { ...robot3Model }, { ...robot4Model }];
-    const robotModelTab = [{ ...robot1Model }, { ...robot4Model }];
+    const robotModelTab: RobotAspiratorModel[] = [{ ...robot1Model }, { ...robot2Model }, { ...robot3Model }, { ...robot4Model }];
+    // const robotModelTab = [{ ...robot1Model }, { ...robot4Model }];
     // const robotModelTab = [{ ...robot1Model }];
 
     return robotModelTab;
   }
 
   /**
-  * Enregistre un nouveau robot dans la liste avec une position initiale
+  * Enregistre un nouveau robot dans la liste
   */
   public registerRobotInList(robotModel: RobotAspiratorModel): void {
     console.log("RobotAspiratorDataService - registerRobotInList()");
@@ -200,7 +201,7 @@ export class RobotAspiratorDataService implements OnDestroy {
 
   /**
  * Lecture directe (non-réactive) de l'état actuel du robot
- * Retourne le signal readonly du robot pour la réactivité
+ * Retourne le signal readonly du robot
  */
   // TODO: revoir si check undefined nécessaire
   public getRobotSignal(robotName: string): Signal<RobotAspiratorModel | undefined> {
@@ -292,6 +293,7 @@ export class RobotAspiratorDataService implements OnDestroy {
         } else { // si la maison n'est pas totalement nettoyée
 
           // Dans cette version de l'algo de nettoyage: on prend la première position du chemin à chaque tour de boucle
+          // (permet de vérifier le chemin à chaque pas, si plusieurs robots sont présents)
           nextPosition = this.nettoyer(robot);
 
           const batteryLimitExceeded: boolean = this.robotDoitRentrerALaBase(
@@ -316,7 +318,7 @@ export class RobotAspiratorDataService implements OnDestroy {
   }
 
   private activateReturnToBase(robot: RobotAspiratorModel): void {
-    console.log("RobotAspiratorDataService - activateRobotReturningToBase()");
+    console.log("RobotAspiratorDataService - activateReturnToBase()");
 
     const nextPosition = this.retournerALaBase(robot);
     if (!nextPosition) {
@@ -332,6 +334,7 @@ export class RobotAspiratorDataService implements OnDestroy {
 
   private setRobotIsReturningToBase(robotName: string, position: GridPosition, nextPosition: GridPosition): void {
     console.log("RobotAspiratorDataService - setRobotIsReturningToBase()");
+
     const robotSignal: WritableSignal<RobotAspiratorModel> | undefined = this._robotSignals.get(robotName);
     if (!robotSignal) return;
 
@@ -361,7 +364,7 @@ export class RobotAspiratorDataService implements OnDestroy {
   * Déplace manuellement un robot à une position pour le nettoyage
   */
   private moveCleaningRobot(robotName: string, position: GridPosition, nextPosition: GridPosition): void {
-    console.log("RobotAspiratorDataService - moveRobot()");
+    console.log("RobotAspiratorDataService - moveCleaningRobot()");
 
     const robotSignal: WritableSignal<RobotAspiratorModel> | undefined = this._robotSignals.get(robotName);
     if (!robotSignal) return;
@@ -389,7 +392,8 @@ export class RobotAspiratorDataService implements OnDestroy {
   }
 
   /**
-   *   * Arrêt d'un robot à une position
+   * Arrêt d'un robot à une position
+   *
    * @param robotName
    * @param position
    * @param nextPosition
@@ -404,7 +408,6 @@ export class RobotAspiratorDataService implements OnDestroy {
     const newStartCoordinate: PixelPosition = this.calculatePixelCoordinates(position);
     const newTargetCoordinate: PixelPosition = this.calculatePixelCoordinates(nextPosition);
 
-    // if (newStartCoordinate.row !== newTargetCoordinate.row || newStartCoordinate.col !== newTargetCoordinate.col) {
     robotSignal.update(robot => ({
       ...robot,
       isRobotStarted: false,
@@ -413,10 +416,9 @@ export class RobotAspiratorDataService implements OnDestroy {
       startCoordinate: { ...newStartCoordinate }, // la précédente coordonnée est modifiée avec l'actuelle
       targetCoordinate: { ...newTargetCoordinate }, // la nouvelle coordonnée prend sa valeur suivante
     }));
-    // }
   }
 
-  /** méthodes propres au robot Aspirateur: */
+  /** Méthodes propres au robot Aspirateur: */
 
   // Fonction principale pour nettoyer la maison
   private nettoyer(robotModelInput: RobotAspiratorModel): GridPosition {
@@ -443,7 +445,7 @@ export class RobotAspiratorDataService implements OnDestroy {
       return positionRetourALaBase;
     }
 
-    // Utiliser un algorithme de recherche de chemin optimal
+    // Utiliser un algorithme de recherche de chemin optimal pour rechercher le pas suivant du robot
     let nextPositionNettoyage: GridPosition = this.cheminOptimalService.trouverPositionSuivante(
       maisonModel.maison, robotModelInput.position, prochaineCellule.position
     );
@@ -487,45 +489,51 @@ export class RobotAspiratorDataService implements OnDestroy {
   // Estimer l'énergie nécessaire au robot pour retourner à la base
   private energieNecessairePourRetour(position: GridPosition, basePosition: GridPosition, consommationParMouvement: number): number {
     console.log("RobotAspiratorDataService - energieNecessairePourRetour()");
+
     const maisonModel: MaisonModel = this.maisonSignal();
     if (!maisonModel) return -1;
 
-    // Estimer la distance jusqu'à la base (la distance de Manhattan ne suffit pas : elle ne tient pas compte des obstacles)
+    // Estimer la distance jusqu'à la base (la distance de Manhattan ne suffit pas car elle ne tient pas compte des obstacles)
     const distance = this.distanceDeLaBase(maisonModel.maison, position, basePosition);
     console.log("distance minimale de la base = " + distance);
 
-    // Ajouter une marge de sécurité si on veut
+    // Ajouter une marge de sécurité si on veut:
     return (distance * consommationParMouvement) * 1;
   }
 
-  // recherche de la distance du robot à  sa base:
+  // recherche de la distance du robot à sa base:
   private distanceDeLaBase(maison: CellElement[][], basePosition: GridPosition, position: GridPosition): number {
-    console.log("CheminOptimalService - distanceDeLaBase()");
+    console.log("RobotAspiratorDataService - distanceDeLaBase()");
+
     const chemin: GridPosition[] = this.cheminOptimalService.trouverChemin(maison, position, basePosition);
     console.log(chemin.length);
 
     return chemin.length;
   }
 
+  // Conversion de l'index dans le tableau (GridPosition) en Coordonnée en Pixels (PixelPosition) pour l'affichage CSS
   private calculatePixelCoordinates(grid: GridPosition): PixelPosition {
-    // Conversion del'index dans le tableau (GridPosition) en Coordonnée en Pixels pour l'affichage CSS
+    // console.log("RobotAspiratorDataService - calculatePixelCoordinates()");
+
     return new PixelPosition(
       grid.col * this.PIXELS_PER_STEP,  // col → x (left)
       grid.row * this.PIXELS_PER_STEP   // row → y (top)
     );
   }
 
+  // MAJ des position visitée de la maison:
   public updateMaisonVisitedCells(): void {
+    // console.log("RobotAspiratorDataService - updateMaisonVisitedCells()");
+
     this._robotSignals.forEach((robotSignal) => {
       console.log("RobotAspiratorDataService - updateMaisonVisitedCells");
       const robot: RobotAspiratorModel = robotSignal();
-      // maj des datas de la maison: position visitée
       this.maisonService.updateMaisonCellules(robot.lastPosition);
     });
   }
 
-  // TODO: revoir CSS de la maison si on affiche les logs dans l'ihm
+  // TODO: revoir CSS de la maison si on affiche ces logs dans l'ihm
   private log(message: string) {
-    this.messageService.add(`RobotAspiratorBService: ${message}`);
+    this.messageService.add(`RobotAspiratorDataService: ${message}`);
   }
 }
