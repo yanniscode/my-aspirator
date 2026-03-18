@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { RobotDataFactoryService } from './robot-data-factory.service';
 
 
-describe('DataFactoryService', () => {
+describe('RobotDataFactoryService', () => {
   let service: RobotDataFactoryService;
 
   beforeEach(() => {

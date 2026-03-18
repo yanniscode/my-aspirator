@@ -10,21 +10,25 @@ export class RobotDataFactoryService {
 
   private robotAspiratorDataService = inject(RobotAspiratorDataService);
   private robotDataService = inject(RobotDataService);
+  // Pattern factory: tableau de Robot Data Services de type spécifiques vers un type générique
+  private robotDataServicesTab: RobotDataService[] = [this.robotAspiratorDataService];
 
   public robotNames = signal<string[]>([]);
 
   /**
    * Méthode de factory : renvoie les paramètres des robots avec un upcast vers le type générique RobotModel[]
    */
-  public getRobotsParams(TYPE_ACTION_ROBOT: string): RobotModel[] {
+  public getRobotsParams(): RobotModel[] {
     console.log("RobotDataFactoryService - getRobotsParams()");
 
-    // pattern "factory": upcast du type enfant RobotAspiratorModel vers le type parent RobotModel
-    if (TYPE_ACTION_ROBOT === "aspirator") {
-      return [...this.robotAspiratorDataService.createRobotsParams()];
-    } else {
-      return [];
+    let robotModelsTab: RobotModel[] = [];
+    for (let i = 0; i < this.robotDataServicesTab.length; i++) {
+      [...this.robotDataServicesTab[i].createRobotsParams()].map(robot => {
+        robotModelsTab.push(robot);
+      });
     }
+
+    return robotModelsTab;
   }
 
   /**

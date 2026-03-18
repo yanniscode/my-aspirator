@@ -8,7 +8,7 @@ import { LoggerService } from '../../services/main-services/logger-service/logge
 import { RobotModel } from '../../classes/models/robot-model';
 import { RobotAspiratorWithNextPositionsTabService } from '../../services/robot-services/robot-algos-deplacement-services/robot-aspirator-with-next-positions-tab-service/robot-aspirator-with-next-positions-tab.service';
 import { MaisonDataNettoyageService } from '../../services/maison-services/maison-data-services/maison-data-nettoyage-service/maison-data-nettoyage.service';
-import { RobotDataFactoryService } from '../../services/robot-services/robot-data-factory-services/robot-data-factory.service';
+import { RobotDataFactoryService } from '../../services/robot-services/robot-data-factory-service/robot-data-factory.service';
 
 @Component({
   selector: 'app-main',
@@ -33,8 +33,6 @@ export class MainComponent implements AfterViewInit, OnDestroy {
   public robotDataFactoryService = inject(RobotDataFactoryService);
   private loggerService = inject(LoggerService);
 
-  private TYPE_ACTION_ROBOT = "";
-
   // pour le template
   public readonly maisonViewModel: Signal<MaisonModel> = computed(() =>
     this.maisonDataNettoyageService.maisonSignal()
@@ -56,13 +54,11 @@ export class MainComponent implements AfterViewInit, OnDestroy {
     console.log("MainComponent - constructor()");
     this.gameComponent = this.maisonChildComponent;
 
-    this.TYPE_ACTION_ROBOT = "aspirator";
-
     // initialisation des params de la maison et des robots
     const maisonModel: MaisonModel = { ...this.maisonDataNettoyageService.getMaisonParams() };
     this.maisonDataNettoyageService.initMaison(maisonModel);
 
-    this.robotViewModelTab = [...this.robotDataFactoryService.getRobotsParams(this.TYPE_ACTION_ROBOT)];
+    this.robotViewModelTab = [...this.robotDataFactoryService.getRobotsParams()];
     this.isRobotMapStarted = false;
     this.robotNames = this.robotDataFactoryService.setRobotSignalsList(this.robotViewModelTab);
     if (!this.robotNames) return;
