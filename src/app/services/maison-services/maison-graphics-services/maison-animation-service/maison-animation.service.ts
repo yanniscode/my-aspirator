@@ -6,6 +6,7 @@ import { AnimationService } from '../../../main-services/graphics-services/anima
 })
 export abstract class MaisonAnimationService extends AnimationService {
 
+  /* TODO : garder même si non utilisée actuellement */
   constructor() {
     super();
   }

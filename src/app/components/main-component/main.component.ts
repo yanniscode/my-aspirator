@@ -29,7 +29,7 @@ export class MainComponent implements AfterViewInit, OnDestroy {
   private gameComponent: GameComponent;
 
   private maisonDataFactoryService = inject(MaisonDataFactoryService);
-  // appel dans le template du service, donc public:
+  // appel dans le template, donc public:
   public robotDataFactoryService = inject(RobotDataFactoryService);
   private loggerService = inject(LoggerService);
 
