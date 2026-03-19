@@ -1,13 +1,13 @@
 import { computed, inject, Injectable, OnDestroy, Signal, signal, WritableSignal } from '@angular/core';
 import { RobotAspiratorModel } from '../../classes/models/robot-aspirator-model';
 import { MaisonModel } from '../../classes/models/maison-model';
-import { CheminOptimalService } from '../algo-services/chemin-optimal.service';
 import { GridPosition } from '../../classes/models/grid-position';
 import { MessageService } from '../message-service/message.service';
 import { MaisonService } from '../maison-service/maison.service';
 import { PixelPosition } from '../../classes/models/pixel-position';
 import { CellElement } from '../../classes/models/cellElement';
 import { AssetService } from '../asset-service/asset.service';
+import { NettoyageService } from '../nettoyage-service/nettoyage.service';
 
 @Injectable({
   providedIn: 'root'
@@ -17,7 +17,7 @@ export class RobotAspiratorDataService implements OnDestroy {
   private messageService: MessageService = inject(MessageService);
   private assetService = inject(AssetService);
   private maisonService = inject(MaisonService);
-  private cheminOptimalService: CheminOptimalService = inject(CheminOptimalService);
+  private nettoyageService: NettoyageService = inject(NettoyageService);
 
   // Map en lecture seule pour stocker les signaux computed de chaque robot à afficher
   // TODO: pourquoi readonly si WritableSignal ici ?? c'est la map qui est en lecture seule, pas les éléments ??
@@ -59,7 +59,7 @@ export class RobotAspiratorDataService implements OnDestroy {
     let position = { ...basePosition };
     let startCoordinate = this.calculatePixelCoordinates(basePosition);
     let targetCoordinate = this.calculatePixelCoordinates(basePosition);
-    let batterie = 3;
+    let batterie = 4;
     let isRobotStarted = false;
     let isRobotReturningToBase = false;
     let robotWidth = 50;
@@ -431,7 +431,7 @@ export class RobotAspiratorDataService implements OnDestroy {
     this.maisonService.updateReservedCell(robotModelInput.position, false);
 
     // Chercher la prochaine case non visitée
-    let prochaineCaseNonVisitee: CellElement | null = this.cheminOptimalService.trouverProchaineDestination(maisonModel.maison, robotModelInput.position);
+    let prochaineCaseNonVisitee: CellElement | null = this.nettoyageService.trouverProchaineDestination(maisonModel.maison, robotModelInput.position);
     console.log(prochaineCaseNonVisitee);
 
     if (!prochaineCaseNonVisitee) {
@@ -452,7 +452,7 @@ export class RobotAspiratorDataService implements OnDestroy {
     }
 
     // Utiliser un algorithme de recherche de chemin optimal pour rechercher le pas suivant du robot
-    let nextPositionNettoyage: GridPosition = this.cheminOptimalService.trouverPositionSuivante(
+    let nextPositionNettoyage: GridPosition = this.nettoyageService.trouverPositionSuivante(
       maisonModel.maison, robotModelInput.position, prochaineCaseNonVisitee.position
     );
 
@@ -474,7 +474,7 @@ export class RobotAspiratorDataService implements OnDestroy {
     if (!maisonModel) return new GridPosition();
 
     // Trouver le chemin vers la base
-    const positionRetourALaBase: GridPosition = this.cheminOptimalService.trouverPositionSuivante(maisonModel.maison, robotModelInput.position, robotModelInput.basePosition);
+    const positionRetourALaBase: GridPosition = this.nettoyageService.trouverPositionSuivante(maisonModel.maison, robotModelInput.position, robotModelInput.basePosition);
     console.log("nextPosition :" + positionRetourALaBase);
 
     if (!positionRetourALaBase) {
@@ -511,7 +511,7 @@ export class RobotAspiratorDataService implements OnDestroy {
   private distanceDeLaBase(maison: CellElement[][], basePosition: GridPosition, position: GridPosition): number {
     console.log("RobotAspiratorDataService - distanceDeLaBase()");
 
-    const chemin: GridPosition[] = this.cheminOptimalService.trouverChemin(maison, position, basePosition);
+    const chemin: GridPosition[] = this.nettoyageService.trouverChemin(maison, position, basePosition);
     console.log(chemin.length);
 
     return chemin.length;

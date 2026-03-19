@@ -40,12 +40,12 @@ export class MaisonService {
     const largeurMaison: number = 10;
     const hauteurMaison: number = 8;
 
-    const obstacles: GridPosition[] = [];
-    // const obstacles: GridPosition[] = [
-    //   { row: 3, col: 2 }, { row: 4, col: 2 }, { row: 4, col: 3 },
-    //   { row: 1, col: 7 }, { row: 2, col: 7 }, { row: 3, col: 7 },
-    //   { row: 6, col: 4 }, { row: 6, col: 5 }, { row: 6, col: 6 }
-    // ];
+    // const obstacles: GridPosition[] = [];
+    const obstacles: GridPosition[] = [
+      { row: 3, col: 2 }, { row: 4, col: 2 }, { row: 4, col: 3 },
+      { row: 1, col: 7 }, { row: 2, col: 7 }, { row: 3, col: 7 },
+      { row: 6, col: 4 }, { row: 6, col: 5 }, { row: 6, col: 6 }
+    ];
 
     const isNettoyageComplete = false;
 
