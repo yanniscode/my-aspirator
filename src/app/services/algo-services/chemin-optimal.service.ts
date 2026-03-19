@@ -9,7 +9,7 @@ import { CellElement } from '../../classes/models/cellElement';
 })
 export class CheminOptimalService {
 
-  private messageService: MessageService = inject(MessageService);
+  protected messageService: MessageService = inject(MessageService);
 
   constructor() { }
 
@@ -216,7 +216,7 @@ export class CheminOptimalService {
   }
 
   // Méthode pour reconstruire le chemin
-  public reconstruireChemin(position: GridPosition, cameFrom: Map<string, GridPosition>, current: GridPosition): GridPosition[] {
+  protected reconstruireChemin(position: GridPosition, cameFrom: Map<string, GridPosition>, current: GridPosition): GridPosition[] {
     // console.log("CheminOptimalService - reconstruireChemin()");
 
     const chemin: GridPosition[] = [];
@@ -239,7 +239,7 @@ export class CheminOptimalService {
   }
 
   // Obtenir les cellules adjacentes à une position
-  public obtenirCellulesAdjacentes(maison: CellElement[][], position: GridPosition): CellElement[] {
+  protected obtenirCellulesAdjacentes(maison: CellElement[][], position: GridPosition): CellElement[] {
     // console.log("CheminOptimalService - obtenirCellulesAdjacentes()");
 
     let direction: { dx: number, dy: number } = { dx: 0, dy: 0 };
@@ -266,7 +266,7 @@ export class CheminOptimalService {
     return cellules;
   }
 
-  private log(message: string) {
+  protected log(message: string) {
     this.messageService.add(`CheminOptimalService: ${message}`);
   }
 }

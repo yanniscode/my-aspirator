@@ -13,7 +13,6 @@ export class NettoyageService extends CheminOptimalService {
     super();
   }
 
-  // TODO: classe spé
   // Trouver la prochaine cellule accessible non visitée la plus proche
   public override trouverProchaineDestination(maison: CellElement[][], position: GridPosition): CellElement | null {
     // console.log("NettoyageService - trouverProchaineDestination()");
@@ -67,7 +66,7 @@ export class NettoyageService extends CheminOptimalService {
 
   // Algorithme A* pour trouver le chemin optimal
   public override trouverChemin(maison: CellElement[][], depart: GridPosition, fin: GridPosition): GridPosition[] {
-    // console.log("CheminOptimalService - trouverChemin()");
+    // console.log("NettoyageService - trouverChemin()");
 
     // Structure pour représenter un nœud dans l'algorithme A*
     interface Node {
@@ -189,5 +188,9 @@ export class NettoyageService extends CheminOptimalService {
     // Aucun chemin trouvé
     console.log("Aucun chemin trouvé de", depart, "à", fin);
     return [];
+  }
+
+  protected override log(message: string) {
+    this.messageService.add(`CheminOptimalService: ${message}`);
   }
 }
