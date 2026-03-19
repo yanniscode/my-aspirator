@@ -12,9 +12,9 @@ import { RobotDataService } from '../../../data-services/robot-data-services/rob
 @Injectable({
   providedIn: 'root'
 })
-export class RobotAspiratorService extends RobotActionService implements OnDestroy {
+export class RobotActionAspiratorService extends RobotActionService implements OnDestroy {
 
-  protected nettoyageService = inject(AlgoNettoyageService);
+  protected algoNettoyageService = inject(AlgoNettoyageService);
   private robotFactoryService = inject(RobotDataService);
   private maisonNettoyageService = inject(MaisonDataNettoyageService);
 
@@ -32,7 +32,7 @@ export class RobotAspiratorService extends RobotActionService implements OnDestr
   private PIXELS_PER_STEP: number = 0; // Pixels à parcourir dans un intervale donné
 
   constructor() {
-    console.log("RobotAspiratorService - constructor()");
+    console.log("RobotActionAspiratorService - constructor()");
     super();
     this.PIXELS_PER_STEP = 50;
   }
@@ -42,7 +42,7 @@ export class RobotAspiratorService extends RobotActionService implements OnDestr
  * Calcule de nouvelles directions selon le temps donné
  */
   public override calculateNewDirectionsForAllRobots(): void {
-    console.log("RobotAspiratorService - calculateNewDirectionsForAllRobots()");
+    console.log("RobotActionAspiratorService - calculateNewDirectionsForAllRobots()");
 
     if (this._robotSignals.size <= 0) return;
 
@@ -65,7 +65,7 @@ export class RobotAspiratorService extends RobotActionService implements OnDestr
           console.log(`### Le robot est à l'arrêt en cours de parcours et ne peut redémarrer - Batterie: ${robot.batterie}%`);
         }
 
-        this.stopRobot(robotName, robot.position, nextPosition);
+        this.stopRobot(robotName);
         return;
       }
       else if (robot.batterie > 0) {
@@ -73,7 +73,7 @@ export class RobotAspiratorService extends RobotActionService implements OnDestr
         if (robot.isRobotReturningToBase) {
 
           if (robot.position.col === robot.basePosition.col && robot.position.row === robot.basePosition.row) {
-            this.stopRobot(robotName, robot.position, nextPosition);
+            this.stopRobot(robotName);
             console.log("Arrêt effectué - retour à la base accomplit !");
             return;
           }
@@ -116,11 +116,11 @@ export class RobotAspiratorService extends RobotActionService implements OnDestr
   }
 
   protected activateReturnToBase(robot: RobotAspiratorModel): void {
-    console.log("RobotAspiratorService - activateReturnToBase()");
+    console.log("RobotActionAspiratorService - activateReturnToBase()");
 
     const nextPosition = this.retournerALaBase(robot);
     if (!nextPosition) {
-      this.stopRobot(robot.robotName, robot.position, nextPosition);
+      this.stopRobot(robot.robotName);
       return;
     }
 
@@ -131,7 +131,7 @@ export class RobotAspiratorService extends RobotActionService implements OnDestr
   }
 
   protected setRobotIsReturningToBase(robotName: string, position: GridPosition, nextPosition: GridPosition): void {
-    console.log("RobotAspiratorService - setRobotIsReturningToBase()");
+    console.log("RobotActionAspiratorService - setRobotIsReturningToBase()");
 
     const robotSignal: WritableSignal<RobotAspiratorModel> | undefined = this._robotSignals.get(robotName);
     if (!robotSignal) return;
@@ -148,13 +148,11 @@ export class RobotAspiratorService extends RobotActionService implements OnDestr
         isRobotReturningToBase: true,
         lastPosition: { ...robot.position }, // la précédente position est modifiée avec l'actuelle
         position: { ...nextPosition },        // la nouvelle position prend sa valeur suivante
-        startCoordinate: { ...newStartCoordinate }, // la précédente coordonnée est modifiée avec l'actuelle
-        targetCoordinate: { ...newTargetCoordinate }, // la nouvelle coordonnée prend sa valeur suivante
         batterie: robot.batterie - robot.consommationParMouvement
       }));
       console.log(`### ${robotName}: tableau [${nextPosition.col},${nextPosition.row}] → pixels (${newTargetCoordinate.x}, ${newTargetCoordinate.y}) - batterie (${robot.batterie})`);
     } else {
-      this.stopRobot(robotName, robot.position, nextPosition);
+      this.stopRobot(robotName);
     }
   }
 
@@ -162,7 +160,7 @@ export class RobotAspiratorService extends RobotActionService implements OnDestr
   * Déplace manuellement un robot à une position pour le nettoyage
   */
   protected moveRobot(robotName: string, position: GridPosition, nextPosition: GridPosition): void {
-    console.log("RobotAspiratorService - moveRobot()");
+    console.log("RobotActionAspiratorService - moveRobot()");
 
     const robotSignal: WritableSignal<RobotAspiratorModel> | undefined = this._robotSignals.get(robotName);
     if (!robotSignal) return;
@@ -170,23 +168,15 @@ export class RobotAspiratorService extends RobotActionService implements OnDestr
     const robot = robotSignal();
     if (!robot) return;
 
-    const newStartCoordinate: PixelPosition = this.calculatePixelCoordinates(position);
-    const newTargetCoordinate: PixelPosition = this.calculatePixelCoordinates(nextPosition);
-
-    if (newStartCoordinate.x !== newTargetCoordinate.x || newStartCoordinate.y !== newTargetCoordinate.y) {
-
-      robotSignal.update(robot => ({
-        ...robot,
-        isRobotStarted: true,
-        isRobotReturningToBase: false,  // le robot ne rentre pas à la base
-        lastPosition: { ...robot.position }, // la précédente position est modifiée avec l'actuelle
-        position: { ...nextPosition },        // la nouvelle position prend sa valeur suivante
-        startCoordinate: { ...newStartCoordinate }, // la précédente coordonnée est modifiée avec l'actuelle
-        targetCoordinate: { ...newTargetCoordinate }, // la nouvelle coordonnée prend sa valeur suivante
-        batterie: robot.batterie - robot.consommationParMouvement
-      }));
-    }
-    console.log(`### ${robotName}: tableau [${nextPosition.col},${nextPosition.row}] → pixels (${newTargetCoordinate.x}, ${newTargetCoordinate.y}) - batterie (${robot.batterie})`);
+    robotSignal.update(robot => ({
+      ...robot,
+      isRobotStarted: true,
+      isRobotReturningToBase: false,        // le robot ne rentre pas à la base
+      lastPosition: { ...robot.position },  // la précédente position est modifiée avec l'actuelle
+      position: { ...nextPosition },        // la nouvelle position prend sa valeur suivante
+      batterie: robot.batterie - robot.consommationParMouvement
+    }));
+    console.log(`### ${robotName}: tableau[${nextPosition.col},${nextPosition.row}]- batterie(${robot.batterie})`);
   }
 
   /**
@@ -197,22 +187,15 @@ export class RobotAspiratorService extends RobotActionService implements OnDestr
    * @param nextPosition
    * @returns
    */
-  protected stopRobot(robotName: string, position: GridPosition, nextPosition: GridPosition): void {
-    console.log("RobotAspiratorService - stopRobot()");
+  protected stopRobot(robotName: string): void {
+    console.log("RobotActionAspiratorService - stopRobot()");
 
     const robotSignal: WritableSignal<RobotAspiratorModel> | undefined = this._robotSignals.get(robotName);
     if (!robotSignal) return;
 
-    const newStartCoordinate: PixelPosition = this.calculatePixelCoordinates(position);
-    const newTargetCoordinate: PixelPosition = this.calculatePixelCoordinates(nextPosition);
-
     robotSignal.update(robot => ({
       ...robot,
       isRobotStarted: false,
-      lastPosition: { ...robot.position }, // la précédente position est modifiée avec l'actuelle
-      position: { ...nextPosition },        // la nouvelle position prend sa valeur suivante
-      startCoordinate: { ...newStartCoordinate }, // la précédente coordonnée est modifiée avec l'actuelle
-      targetCoordinate: { ...newTargetCoordinate }, // la nouvelle coordonnée prend sa valeur suivante
     }));
   }
 
@@ -220,7 +203,7 @@ export class RobotAspiratorService extends RobotActionService implements OnDestr
 
   // Fonction principale pour nettoyer la maison
   private nettoyer(robotModelInput: RobotAspiratorModel): GridPosition {
-    console.log("RobotAspiratorService - nettoyer()");
+    console.log("RobotActionAspiratorService - nettoyer()");
 
     const maisonModel: MaisonModel = this.maisonSignal();
     if (!maisonModel) return new GridPosition();
@@ -229,7 +212,7 @@ export class RobotAspiratorService extends RobotActionService implements OnDestr
     this.maisonNettoyageService.updateReservedCell(robotModelInput.position, false);
 
     // Chercher la prochaine case non visitée
-    let prochaineCaseNonVisitee: CellElement | null = this.nettoyageService.trouverProchaineDestination(maisonModel.maison, robotModelInput.position);
+    let prochaineCaseNonVisitee: CellElement | null = this.algoNettoyageService.trouverProchaineDestination(maisonModel.maison, robotModelInput.position);
     console.log(prochaineCaseNonVisitee);
 
     if (!prochaineCaseNonVisitee) {
@@ -244,13 +227,17 @@ export class RobotAspiratorService extends RobotActionService implements OnDestr
       }
 
       return positionRetourALaBase;
-    } else if (!prochaineCaseNonVisitee.reserved) {
-      // Réserver la position non-visitée la plus proche, si elle est accessible
-      this.maisonNettoyageService.updateReservedCell(prochaineCaseNonVisitee.position, true);
     }
+    // TODO: revoir si on ne devrait pas faire sur prochaine position directe (pas la non-visitée)
+    // si on supprime ici actuellement, aucune réservation de position n'a lieu
+    // else if (!prochaineCaseNonVisitee.reserved) {
+    //   // Réserver la position non-visitée la plus proche, si elle est accessible
+    //   this.maisonNettoyageService.updateReservedCell(prochaineCaseNonVisitee.position, true);
+    // }
 
     // Utiliser un algorithme de recherche de chemin optimal pour rechercher le pas suivant du robot
-    let nextPositionNettoyage: GridPosition = this.nettoyageService.trouverPositionSuivante(
+    // on récupère la position 0 du chemin vers une position non nettoyée et (de préférence) non réservée avant
+    let nextPositionNettoyage: GridPosition = this.algoNettoyageService.trouverPositionSuivante(
       maisonModel.maison, robotModelInput.position, prochaineCaseNonVisitee.position
     );
 
@@ -260,19 +247,31 @@ export class RobotAspiratorService extends RobotActionService implements OnDestr
       return robotModelInput.position;
     }
 
+    // on recherche la cellule correspondant à la position suivante dans la maison pour vérifier son status réservé ou non
+    const cellulesVoisines = this.algoNettoyageService.obtenirCellulesAdjacentes(maisonModel.maison, nextPositionNettoyage);
+    let nextCellNettoyage: CellElement = new CellElement();
+    for (const celluleVoisine of cellulesVoisines) {
+      if (celluleVoisine.position.col === nextPositionNettoyage.col && celluleVoisine.position.row === nextPositionNettoyage.row)
+        nextCellNettoyage = celluleVoisine;
+    }
+    if (!nextCellNettoyage.reserved) {
+      // Réserver la position non-visitée la plus proche, si elle est accessible
+      this.maisonNettoyageService.updateReservedCell(nextPositionNettoyage, true);
+    }
+
     return nextPositionNettoyage;
   }
 
   // Retourner à la base de charge
   protected retournerALaBase(robotModelInput: RobotAspiratorModel): GridPosition {
-    console.log("RobotAspiratorService - retournerALaBase()");
+    console.log("RobotActionAspiratorService - retournerALaBase()");
     console.log("Retour à la base de charge");
 
     const maisonModel: MaisonModel = this.maisonSignal();
     if (!maisonModel) return new GridPosition();
 
     // Trouver le chemin vers la base
-    const positionRetourALaBase: GridPosition = this.nettoyageService.trouverPositionSuivante(maisonModel.maison, robotModelInput.position, robotModelInput.basePosition);
+    const positionRetourALaBase: GridPosition = this.algoNettoyageService.trouverPositionSuivante(maisonModel.maison, robotModelInput.position, robotModelInput.basePosition);
     console.log("nextPosition :" + positionRetourALaBase);
 
     if (!positionRetourALaBase) {
@@ -284,7 +283,7 @@ export class RobotAspiratorService extends RobotActionService implements OnDestr
   }
 
   protected robotDoitRentrerALaBase(batterie: number, position: GridPosition, basePosition: GridPosition, consommationParMouvement: number): boolean {
-    console.log("RobotAspiratorService - robotDoitRentrerALaBase()");
+    console.log("RobotActionAspiratorService - robotDoitRentrerALaBase()");
 
     return (position && batterie <= this.energieNecessairePourRetour(position, basePosition, consommationParMouvement)) ?
       true : false;
@@ -292,13 +291,13 @@ export class RobotAspiratorService extends RobotActionService implements OnDestr
 
   // Estimer l'énergie nécessaire au robot pour retourner à la base
   protected energieNecessairePourRetour(position: GridPosition, basePosition: GridPosition, consommationParMouvement: number): number {
-    console.log("RobotAspiratorService - energieNecessairePourRetour()");
+    console.log("RobotActionAspiratorService - energieNecessairePourRetour()");
 
     const maisonModel: MaisonModel = this.maisonSignal();
     if (!maisonModel) return -1;
 
     // Estimer la distance jusqu'à la base (la distance de Manhattan ne suffit pas car elle ne tient pas compte des obstacles)
-    const distance = this.nettoyageService.distanceDeLaBase(maisonModel.maison, position, basePosition);
+    const distance = this.algoNettoyageService.distanceDeLaBase(maisonModel.maison, position, basePosition);
     console.log("distance minimale de la base = " + distance);
 
     // Ajouter une marge de sécurité si on veut:
@@ -320,7 +319,7 @@ export class RobotAspiratorService extends RobotActionService implements OnDestr
 
   // MAJ des position visitée de la maison:
   public updateRobotsVisitedCells(): void {
-    console.log("RobotAspiratorService - updateRobotsVisitedCells()");
+    console.log("RobotActionAspiratorService - updateRobotsVisitedCells()");
 
     this._robotSignals.forEach((robotSignal) => {
       const robot: RobotAspiratorModel = robotSignal();
@@ -330,6 +329,6 @@ export class RobotAspiratorService extends RobotActionService implements OnDestr
 
   // TODO: revoir CSS de la maison si on affiche ces logs dans l'ihm
   private log(message: string) {
-    this.loggerService.add(`RobotAspiratorService: ${message}`);
+    this.loggerService.add(`RobotActionAspiratorService: ${message} `);
   }
 }

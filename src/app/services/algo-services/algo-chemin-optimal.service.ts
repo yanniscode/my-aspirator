@@ -6,7 +6,7 @@ import { LoggerService } from '../data-services/logger-service/logger.service';
 @Injectable({
   providedIn: 'root'
 })
-export class CheminOptimalService {
+export class AlgoCheminOptimalService {
 
   protected loggerService: LoggerService = inject(LoggerService);
 
@@ -14,7 +14,7 @@ export class CheminOptimalService {
 
   // méthode utilisée par RobotAspiratorWithNextPositionsTabService
   public calculerCheminSuivant(isRetourAlaBase: boolean, maison: CellElement[][], basePosition: GridPosition, position: GridPosition): GridPosition[] {
-    console.log("CheminOptimalService - calculerCheminSuivant()");
+    console.log("AlgoCheminOptimalService - calculerCheminSuivant()");
 
     const prochaineCellule = this.trouverProchaineDestination(maison, position);
     // console.log(prochaineCellule);
@@ -30,14 +30,14 @@ export class CheminOptimalService {
       return chemin.map(pos => ({ ...pos }));
       // console.log("Nouveau chemin calculé vers:", prochaineCellule.cellStack[0].position);
     } else {
-      console.log("RobotAspiratorService - Aucune cellule accessible non visitée trouvée");
+      console.log("AlgoCheminOptimalService - Aucune cellule accessible non visitée trouvée");
       return [];
     }
   }
 
   // Trouver la prochaine cellule accessible non visitée la plus proche
   public trouverProchaineDestination(maison: CellElement[][], position: GridPosition): CellElement | null {
-    // console.log("CheminOptimalService - trouverProchaineDestination()");
+    // console.log("AlgoCheminOptimalService - trouverProchaineDestination()");
 
     // Utiliser un algorithme de recherche en largeur (BFS) pour trouver la cellule non visitée la plus proche
     // Cellules adjacentes:
@@ -86,21 +86,22 @@ export class CheminOptimalService {
 
   // pour la version 1 de l'algo - RobotAspiratorWithNextPositionService :
   public trouverPositionSuivante(maison: CellElement[][], depart: GridPosition, fin: GridPosition): GridPosition {
-    // console.log("CheminOptimalService - trouverPositionSuivante()");
+    // console.log("AlgoCheminOptimalService - trouverPositionSuivante()");
 
+    // on récupère à chaque fois la position suivante du chemin
     return this.trouverChemin(maison, depart, fin)[0];
   }
 
   // Calculer la distance entre deux positions (heuristique pour A*)
   public distance(a: GridPosition, b: GridPosition): number {
-    // console.log("CheminOptimalService - distance()");
+    // console.log("AlgoCheminOptimalService - distance()");
 
     return Math.abs(a.col - b.col) + Math.abs(a.row - b.row); // Distance de Manhattan
   }
 
   // Algorithme A* pour trouver le chemin optimal
   public trouverChemin(maison: CellElement[][], depart: GridPosition, fin: GridPosition): GridPosition[] {
-    // console.log("CheminOptimalService - trouverChemin()");
+    // console.log("AlgoCheminOptimalService - trouverChemin()");
 
     // Structure pour représenter un nœud dans l'algorithme A*
     interface Node {
@@ -216,7 +217,7 @@ export class CheminOptimalService {
 
   // Méthode pour reconstruire le chemin
   protected reconstruireChemin(position: GridPosition, cameFrom: Map<string, GridPosition>, current: GridPosition): GridPosition[] {
-    // console.log("CheminOptimalService - reconstruireChemin()");
+    // console.log("AlgoCheminOptimalService - reconstruireChemin()");
 
     const chemin: GridPosition[] = [];
     let currentPos = current;
@@ -238,8 +239,8 @@ export class CheminOptimalService {
   }
 
   // Obtenir les cellules adjacentes à une position
-  protected obtenirCellulesAdjacentes(maison: CellElement[][], position: GridPosition): CellElement[] {
-    // console.log("CheminOptimalService - obtenirCellulesAdjacentes()");
+  public obtenirCellulesAdjacentes(maison: CellElement[][], position: GridPosition): CellElement[] {
+    // console.log("AlgoCheminOptimalService - obtenirCellulesAdjacentes()");
 
     let direction: { dx: number, dy: number } = { dx: 0, dy: 0 };
     let directions: Map<number, typeof direction> = new Map();
@@ -274,7 +275,7 @@ export class CheminOptimalService {
 * @returns
 */
   public distanceDeLaBase(maison: CellElement[][], basePosition: GridPosition, position: GridPosition): number {
-    console.log("RobotAspiratorDataService - distanceDeLaBase()");
+    console.log("AlgoCheminOptimalService - distanceDeLaBase()");
 
     const chemin: GridPosition[] = this.trouverChemin(maison, position, basePosition);
     console.log(chemin.length);

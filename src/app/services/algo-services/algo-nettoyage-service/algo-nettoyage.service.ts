@@ -1,12 +1,12 @@
 import { Injectable } from '@angular/core';
 import { CellElement } from '../../../classes/models/cellElement';
 import { GridPosition } from '../../../classes/models/grid-position';
-import { CheminOptimalService } from '../chemin-optimal.service';
+import { AlgoCheminOptimalService } from '../algo-chemin-optimal.service';
 
 @Injectable({
   providedIn: 'root'
 })
-export class AlgoNettoyageService extends CheminOptimalService {
+export class AlgoNettoyageService extends AlgoCheminOptimalService {
 
   constructor() {
     super();

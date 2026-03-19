@@ -1,4 +1,4 @@
-import { Component, OnDestroy, ViewChild, ViewEncapsulation, inject, ChangeDetectionStrategy, computed, Signal, signal } from '@angular/core';
+import { Component, OnDestroy, ViewChild, ViewEncapsulation, inject, ChangeDetectionStrategy, computed, Signal, signal, AfterViewInit, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
 import { GameComponent } from '../game-component/game.component';
@@ -23,10 +23,11 @@ import { RobotAspiratorWithNextPositionsTabService } from '../../services/action
   changeDetection: ChangeDetectionStrategy.Default, // ATTENTION: ChangeDetectionStrategy.OnPush pourrait poser problème lors de l'affichage de la maison en intro
   providers: [RobotAspiratorWithNextPositionsTabService]
 })
-export class MainComponent implements OnDestroy {
+export class MainComponent implements AfterViewInit, OnDestroy {
   // instantiation de composant enfant
   @ViewChild(GameComponent) maisonChildComponent!: GameComponent;
 
+  private gameComponent: GameComponent;
   private maisonNettoyageService = inject(MaisonDataNettoyageService);
   public robotDataService = inject(RobotDataService);
   private robotFactoryService = inject(RobotFactoryService);
@@ -52,6 +53,8 @@ export class MainComponent implements OnDestroy {
 
   constructor() {
     console.log("MainComponent - constructor()");
+    this.gameComponent = this.maisonChildComponent;
+
     this.TYPE_ACTION_ROBOT = "aspirator";
 
     // initialisation des params de la maison et des robots
@@ -62,6 +65,10 @@ export class MainComponent implements OnDestroy {
     this.isRobotMapStarted = false;
     this.robotNames = this.robotFactoryService.setRobotListSignals(this.robotViewModelTab);
     if (!this.robotNames) return;
+  }
+
+  ngAfterViewInit(): void {
+    this.gameComponent = this.maisonChildComponent;
   }
 
   public ngOnDestroy(): void {
@@ -76,7 +83,7 @@ export class MainComponent implements OnDestroy {
     console.log("MainComponent - pause");
 
     if (this.isRobotMapStarted) {
-      this.robotFactoryService.pauseAnimationService(this.TYPE_ACTION_ROBOT);
+      this.gameComponent.onPause(this.TYPE_ACTION_ROBOT);
       this.isRobotMapStarted = false;
     } else {
       console.log("robot(s) actuellement en pause");
@@ -88,7 +95,7 @@ export class MainComponent implements OnDestroy {
 
     // Démarrage avec des signaux:
     if (!this.isRobotMapStarted) {
-      this.robotFactoryService.declencheAnimationService(this.TYPE_ACTION_ROBOT);
+      this.gameComponent.onStart(this.TYPE_ACTION_ROBOT);
       this.isRobotMapStarted = true;
     } else {
       console.log("(re)démarrage impossible");

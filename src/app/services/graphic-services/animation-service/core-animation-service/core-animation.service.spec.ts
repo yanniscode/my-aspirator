@@ -1,12 +1,13 @@
 import { TestBed } from '@angular/core/testing';
-import { CheminOptimalService } from './chemin-optimal.service';
 
-describe('CheminOptimalService', () => {
-  let service: CheminOptimalService;
+import { CoreAnimationService } from './core-animation.service';
+
+describe('CoreAnimationService', () => {
+  let service: CoreAnimationService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(CheminOptimalService);
+    service = TestBed.inject(CoreAnimationService);
   });
 
   it('should be created', () => {

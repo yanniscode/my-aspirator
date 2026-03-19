@@ -3,7 +3,7 @@ import { FactoryService } from '../factory.service';
 import { RobotModel } from '../../../classes/models/robot-model';
 import { RobotAspiratorDataService } from '../../data-services/robot-data-services/robot-aspirator-data-service/robot-aspirator-data.service';
 import { RobotDataService } from '../../data-services/robot-data-services/robot-data.service';
-import { RobotAspiratorAnimationService } from '../../graphic-services/animation-service/robot-aspirator-animation-service/robot-aspirator-animation.service';
+import { RobotAnimationService } from '../../graphic-services/animation-service/robot-animation-service/robot-animation.service';
 
 @Injectable({
   providedIn: 'root',
@@ -12,16 +12,18 @@ export class RobotFactoryService extends FactoryService {
 
   private robotDataService = inject(RobotDataService);
   private robotAspiratorDataService = inject(RobotAspiratorDataService);
-  private robotAspiratorAnimationService = inject(RobotAspiratorAnimationService);
+  private robotAnimationService = inject(RobotAnimationService);
 
   public robotNames = signal<string[]>([]);
 
+  private ctx!: CanvasRenderingContext2D;
+
   /**
    * Méthode de factory qui renvoie les paramètres de la liste de robots d'un type spécifique vers un type générique
-   * 
+   *
    * initialisation des robots de type Aspirateur ou d'autres types possible ici:
-   * 
-   * @returns 
+   *
+   * @returns
    */
   public override getRobotsParams(TYPE_ACTION_ROBOT: string): RobotModel[] {
     console.log("RobotFactoryService - getRobotsParams()");
@@ -36,8 +38,8 @@ export class RobotFactoryService extends FactoryService {
 
   /**
    * Méthode qui enregistre les signaux des robots dans une liste de type générique
-   * @param robotModelTab 
-   * @returns 
+   * @param robotModelTab
+   * @returns
    */
   public setRobotListSignals(robotModelTab: RobotModel[]): WritableSignal<string[]> {
     console.log("RobotFactoryService - setRobotListSignals()");
@@ -57,24 +59,27 @@ export class RobotFactoryService extends FactoryService {
   /**
    * déclenche le type d'animation souhaité
    */
-  public declencheAnimationService(TYPE_ACTION_ROBOT: string): void {
+  public declencheAnimationService(TYPE_ACTION_ROBOT: string, ctx: CanvasRenderingContext2D): CanvasRenderingContext2D {
     console.log("RobotFactoryService - setRobotListSignals()");
+    this.ctx = ctx;
 
     if (TYPE_ACTION_ROBOT === "aspirator") {
       console.log("déclenchement de l'animation du robot Aspirateur");
-      this.robotAspiratorAnimationService.startRobotsAnimation();
+      this.ctx = this.robotAnimationService.startRobotsAnimation(ctx);
     }
+
+    return this.ctx;
   }
 
   /**
    * met en pause selon le type d'animation souhaité
    */
-  public pauseAnimationService(TYPE_ACTION_ROBOT: string): void {
+  public pauseAnimationService(TYPE_ACTION_ROBOT: string, ctx: CanvasRenderingContext2D): void {
     console.log("RobotFactoryService - setRobotListSignals()");
 
     if (TYPE_ACTION_ROBOT === "aspirator") {
       console.log("déclenchement de l'animation du robot Aspirateur");
-      this.robotAspiratorAnimationService.onRobotsPause();
+      this.robotAnimationService.onRobotsPause(ctx);
     }
   }
 }

@@ -13,14 +13,14 @@ export abstract class FactoryService {
 
   /**
    * Méthode de factory qui enregistre les signaux des robots dans une liste (pour synchroniser les données)
-   * 
-   * @param robotModel 
+   *
+   * @param robotModel
    */
   public abstract setRobotListSignals(robotModel: RobotModel[]): WritableSignal<string[]>;
 
   /**
    * Méthode de factory qui déclenche l'animation globale
-   * @param typeAnimation 
+   * @param typeAnimation
    */
-  public abstract declencheAnimationService(TYPE_ACTION_ROBOT: string): void;
+  public abstract declencheAnimationService(TYPE_ACTION_ROBOT: string, ctx: CanvasRenderingContext2D): void;
 }

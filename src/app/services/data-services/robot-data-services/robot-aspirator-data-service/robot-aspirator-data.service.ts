@@ -3,7 +3,7 @@ import { RobotDataService as RobotDataService } from '../robot-data.service';
 import { RobotAspiratorModel } from '../../../../classes/models/robot-aspirator-model';
 import { GridPosition } from '../../../../classes/models/grid-position';
 import { MaisonDataNettoyageService } from '../../maison-data-services/maison-data-nettoyage-service/maison-data-nettoyage.service';
-import { RobotAspiratorService } from '../../../action-services/robot-action-services/robot-aspirator-service/robot-aspirator.service';
+import { RobotActionAspiratorService } from '../../../action-services/robot-action-services/robot-action-aspirator-service/robot-action-aspirator.service';
 import { AssetRobotService } from '../../../graphic-services/asset-service/asset-robot-service/asset-robot.service';
 
 @Injectable({
@@ -11,7 +11,7 @@ import { AssetRobotService } from '../../../graphic-services/asset-service/asset
 })
 export class RobotAspiratorDataService extends RobotDataService {
 
-  private robotAspiratorService = inject(RobotAspiratorService);
+  private robotAspiratorService = inject(RobotActionAspiratorService);
   private assetRobotService = inject(AssetRobotService);
 
   private maisonNettoyageService = inject(MaisonDataNettoyageService);
@@ -37,7 +37,7 @@ export class RobotAspiratorDataService extends RobotDataService {
     let position = { ...basePosition };
     let startCoordinate = this.robotAspiratorService.calculatePixelCoordinates(basePosition);
     let targetCoordinate = this.robotAspiratorService.calculatePixelCoordinates(basePosition);
-    let batterie = 4;
+    let batterie = 4.5;
     let isRobotStarted = false;
     let isRobotReturningToBase = false;
     let robotWidth = 50;
@@ -152,6 +152,7 @@ export class RobotAspiratorDataService extends RobotDataService {
 
     // pour test de 1 ou plusieurs robots
     const robotModelTab: RobotAspiratorModel[] = [{ ...robot1Model }, { ...robot2Model }, { ...robot3Model }, { ...robot4Model }];
+    // const robotModelTab = [{ ...robot2Model }, { ...robot3Model }, { ...robot4Model }];
     // const robotModelTab = [{ ...robot1Model }, { ...robot4Model }];
     // const robotModelTab = [{ ...robot1Model }];
 

@@ -129,6 +129,7 @@ export class MaisonDataNettoyageService extends MaisonDataService {
     const maisonModel = this.maisonSignal();
     if (!maisonModel) return;
 
+    // TODO: revoir algo, pourquoi renvoyer une nouvelle position si elle n'existe pas dans la maison ?
     // Copie par référence, ici, pas par valeur:
     const reservedPosition: CellElement = !maisonModel?.maison[nextPosition.row]
       ? new CellElement
@@ -138,10 +139,14 @@ export class MaisonDataNettoyageService extends MaisonDataService {
 
     // Ici, l'update du  signal est automatique car on a une copie par référence
 
+    // TODO: réserver la case au robot à qui elle appartient dès le début, et ne pas la déréserver
     // On ne veut pas que le status de la base soit modifiée
     if (reservedPosition.type !== 'B') {
       // On passe la case au status réservé ou non
       reservedPosition.reserved = reservedStatus;
+
+      // A garder pour tester visuellement les positions réservées (au lieu de marquer les positions visitées)
+      // reservedPosition.type = "_";
     }
 
     this.updateMaisonCell(reservedPosition);
