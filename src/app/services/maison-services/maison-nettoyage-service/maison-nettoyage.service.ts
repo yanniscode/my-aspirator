@@ -93,7 +93,7 @@ export class MaisonNettoyageService extends MaisonService {
   }
 
   /**
-   * Ajout de la base d'un robot au décors (datas)
+   * Ajout de la base d'un robot au décors
    *
    * @param robotBasePosition
    */
@@ -148,7 +148,7 @@ export class MaisonNettoyageService extends MaisonService {
   }
 
   /**
-   * Permet de mettre à jour une case comme visitée (datas)
+   * Permet de mettre à jour une case comme visitée
    *
    * @param lastPosition
    * @param visitedStatus

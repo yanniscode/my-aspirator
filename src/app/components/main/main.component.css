@@ -27,3 +27,11 @@
     margin-top: 20px;
     padding-bottom: 10px;
 }
+
+.infos-container {
+    text-align: center;
+}
+
+.robot-liste-infos {
+    display: grid;
+}

@@ -1,4 +1,4 @@
-import { inject, Injectable, Signal, signal, WritableSignal } from '@angular/core';
+import { Injectable, Signal, signal, WritableSignal } from '@angular/core';
 
 import { MaisonModel } from '../../classes/models/maison-model';
 import { CellElement } from '../../classes/models/cellElement';
@@ -26,14 +26,14 @@ export abstract class MaisonService {
 
   // TODO: possible refactoring de méthode dans un service API (récupération des données dans des objets JSON / appels HTTP)
   /**
-   * Appel des paramètres de la Maison (datas)
+   * Appel des paramètres de la Maison
    *
    * @returns
    */
   public abstract getMaisonParams(): MaisonModel;
 
   /**
-   * Initialisation de la maison (datas)
+   * Initialisation de la maison
    *
    * @param maisonModel
    */
@@ -54,7 +54,7 @@ export abstract class MaisonService {
   ): CellElement[][];
 
   /**
-   * Mise à jour effective d'une case (datas)
+   * Mise à jour effective d'une case (maison de type générique)
    *
    * @param newCellElement
    * @returns

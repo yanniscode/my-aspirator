@@ -1,22 +1,30 @@
 import { inject, Injectable } from '@angular/core';
-import { RobotFactoryService } from '../robot-factory.service';
+import { RobotDataService as RobotDataService } from '../robot-data.service';
 import { RobotAspiratorModel } from '../../../../classes/models/robot-aspirator-model';
 import { AssetRobotService } from '../../../asset-service/asset-robot-service/asset-robot.service';
 import { GridPosition } from '../../../../classes/models/grid-position';
-import { RobotAspiratorService } from '../../../robot-services/robot-aspirator-service/robot-aspirator.service';
+import { RobotAspiratorService } from '../../../robot-action-services/robot-aspirator-service/robot-aspirator.service';
+import { MaisonNettoyageService } from '../../../maison-services/maison-nettoyage-service/maison-nettoyage.service';
 
 @Injectable({
   providedIn: 'root',
 })
-export class RobotAspiratorFactoryService extends RobotFactoryService {
+export class RobotAspiratorDataService extends RobotDataService {
 
   private robotAspiratorService = inject(RobotAspiratorService);
   private assetRobotService = inject(AssetRobotService);
 
+  private maisonNettoyageService = inject(MaisonNettoyageService);
+
+  constructor() {
+    console.log("RobotAspiratorDataService - constructor");
+    super();
+  }
+
   // TODO: possible refactoring de méthode dans un service API (récupération des données dans des objets JSON / appels HTTP)
   // appelée par MainComponent
-  public createAspiratorRobots(): RobotAspiratorModel[] {
-    console.log("RobotAspiratorFactoryService - createAspiratorRobots()");
+  public override createRobotsParams(): RobotAspiratorModel[] {
+    console.log("RobotAspiratorDataService - createRobotsParams()");
 
     // 1 - Récupération des datas :
     // TODO: possible récupération des données dans des objets JSON / appels HTTP
@@ -139,6 +147,22 @@ export class RobotAspiratorFactoryService extends RobotFactoryService {
     // const robotModelTab = [{ ...robot1Model }, { ...robot4Model }];
     // const robotModelTab = [{ ...robot1Model }];
 
+    // spécifique aux robots aspirateurs: ajout de leurs bases de charge
+    this.setRobotAspiratorBases(robotModelTab);
+
     return robotModelTab;
+  }
+
+  private setRobotAspiratorBases(robotModelTab: RobotAspiratorModel[]): void {
+    console.log("RobotAspiratorDataService - setRobotAspiratorBases()");
+
+    robotModelTab.forEach((robotModel: RobotAspiratorModel) => {
+      const robotAspiratorModel = { ...robotModel };
+
+      // Ajout de la base du robot dans la Maison
+      const robotBasePosition: GridPosition = { ...robotAspiratorModel.basePosition };
+      // TODO: remettre
+      this.maisonNettoyageService.updateMaisonRobotBase(robotBasePosition);
+    });
   }
 }

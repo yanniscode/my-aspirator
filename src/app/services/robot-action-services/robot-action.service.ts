@@ -7,19 +7,19 @@ import { PixelPosition } from '../../classes/models/pixel-position';
 @Injectable({
   providedIn: 'root'
 })
-export abstract class RobotService implements OnDestroy {
+export abstract class RobotActionService implements OnDestroy {
 
   protected loggerService: LoggerService = inject(LoggerService);
 
   constructor() {
-    console.log("RobotAspiratorDataService - constructor()");
+    console.log("RobotActionService - constructor()");
   }
 
   /**
   * Nettoyage complet du service
   */
   public ngOnDestroy(): void {
-    console.log("RobotAspiratorDataService - ngOnDestroy()");
+    console.log("RobotActionService - ngOnDestroy()");
     console.log('Service de robots arrêté');
   }
 
@@ -27,6 +27,11 @@ export abstract class RobotService implements OnDestroy {
    * Calcule de nouvelles directions selon l'intervale donnée
    */
   public abstract calculateNewDirectionsForAllRobots(): void;
+
+  /**
+   * Met à jour la cellule visitée
+   */
+  public abstract updateRobotsVisitedCells(): void;
 
   /**
    *

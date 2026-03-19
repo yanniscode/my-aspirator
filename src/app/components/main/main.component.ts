@@ -1,16 +1,15 @@
-import { Component, OnDestroy, ViewChild, ViewEncapsulation, inject, ChangeDetectionStrategy, signal, computed, Signal } from '@angular/core';
+import { Component, OnDestroy, ViewChild, ViewEncapsulation, inject, ChangeDetectionStrategy, computed, Signal, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
 import { MaisonComponent } from '../maison/maison.component';
 import { MessagesComponent } from '../messages/messages.component';
 import { MaisonModel } from '../../classes/models/maison-model';
-import { RobotAspiratorModel } from '../../classes/models/robot-aspirator-model';
 import { LoggerService } from '../../services/logger-service/logger.service';
-import { RobotAspiratorWithNextPositionsTabService } from '../../services/robot-actions-service/robot-aspirator-with-next-positions-tab-service/robot-aspirator/robot-aspirator/robot-aspirator-with-next-positions-tab-service/robot-aspirator-with-next-positions-tab.service';
-import { GridPosition } from '../../classes/models/grid-position';
+import { RobotAspiratorWithNextPositionsTabService } from '../../services/robot-action-services/robot-aspirator-with-next-positions-tab-service/robot-aspirator/robot-aspirator/robot-aspirator-with-next-positions-tab-service/robot-aspirator-with-next-positions-tab.service';
 import { MaisonNettoyageService } from '../../services/maison-services/maison-nettoyage-service/maison-nettoyage.service';
-import { RobotFactoryService } from '../../services/factory-services/robot-factory-services/robot-factory.service';
-import { RobotAspiratorFactoryService } from '../../services/factory-services/robot-factory-services/robot-aspirator-factory-service/robot-aspirator-factory.service';
+import { RobotDataService } from '../../services/data-services/robot-data-services/robot-data.service';
+import { RobotModel } from '../../classes/models/robot-model';
+import { RobotFactoryService } from '../../services/factory-services/robot-factory-service/robot-factory.service';
 
 @Component({
   selector: 'app-main',
@@ -29,8 +28,8 @@ export class MainComponent implements OnDestroy {
   @ViewChild(MaisonComponent) maisonChildComponent!: MaisonComponent;
 
   private maisonNettoyageService = inject(MaisonNettoyageService);
+  public robotDataService = inject(RobotDataService);
   private robotFactoryService = inject(RobotFactoryService);
-  private robotAspiratorFactoryService = inject(RobotAspiratorFactoryService);
   private loggerService = inject(LoggerService);
 
   // pour le template
@@ -38,8 +37,13 @@ export class MainComponent implements OnDestroy {
     this.maisonNettoyageService.maisonSignal()
   );
 
-  public robotViewModelTab: RobotAspiratorModel[];
+  private readonly _robotSignals: Map<string, Signal<RobotModel>> = this.robotDataService.robotSignals;
+  // Signal computed qui expose les valeurs de la Map de robots sous forme de tableau
+  public readonly robotList: Signal<RobotModel[]> = computed(() =>
+    Array.from(this._robotSignals.values()).map(signal => signal())
+  );
 
+  public robotViewModelTab: RobotModel[];
   public robotNames = signal<string[]>([]);
 
   private isRobotMapStarted: boolean = false;
@@ -51,15 +55,16 @@ export class MainComponent implements OnDestroy {
     const maisonModel: MaisonModel = { ...this.maisonNettoyageService.getMaisonParams() };
     this.maisonNettoyageService.initMaison(maisonModel);
 
-    this.robotViewModelTab = [...this.robotAspiratorFactoryService.createAspiratorRobots()];
+    this.robotViewModelTab = [...this.robotFactoryService.getRobotsParams()];
     this.isRobotMapStarted = false;
-    this.initRobotsViewModelDatas();
+    this.robotNames = this.robotFactoryService.setRobotListSignals(this.robotViewModelTab);
+    if (!this.robotNames) return;
   }
 
   public ngOnDestroy(): void {
     console.log('MainComponent - ngOnDestroy()');
     this.robotViewModelTab.forEach(robotModel => {
-      this.robotFactoryService.unregisterRobotFromList(robotModel.robotName);
+      this.robotDataService.unregisterRobotFromList(robotModel.robotName);
     });
     console.log(`Nettoyage du composant Maison - ${this.robotViewModelTab.length} robots`);
   }
@@ -85,23 +90,6 @@ export class MainComponent implements OnDestroy {
     } else {
       console.log("(re)démarrage impossible");
     }
-  }
-
-  private initRobotsViewModelDatas(): void {
-    console.log("MainComponent - initRobotsViewModelDatas()");
-
-    this.robotViewModelTab.forEach((robotViewModel: RobotAspiratorModel) => {
-      // 1/ ajout du robot à la liste:
-      this.robotFactoryService.registerRobotInList(robotViewModel);
-
-      // 2/ enregistrer le nom de chaque robot dans la liste de robotNames pour le template binding:
-      this.robotNames.update(robotNames => [...robotNames, robotViewModel.robotName]);
-
-      // 3/ Ajout de la base du robot dans la Maison
-      const robotBasePosition: GridPosition = { ...robotViewModel.basePosition };
-      // TODO: remettre
-      this.maisonNettoyageService.updateMaisonRobotBase(robotBasePosition);
-    });
   }
 
   private log(message: string) {

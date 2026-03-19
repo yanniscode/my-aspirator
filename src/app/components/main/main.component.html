@@ -31,27 +31,30 @@
     </div>
 </div>
 
-<div class="maison-container"><!-- TODO: utiliser classe maison-container ?? -->
-    <h2>Main Test Signaux avec {{ robotViewModelTab.length }} robots</h2>
+<div class="infos-container">
+    <h2>Main Test Signaux avec {{ robotList().length }} robots</h2>
 
-    <!-- TODO - utiliser ici pour test -->
-    <!-- @for (robot of robotViewModelTab; track robot) {
-    <div class="robot-card">
-        @if (getRobotDataView(robot.robotName)(); as robot) {
-        <h3>🤖 {{ robot.robotName }}</h3>
-        <div class="robot-info">
-            <p>🔋 Batterie: {{ robot.batterie }}%</p>
-            <p>📍 Last Position: ({{ robot.lastPosition.x }}, {{ robot.lastPosition.y }})
-            <p>📍 Position: ({{ robot.position.x }}, {{ robot.position.y }})
-            </p>
-            <p>📍 StartCoordinate: ({{ robot.startCoordinate.x }}, {{ robot.startCoordinate.y }})
-            <p>📍 TargetCoordinate: ({{ robot.targetCoordinate.x }}, {{ robot.targetCoordinate.y }})
-            </p>
-            <p>⚡ Status: {{ robot.batterie > 0 ? 'Actif' : 'Inactif' }}</p>
+    <!-- TODO - utilisé ici pour test: n'a pas accès aux infos spécifiques au robot aspirateur (car robot générique dans la Main) -->
+    <div class="robot-liste-infos">
+        @for (robot of robotViewModelTab; track robot) {
+        <div class="robot-card">
+            @if (robotDataService.getRobotSignal(robot.robotName)(); as robot) {
+            <h3>🤖 {{ robot.robotName }}</h3>
+            <div class="robot-info">
+                <!-- <p>🔋 Batterie: {{ robot.batterie }}%</p> -->
+                <p>📍 Last Position: ({{ robot.lastPosition.col }}, {{ robot.lastPosition.row }})
+                <p>📍 Position: ({{ robot.position.col }}, {{ robot.position.row }})
+                </p>
+                <p>📍 StartCoordinate: ({{ robot.startCoordinate.x }}, {{ robot.startCoordinate.y }})
+                <p>📍 TargetCoordinate: ({{ robot.targetCoordinate.x }}, {{ robot.targetCoordinate.y }})
+                </p>
+                <!-- <p>⚡ Status: {{ robot.batterie > 0 ? 'Actif' : 'Inactif' }}</p> -->
+            </div>
+            } @else {
+            <p>⚠️ Robot {{ robot }} non trouvé</p>
+            }
         </div>
-        } @else {
-        <p>⚠️ Robot {{ robot }} non trouvé</p>
         }
     </div>
-    } -->
+
 </div>

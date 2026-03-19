@@ -1,27 +1,21 @@
 import { GridPosition } from "./grid-position";
 import { PixelPosition } from "./pixel-position";
+import { RobotModel } from "./robot-model";
 
-export class RobotAspiratorModel {
-
-    public robotName;
+export class RobotAspiratorModel extends RobotModel {
+    public override robotName;
     // Position de la base de charge du robot
     public basePosition: GridPosition;
-    // Positions précédente et actuelle
-    public lastPosition: GridPosition;
-    public position: GridPosition;
-    public startCoordinate: PixelPosition;
-    public targetCoordinate: PixelPosition;
 
     // Niveau de batterie (en pourcentage)
     public batterie;
     // Combien d'énergie est consommée par mouvement
     public consommationParMouvement;
-    public isRobotStarted;
     public isRobotReturningToBase;
-    public robotWidth;
-    public labelColor
 
     constructor() {
+        super();
+
         this.robotName = "Theodule";
         // valeurs par défaut pour l'init du robot:
         this.basePosition = new GridPosition();

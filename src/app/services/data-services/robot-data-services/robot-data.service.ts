@@ -1,28 +1,29 @@
 import { Injectable, Signal, signal, WritableSignal } from '@angular/core';
-import { RobotAspiratorModel } from '../../../classes/models/robot-aspirator-model';
+import { RobotModel } from '../../../classes/models/robot-model';
 
 @Injectable({
   providedIn: 'root',
 })
-export abstract class RobotFactoryService {
+export abstract class RobotDataService {
 
   /**
    * Map en lecture seule pour stocker les signaux computed de chaque robot à afficher
    */
-  protected readonly _robotSignals: Map<string, WritableSignal<RobotAspiratorModel>> = new Map<string, WritableSignal<RobotAspiratorModel>>();
-  public robotSignals: Map<string, WritableSignal<RobotAspiratorModel>> = this._robotSignals;
+  protected readonly _robotSignals: Map<string, WritableSignal<RobotModel>> = new Map<string, WritableSignal<RobotModel>>();
+  public robotSignals: Map<string, WritableSignal<RobotModel>> = this._robotSignals;
 
-  // TODO: revoir le type RobotAspiratorModel > générique RobotModel
   /**
    * Instancie la liste de robots avec leurs données
    */
-  public abstract createAspiratorRobots(): RobotAspiratorModel[];
+  public abstract createRobotsParams(): RobotModel[];
+
+  // public abstract setRobotListSignals(robotModelTab: RobotModel[]): void;
 
   /**
   * Désenregistre un robot et nettoie son signal
   */
   public unregisterRobotFromList(robotName: string): void {
-    console.log("RobotFactoryService - unregisterRobotFromList()");
+    console.log("RobotDataService - unregisterRobotFromList()");
 
     if (this._robotSignals.delete(robotName)) {
       console.log(`Robot ${robotName} désenregistré`);
@@ -32,8 +33,8 @@ export abstract class RobotFactoryService {
   /**
   * Enregistre un nouveau robot dans la liste
   */
-  public registerRobotInList(robotModel: RobotAspiratorModel): void {
-    console.log("RobotFactoryService - registerRobotInList()");
+  public registerRobotInList(robotModel: RobotModel): void {
+    console.log("RobotDataService - registerRobotInList()");
 
     if (!this._robotSignals.has(robotModel.robotName)) {
       this._robotSignals.set(robotModel.robotName, signal(robotModel));
@@ -50,10 +51,10 @@ export abstract class RobotFactoryService {
    * @param robotName
    * @returns
    */
-  public getRobotSignal(robotName: string): Signal<RobotAspiratorModel | undefined> {
-    console.log("RobotFactoryService - getRobotSignal()");
+  public getRobotSignal(robotName: string): Signal<RobotModel | undefined> {
+    console.log("RobotDataService - getRobotSignal()");
 
-    const writableSignal: WritableSignal<RobotAspiratorModel> | undefined = this._robotSignals.get(robotName);
+    const writableSignal: WritableSignal<RobotModel> | undefined = this._robotSignals.get(robotName);
     return writableSignal?.asReadonly() ?? signal(undefined);
   }
 
@@ -68,16 +69,16 @@ export abstract class RobotFactoryService {
   /**
   * Retourne le nombre de robots actifs
   */
-  // getRobotCount(): number {
-  //   return this.robotSignals.size;
-  // }
+  getRobotCount(): number {
+    return this.robotSignals.size;
+  }
 
   // MÉTHODES D'ACTION SUR LE ROBOT:
 
   /**
   * Met à jour un robot dans la liste de signaux (appelé par la boucle d'animation)
   */
-  // private updateRobotModel(robotModel: RobotAspiratorModel | undefined): void {
+  // private updateRobotModel(robotModel: RobotModel | undefined): void {
   //   if (!robotModel) return;
 
   //   const robotSignal = this.robotSignals.get(robotModel.robotName);

@@ -1,16 +1,17 @@
-import { Component, ViewEncapsulation, ChangeDetectionStrategy, inject, ViewChild, ElementRef, computed, Signal, signal, OnDestroy, AfterViewInit } from '@angular/core';
+import { Component, ViewEncapsulation, ChangeDetectionStrategy, inject, ViewChild, ElementRef, computed, Signal, signal, OnDestroy, AfterViewInit, WritableSignal } from '@angular/core';
 import { TableModule } from "primeng/table";
 import { LoggerService } from '../../services/logger-service/logger.service';
 import { MaisonModel } from '../../classes/models/maison-model';
 import { GridPosition } from '../../classes/models/grid-position';
 import { CellElement } from '../../classes/models/cellElement';
-import { RobotAspiratorModel } from '../../classes/models/robot-aspirator-model';
 import { PixelPosition } from '../../classes/models/pixel-position';
-import { RobotAspiratorService } from '../../services/robot-services/robot-aspirator-service/robot-aspirator.service';
+import { RobotAspiratorService } from '../../services/robot-action-services/robot-aspirator-service/robot-aspirator.service';
 import { MaisonNettoyageService } from '../../services/maison-services/maison-nettoyage-service/maison-nettoyage.service';
 import { AssetRobotService } from '../../services/asset-service/asset-robot-service/asset-robot.service';
 import { AssetMaisonService } from '../../services/asset-service/asset-maison-service/asset-maison.service';
-import { RobotFactoryService } from '../../services/factory-services/robot-factory-services/robot-factory.service';
+import { RobotDataService } from '../../services/data-services/robot-data-services/robot-data.service';
+import { RobotModel } from '../../classes/models/robot-model';
+import { RobotAspiratorModel } from '../../classes/models/robot-aspirator-model';
 
 @Component({
   selector: 'app-maison',
@@ -35,7 +36,7 @@ export class MaisonComponent implements AfterViewInit, OnDestroy {
   @ViewChild('maisonCanvas', { static: true }) maisonCanvas!: ElementRef<HTMLCanvasElement>;
 
   private maisonNettoyageService = inject(MaisonNettoyageService);
-  public robotFactoryService = inject(RobotFactoryService);
+  public robotDataService = inject(RobotDataService);
   public robotAspiratorService = inject(RobotAspiratorService);
   private assetRobotService = inject(AssetRobotService);
   private assetMaisonService = inject(AssetMaisonService);
@@ -71,16 +72,17 @@ export class MaisonComponent implements AfterViewInit, OnDestroy {
 
   // Injecter le signal une seule fois à l'initialisation
   // Map de robots
-  private readonly _robotSignals: Map<string, Signal<RobotAspiratorModel>> = this.robotFactoryService.robotSignals;
+  private readonly _robotSignals: Map<string, WritableSignal<RobotModel>>
+    = this.robotDataService.robotSignals as Map<string, WritableSignal<RobotModel>>;
   // Signal computed qui expose les valeurs de la Map de robots sous forme de tableau
-  public readonly robotList: Signal<RobotAspiratorModel[]> = computed(() =>
+  public readonly robotList: Signal<RobotModel[]> = computed(() =>
     Array.from(this._robotSignals.values()).map(signal => signal())
   );
 
   // Robot à l'unité:
   // Computed dédié pour le robot — pas d'effet de bord
-  private readonly _robotServiceSignal: Signal<Signal<RobotAspiratorModel | undefined>> = computed(() =>
-    this.robotFactoryService.getRobotSignal(this.robotNameInput)
+  private readonly _robotServiceSignal: Signal<Signal<RobotModel | undefined>> = computed(() =>
+    this.robotDataService.getRobotSignal(this.robotNameInput)
   );
 
   // Computed dédié pour le robot — pas d'effet de bord
@@ -238,7 +240,7 @@ export class MaisonComponent implements AfterViewInit, OnDestroy {
     });
   }
 
-  private drawRobotLabels(robot: RobotAspiratorModel, x: number, y: number): void {
+  private drawRobotLabels(robot: RobotModel, x: number, y: number): void {
     const LABEL_HEIGHT = 28;  // hauteur totale des deux labels (12 + 16)
 
     // Détecte si les labels dépassent du canvas en bas
@@ -261,11 +263,15 @@ export class MaisonComponent implements AfterViewInit, OnDestroy {
       labelBaseY
     );
 
-    // Label batterie
+    // TODO: idée - rajouter un type (famille) au robot (model), pour checker si c'est aspirateur ou autre type
+    const robotAspirator: RobotAspiratorModel = robot as RobotAspiratorModel;
+    if (!robotAspirator) return;
+
+    // Label batterie (spécifique aux robots avec batteries - ex: aspirateur...)
     this.ctx.font = '8px Arial';
-    this.ctx.fillStyle = this.assetRobotService.getRobotBatterieColor(robot.batterie);
+    this.ctx.fillStyle = this.assetRobotService.getRobotBatterieColor(robotAspirator.batterie);
     this.ctx.fillText(
-      `${robot.batterie ?? -1}%`,
+      `${robotAspirator.batterie ?? -1}%`,
       x + robot.robotWidth / 2,
       labelBaseY + batterieOffsetY
     );
@@ -275,11 +281,11 @@ export class MaisonComponent implements AfterViewInit, OnDestroy {
   private updateCurrentCoordinates(name: string): PixelPosition {
     // console.log("MaisonComponent - updateCurrentCoordinates()");
 
-    const robotSignal: Signal<RobotAspiratorModel | undefined> = this.robotFactoryService.getRobotSignal(name);
+    const robotSignal: Signal<RobotModel | undefined> = this.robotDataService.getRobotSignal(name) as Signal<RobotModel | undefined>;
     if (!robotSignal) return new PixelPosition(-50, -50);
     // console.log(robotSignal);
 
-    const robot: RobotAspiratorModel | undefined = robotSignal();
+    const robot: RobotModel | undefined = robotSignal();
     if (!robot) return new PixelPosition(-50, -50);
 
     // Dépend du signal animationProgress
@@ -302,7 +308,7 @@ export class MaisonComponent implements AfterViewInit, OnDestroy {
     }
 
     for (const [robotName, robotSignal] of this._robotSignals) {
-      const robot: RobotAspiratorModel | undefined = robotSignal();
+      const robot: RobotModel | undefined = robotSignal();
       if (!robot) continue;
 
       // save() AVANT toute modification — isole complètement chaque robot
@@ -366,6 +372,7 @@ export class MaisonComponent implements AfterViewInit, OnDestroy {
         this.animationProgress.set(0);
 
         // 3. Calcul des nouvelles directions (qui lit progress = 0)
+        // TODO: revoir avec factory pour un appel générique ici (méthode spécifique aux robots aspirateurs, actuellement)
         this.robotAspiratorService.calculateNewDirectionsForAllRobots();
         this.robotAspiratorService.updateRobotsVisitedCells();
       } else {
