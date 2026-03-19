@@ -16,6 +16,10 @@ export abstract class RobotDataService {
   protected readonly _robotSignals: Map<string, WritableSignal<RobotModel>> = new Map<string, WritableSignal<RobotModel>>();
   public robotSignals: Map<string, WritableSignal<RobotModel>> = this._robotSignals;
 
+  // Signal pour le progress (0 à 1)
+  protected readonly _animationProgress: WritableSignal<number> = signal(0);
+  public animationProgress: WritableSignal<number> = this._animationProgress;
+
   constructor() {
     this.PIXELS_PER_STEP = 50;
   }
@@ -75,7 +79,7 @@ export abstract class RobotDataService {
 
   // MÉTHODES D'ACTION SUR LE ROBOT:
 
-  public updateCurrentCoordinates(name: string, progress: number): PixelPosition {
+  public updateCurrentCoordinates(name: string): PixelPosition {
     console.log("RobotAnimationService - updateCurrentCoordinates()");
 
     let robotAnimationSignal = this.getRobotSignal(name) as Signal<RobotModel | undefined>;
@@ -89,14 +93,13 @@ export abstract class RobotDataService {
 
     this.moveRobotCoordinates(name, robot.lastPosition, robot.position);
 
-    // Dépend du signal animationProgress
-    console.log("progress = " + progress);
+    const progress: Signal<number> = this._animationProgress.asReadonly();
 
     const startPosition = { ...robot.startCoordinate };
     const nextPosition = { ...robot.targetCoordinate };
     // Interpolation linéaire (calcul de valeurs intermédiaires) entre startCoordinate et targetCoordinate
-    const newXCoordinate = startPosition.x + (nextPosition.x - startPosition.x) * progress;
-    const newYCoordinate = startPosition.y + (nextPosition.y - startPosition.y) * progress;
+    const newXCoordinate = startPosition.x + (nextPosition.x - startPosition.x) * progress();
+    const newYCoordinate = startPosition.y + (nextPosition.y - startPosition.y) * progress();
     console.log("new Coordinate = " + newXCoordinate + " - " + newYCoordinate);
 
     // Attention: inversion des coordonnées pour l'affichage: col = x, row = y

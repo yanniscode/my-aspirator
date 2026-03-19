@@ -17,7 +17,7 @@ export class MaisonDataNettoyageService extends MaisonDataService {
     super();
   }
 
-  // TODO: possible refactoring de méthode dans un service API (récupération des données dans des objets JSON / appels HTTP)
+  // TODO: EVOL - possible refactoring de méthode dans un service API (récupération des données dans des objets JSON / appels HTTP)
   /**
    * Appel des paramètres de la Maison (datas)
    *
@@ -129,7 +129,7 @@ export class MaisonDataNettoyageService extends MaisonDataService {
     const maisonModel = this.maisonSignal();
     if (!maisonModel) return;
 
-    // TODO: revoir algo, pourquoi renvoyer une nouvelle position si elle n'existe pas dans la maison ?
+    // TODO: PRIO - revoir algo, pourquoi renvoyer une nouvelle position si elle n'existe pas dans la maison ?
     // Copie par référence, ici, pas par valeur:
     const reservedPosition: CellElement = !maisonModel?.maison[nextPosition.row]
       ? new CellElement
@@ -139,7 +139,7 @@ export class MaisonDataNettoyageService extends MaisonDataService {
 
     // Ici, l'update du  signal est automatique car on a une copie par référence
 
-    // TODO: réserver la case au robot à qui elle appartient dès le début, et ne pas la déréserver
+    // TODO: PRIO - pour la Base : réserver la case au robot à qui elle appartient dès le début, et ne pas la déréserver
     // On ne veut pas que le status de la base soit modifiée
     if (reservedPosition.type !== 'B') {
       // On passe la case au status réservé ou non

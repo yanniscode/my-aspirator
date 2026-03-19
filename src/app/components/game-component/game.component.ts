@@ -1,7 +1,6 @@
 import { Component, ViewEncapsulation, ChangeDetectionStrategy, inject, ViewChild, ElementRef, OnDestroy, AfterViewInit } from '@angular/core';
 import { TableModule } from "primeng/table";
 import { LoggerService } from '../../services/data-services/logger-service/logger.service';
-import { MaisonAnimationService } from '../../services/graphic-services/animation-service/maison-animation-service/maison-animation.service';
 import { AnimationFactoryService } from '../../services/graphic-services/animation-factory-service/animation-factory.service';
 import { MaisonDataNettoyageService } from '../../services/data-services/maison-data-services/maison-data-nettoyage-service/maison-data-nettoyage.service';
 import { RobotAnimationService } from '../../services/graphic-services/animation-service/robot-animation-service/robot-animation.service';
@@ -30,7 +29,6 @@ import { CoreAnimationService } from '../../services/graphic-services/animation-
 export class GameComponent implements AfterViewInit, OnDestroy {
   @ViewChild('gameCanvas', { static: true }) gameCanvas!: ElementRef<HTMLCanvasElement>;
 
-  private maisonAnimationService = inject(MaisonAnimationService);
   private robotAnimationService = inject(RobotAnimationService);
   private robotFactoryService = inject(RobotFactoryService);
 
@@ -64,7 +62,7 @@ export class GameComponent implements AfterViewInit, OnDestroy {
     await this.animationFactoryService.loadCanvasImages();
     // this.ctx = this.maisonAnimationService.renderAnimation(this.ctx);
     // this.ctx = this.robotAnimationService.renderAnimation(this.ctx);
-    this.ctx = this.coreAnimationService.renderAnimation(this.ctx, 0);
+    this.ctx = this.coreAnimationService.renderAnimation(this.ctx);
   }
 
   public async onStart(TYPE_ACTION_ROBOT: string) {

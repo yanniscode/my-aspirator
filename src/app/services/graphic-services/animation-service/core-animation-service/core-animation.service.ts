@@ -1,4 +1,4 @@
-import { inject, Injectable, signal } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { MaisonCoreAnimationService } from './maison-core-animation-service/maison-core-animation.service';
 import { RobotCoreAnimationService } from './robot-core-animation-service/robot-core-animation.service';
 
@@ -15,20 +15,17 @@ export class CoreAnimationService {
   private readonly WIDTH = 500;
   private readonly HEIGHT = 400;
 
-  // Signal pour le progress (0 à 1)
-  public animationProgress = signal(0);
-
   /**
  * Affichage des images sur le canvas
  */
-  public renderAnimation(ctx: CanvasRenderingContext2D, progress: number): CanvasRenderingContext2D {
+  public renderAnimation(ctx: CanvasRenderingContext2D): CanvasRenderingContext2D {
     // console.log("RobotAnimationService - render()");
     this.ctx = ctx;
     // Efface tout
     this.ctx.clearRect(0, 0, this.WIDTH, this.HEIGHT);
     // Dessine tout
     this.ctx = this.maisonCoreAnimationService.drawMaison(this.ctx);
-    this.ctx = this.robotCoreAnimationService.drawRobots(this.ctx, progress);
+    this.ctx = this.robotCoreAnimationService.drawRobots(this.ctx);
 
     return this.ctx;
   }

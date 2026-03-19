@@ -1,4 +1,4 @@
-import { inject, Injectable, OnDestroy, signal, WritableSignal, computed } from '@angular/core';
+import { inject, Injectable, OnDestroy, WritableSignal, computed } from '@angular/core';
 import { AnimationService } from '../animation.service';
 import { RobotModel } from '../../../../classes/models/robot-model';
 import { RobotDataService } from '../../../data-services/robot-data-services/robot-data.service';
@@ -30,9 +30,6 @@ export abstract class RobotAnimationService extends AnimationService implements 
   // Variable vérifiant si l'animation est en cours
   protected isRunning = false;
 
-  // Signal pour le progress (0 à 1)
-  protected animationProgress = signal(0);
-
   // Animation des robots: id de la trame en cours
   protected animationFrameId?: number;
 
@@ -47,7 +44,7 @@ export abstract class RobotAnimationService extends AnimationService implements 
 * Nettoyage complet du service
 */
   public ngOnDestroy(): void {
-    console.log("MainAnimationService - ngOnDestroy()");
+    console.log("RobotAnimationService - ngOnDestroy()");
 
     this.stopAllAnimation();
     console.log('Service de robots arrêté');
@@ -78,7 +75,6 @@ export abstract class RobotAnimationService extends AnimationService implements 
     this._robotSignals.clear();
   }
 
-  // TODO: supprimer ?
   public abstract override drawRobots(ctx: CanvasRenderingContext2D): void;
 
   protected pauseAllAnimation(): void {
@@ -112,6 +108,7 @@ export abstract class RobotAnimationService extends AnimationService implements 
 
     let lastStepTime = performance.now();
     let progress = 0;
+    this.robotDataService.animationProgress.set(progress);
 
     const animate = (currentTime: number) => {
 
@@ -135,21 +132,22 @@ export abstract class RobotAnimationService extends AnimationService implements 
         // 1. Reset du temps
         lastStepTime = currentTime;
         // 2. Reset du progress à 0
-        this.animationProgress.set(0);
+        // TODO: prio - besoin ? supprimer ? crée bug anim après refacto ( position précédente qui clignotte)
+        // this.robotDataService.animationProgress.set(0);
 
         // 3. Calcul des nouvelles directions (qui lit progress = 0)
-        // TODO: revoir avec factory pour un appel générique ici (méthode spécifique aux robots aspirateurs, actuellement)
+        // TODO: PRIO - revoir avec factory pour un appel générique ici (méthode spécifique aux robots aspirateurs, actuellement)
         this.robotActionAspiratorService.calculateNewDirectionsForAllRobots();
         this.robotActionAspiratorService.updateRobotsVisitedCells();
       } else {
         // En cours d'animation
         progress = deltaTime / this.STEP_DURATION;
         // Mettre à jour le signal de progression
-        this.animationProgress.set(progress);
+        this.robotDataService.animationProgress.set(progress);
       }
 
       // 4. Mise à jour de la position du robot (vue)
-      this.ctx = this.coreAnimationService.renderAnimation(this.ctx, progress);
+      this.ctx = this.coreAnimationService.renderAnimation(this.ctx);
       this.animationFrameId = requestAnimationFrame(animate);
 
       return this.ctx;
@@ -159,7 +157,7 @@ export abstract class RobotAnimationService extends AnimationService implements 
     this.robotActionAspiratorService.updateRobotsVisitedCells();
 
     // Mise à jour de la position du robot (vue)
-    this.ctx = this.coreAnimationService.renderAnimation(this.ctx, progress);
+    this.ctx = this.coreAnimationService.renderAnimation(this.ctx);
     this.animationFrameId = requestAnimationFrame(animate);
 
     return this.ctx;

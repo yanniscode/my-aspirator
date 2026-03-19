@@ -15,17 +15,16 @@ import { RobotDataService } from '../../../data-services/robot-data-services/rob
 export class RobotActionAspiratorService extends RobotActionService implements OnDestroy {
 
   protected algoNettoyageService = inject(AlgoNettoyageService);
-  private robotFactoryService = inject(RobotDataService);
-  private maisonNettoyageService = inject(MaisonDataNettoyageService);
+  private robotDataService = inject(RobotDataService);
+  private maisonDataNettoyageService = inject(MaisonDataNettoyageService);
 
   // Map en lecture seule pour stocker les signaux computed de chaque robot à afficher
-  // TODO: pourquoi readonly si WritableSignal ici ?? c'est la map qui est en lecture seule, pas les éléments ??
   private readonly _robotSignals: Map<string, WritableSignal<RobotAspiratorModel>>
-    = this.robotFactoryService.robotSignals as Map<string, WritableSignal<RobotAspiratorModel>>;
+    = this.robotDataService.robotSignals as Map<string, WritableSignal<RobotAspiratorModel>>;
   public robotSignals: Map<string, Signal<RobotAspiratorModel>> = this._robotSignals;
 
   public readonly maisonSignal: Signal<MaisonModel> = computed(() =>
-    this.maisonNettoyageService.maisonSignal()
+    this.maisonDataNettoyageService.maisonSignal()
   );
 
   // Configuration de l'animation
@@ -37,10 +36,9 @@ export class RobotActionAspiratorService extends RobotActionService implements O
     this.PIXELS_PER_STEP = 50;
   }
 
-  // TODO : abstract dans classe parente
   /**
- * Calcule de nouvelles directions selon le temps donné
- */
+   * Calcule de nouvelles directions selon le temps donné
+   */
   public override calculateNewDirectionsForAllRobots(): void {
     console.log("RobotActionAspiratorService - calculateNewDirectionsForAllRobots()");
 
@@ -81,7 +79,7 @@ export class RobotActionAspiratorService extends RobotActionService implements O
           this.activateReturnToBase(robot);
           return;
         }
-        else if (this.maisonNettoyageService.toutEstVisite()) {
+        else if (this.maisonDataNettoyageService.toutEstVisite()) {
 
           console.log(`### updateAllRobots() - Maison entièrement nettoyée ou bien: limite de batterie atteinte : le robot doit rentrer à la base - Batterie: ${robot.batterie}%`);
 
@@ -209,7 +207,7 @@ export class RobotActionAspiratorService extends RobotActionService implements O
     if (!maisonModel) return new GridPosition();
 
     // Dé-réserver la position actuelle:
-    this.maisonNettoyageService.updateReservedCell(robotModelInput.position, false);
+    this.maisonDataNettoyageService.updateReservedCell(robotModelInput.position, false);
 
     // Chercher la prochaine case non visitée
     let prochaineCaseNonVisitee: CellElement | null = this.algoNettoyageService.trouverProchaineDestination(maisonModel.maison, robotModelInput.position);
@@ -228,12 +226,6 @@ export class RobotActionAspiratorService extends RobotActionService implements O
 
       return positionRetourALaBase;
     }
-    // TODO: revoir si on ne devrait pas faire sur prochaine position directe (pas la non-visitée)
-    // si on supprime ici actuellement, aucune réservation de position n'a lieu
-    // else if (!prochaineCaseNonVisitee.reserved) {
-    //   // Réserver la position non-visitée la plus proche, si elle est accessible
-    //   this.maisonNettoyageService.updateReservedCell(prochaineCaseNonVisitee.position, true);
-    // }
 
     // Utiliser un algorithme de recherche de chemin optimal pour rechercher le pas suivant du robot
     // on récupère la position 0 du chemin vers une position non nettoyée et (de préférence) non réservée avant
@@ -252,11 +244,12 @@ export class RobotActionAspiratorService extends RobotActionService implements O
     let nextCellNettoyage: CellElement = new CellElement();
     for (const celluleVoisine of cellulesVoisines) {
       if (celluleVoisine.position.col === nextPositionNettoyage.col && celluleVoisine.position.row === nextPositionNettoyage.row)
+        // copie par référence:
         nextCellNettoyage = celluleVoisine;
     }
     if (!nextCellNettoyage.reserved) {
       // Réserver la position non-visitée la plus proche, si elle est accessible
-      this.maisonNettoyageService.updateReservedCell(nextPositionNettoyage, true);
+      this.maisonDataNettoyageService.updateReservedCell(nextPositionNettoyage, true);
     }
 
     return nextPositionNettoyage;
@@ -323,7 +316,7 @@ export class RobotActionAspiratorService extends RobotActionService implements O
 
     this._robotSignals.forEach((robotSignal) => {
       const robot: RobotAspiratorModel = robotSignal();
-      this.maisonNettoyageService.updateVisitedCell(robot.lastPosition, true);
+      this.maisonDataNettoyageService.updateVisitedCell(robot.lastPosition, true);
     });
   }
 

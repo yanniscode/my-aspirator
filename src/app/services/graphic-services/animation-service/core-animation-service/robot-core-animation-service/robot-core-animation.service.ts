@@ -20,7 +20,7 @@ export class RobotCoreAnimationService {
   protected readonly _robotSignals: Map<string, WritableSignal<RobotModel>>
     = this.robotDataService.robotSignals;
 
-  public drawRobots(ctx: CanvasRenderingContext2D, progress: number): CanvasRenderingContext2D {
+  public drawRobots(ctx: CanvasRenderingContext2D): CanvasRenderingContext2D {
     console.log("RobotCoreAnimationService - drawRobots()");
 
     this.ctx = ctx;
@@ -39,7 +39,7 @@ export class RobotCoreAnimationService {
       // save() AVANT toute modification — isole complètement chaque robot
       this.ctx.save();
 
-      const pixelPosition: PixelPosition = this.robotDataService.updateCurrentCoordinates(robotName, progress);
+      const pixelPosition: PixelPosition = this.robotDataService.updateCurrentCoordinates(robotName);
       const x = pixelPosition.x;
       const y = pixelPosition.y;
       // console.log("pixelPosition = " + x + " - " + y);

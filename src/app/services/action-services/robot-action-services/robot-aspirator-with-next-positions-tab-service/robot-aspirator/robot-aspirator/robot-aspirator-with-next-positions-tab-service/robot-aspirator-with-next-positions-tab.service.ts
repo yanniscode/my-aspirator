@@ -17,7 +17,7 @@ export class RobotAspiratorWithNextPositionsTabService {
   private robot: RobotAspiratorModel;
   private robotServiceDtoOut: RobotServiceDtoOut;
 
-  constructor(private loggerService: LoggerService, private cheminOptimalService: AlgoCheminOptimalService) {
+  constructor(private loggerService: LoggerService, private algoCheminOptimalService: AlgoCheminOptimalService) {
     console.log("RobotAspiratorWithNextPositionsTabService - constructor()");
 
     this.maisonModel = new MaisonModel();
@@ -231,7 +231,7 @@ export class RobotAspiratorWithNextPositionsTabService {
 
     // Empêcher la recherche d'un nouveau chemin si le robot doit rentrer à la base par manque d'énergie
     if (!nextPathStopSearchFlag) {
-      cheminRestant = this.cheminOptimalService.calculerCheminSuivant(
+      cheminRestant = this.algoCheminOptimalService.calculerCheminSuivant(
         this.robot.isRobotReturningToBase, this.maisonModel.maison, this.robot.basePosition, this.robot.position
       );
 
@@ -312,7 +312,7 @@ export class RobotAspiratorWithNextPositionsTabService {
     // Sinon si le chemin actuel est terminé, chercher la prochaine destination
     // (cette action est valable seulement si ce n'est pas un retour à la base)
     else if (cheminRestant.length === 0 && this.robot.isRobotReturningToBase === false) {
-      cheminRestant = this.cheminOptimalService.calculerCheminSuivant(false, this.maisonModel.maison, this.robot.basePosition, this.robot.position);
+      cheminRestant = this.algoCheminOptimalService.calculerCheminSuivant(false, this.maisonModel.maison, this.robot.basePosition, this.robot.position);
       // Si aucune nouvelle destination n'est trouvée, le netttoyage est complet :
       if (cheminRestant.length === 0) {
         console.log("Aucun chemin trouvé !")
@@ -373,7 +373,7 @@ export class RobotAspiratorWithNextPositionsTabService {
     console.log("RobotAspiratorWithNextPositionsTabService - energieNecessairePourRetour()");
 
     // Estimer la distance jusqu'à la base
-    const distance = this.cheminOptimalService.distance(position, this.robot.basePosition);
+    const distance = this.algoCheminOptimalService.distance(position, this.robot.basePosition);
     console.log("distance minimale de la base = " + distance);
 
     // Ajouter une marge de sécurité : valeur à ajuster si le robot reste bloqué (ex: consommationParMouvement = 1.2, robot4 : batterie = 20)

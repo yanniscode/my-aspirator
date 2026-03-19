@@ -11,23 +11,22 @@ import { AssetRobotService } from '../../../graphic-services/asset-service/asset
 })
 export class RobotAspiratorDataService extends RobotDataService {
 
-  private robotAspiratorService = inject(RobotActionAspiratorService);
+  private robotActionAspiratorService = inject(RobotActionAspiratorService);
   private assetRobotService = inject(AssetRobotService);
-
-  private maisonNettoyageService = inject(MaisonDataNettoyageService);
+  private maisonDataNettoyageService = inject(MaisonDataNettoyageService);
 
   constructor() {
     console.log("RobotAspiratorDataService - constructor");
     super();
   }
 
-  // TODO: possible refactoring de méthode dans un service API (récupération des données dans des objets JSON / appels HTTP)
+  // TODO: EVOL - possible refactoring de méthode dans un service API (récupération des données dans des objets JSON / appels HTTP)
   // appelée par MainComponent
   public override createRobotsParams(): RobotAspiratorModel[] {
     console.log("RobotAspiratorDataService - createRobotsParams()");
 
     // 1 - Récupération des datas :
-    // TODO: possible récupération des données dans des objets JSON / appels HTTP
+    // TODO: evol - possible récupération des données dans des objets JSON / appels HTTP
     // robot1 test
     let robotName = "Aspiroman 1";
     let robotType = "aspirator";
@@ -35,8 +34,8 @@ export class RobotAspiratorDataService extends RobotDataService {
     // au départ, le robot est à la base:
     let lastPosition = { ...basePosition };
     let position = { ...basePosition };
-    let startCoordinate = this.robotAspiratorService.calculatePixelCoordinates(basePosition);
-    let targetCoordinate = this.robotAspiratorService.calculatePixelCoordinates(basePosition);
+    let startCoordinate = this.robotActionAspiratorService.calculatePixelCoordinates(basePosition);
+    let targetCoordinate = this.robotActionAspiratorService.calculatePixelCoordinates(basePosition);
     let batterie = 4.5;
     let isRobotStarted = false;
     let isRobotReturningToBase = false;
@@ -66,8 +65,8 @@ export class RobotAspiratorDataService extends RobotDataService {
     basePosition = new GridPosition(0, 9);
     lastPosition = { ...basePosition };
     position = { ...basePosition };
-    startCoordinate = this.robotAspiratorService.calculatePixelCoordinates(basePosition);
-    targetCoordinate = this.robotAspiratorService.calculatePixelCoordinates(basePosition);
+    startCoordinate = this.robotActionAspiratorService.calculatePixelCoordinates(basePosition);
+    targetCoordinate = this.robotActionAspiratorService.calculatePixelCoordinates(basePosition);
     batterie = 20;
     isRobotStarted = false;
     isRobotReturningToBase = false;
@@ -96,8 +95,8 @@ export class RobotAspiratorDataService extends RobotDataService {
     basePosition = new GridPosition(7, 9);
     lastPosition = { ...basePosition };
     position = { ...basePosition };
-    startCoordinate = this.robotAspiratorService.calculatePixelCoordinates(basePosition);
-    targetCoordinate = this.robotAspiratorService.calculatePixelCoordinates(basePosition);
+    startCoordinate = this.robotActionAspiratorService.calculatePixelCoordinates(basePosition);
+    targetCoordinate = this.robotActionAspiratorService.calculatePixelCoordinates(basePosition);
     batterie = 30;
     isRobotStarted = false;
     isRobotReturningToBase = false;
@@ -126,8 +125,8 @@ export class RobotAspiratorDataService extends RobotDataService {
     basePosition = new GridPosition(7, 0);
     lastPosition = { ...basePosition };
     position = { ...basePosition };
-    startCoordinate = this.robotAspiratorService.calculatePixelCoordinates(basePosition);
-    targetCoordinate = this.robotAspiratorService.calculatePixelCoordinates(basePosition);
+    startCoordinate = this.robotActionAspiratorService.calculatePixelCoordinates(basePosition);
+    targetCoordinate = this.robotActionAspiratorService.calculatePixelCoordinates(basePosition);
     batterie = 40;
     isRobotStarted = false;
     isRobotReturningToBase = false;
@@ -170,8 +169,7 @@ export class RobotAspiratorDataService extends RobotDataService {
 
       // Ajout de la base du robot dans la Maison
       const robotBasePosition: GridPosition = { ...robotAspiratorModel.basePosition };
-      // TODO: remettre
-      this.maisonNettoyageService.updateMaisonRobotBase(robotBasePosition);
+      this.maisonDataNettoyageService.updateMaisonRobotBase(robotBasePosition);
     });
   }
 }

@@ -11,7 +11,6 @@ export class MaisonCoreAnimationService {
 
   private maisonDataNettoyageService = inject(MaisonDataNettoyageService);
   private assetMaisonService = inject(AssetMaisonService);
-
   private robotDataService = inject(RobotDataService);
 
   protected ctx!: CanvasRenderingContext2D;
@@ -23,11 +22,8 @@ export class MaisonCoreAnimationService {
   protected readonly _robotSignals: Map<string, WritableSignal<RobotModel>>
     = this.robotDataService.robotSignals;
 
-  // Signal pour le progress (0 à 1)
-  protected animationProgress = signal(0);
-
   public drawMaison(ctx: CanvasRenderingContext2D): CanvasRenderingContext2D {
-    console.log("RobotAnimationService - drawMaison()");
+    console.log("MaisonCoreAnimationService - drawMaison()");
 
     this.ctx = ctx;
     const maison = this.maisonDataNettoyageService.maisonSignal();

@@ -24,7 +24,7 @@ export abstract class MaisonDataService {
     this._maisonSignal.set(maison);
   }
 
-  // TODO: possible refactoring de méthode dans un service API (récupération des données dans des objets JSON / appels HTTP)
+  // TODO: EVOL - possible refactoring de méthode dans un service API (récupération des données dans des objets JSON / appels HTTP)
   /**
    * Appel des paramètres de la Maison
    *

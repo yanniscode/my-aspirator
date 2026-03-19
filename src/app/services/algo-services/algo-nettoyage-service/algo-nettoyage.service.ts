@@ -139,16 +139,6 @@ export class AlgoNettoyageService extends AlgoCheminOptimalService {
         // Calculer le nouveau score g tentative
         let tentativeGScore = gScore.get(currentKey)! + 1;
 
-        // ajout d'un point si le voisin est déjà visité
-        // TODO: revoir pour retour à la base (ex: robot 1 avec batterie de 4)
-        // if (voisin.visited) {
-        //   tentativeGScore += 1;
-        // }
-        // // ajout d'un autre point si le voisin est déjà réservé
-        // if (voisin.reserved) {
-        //   tentativeGScore += 1;
-        // }
-
         // Vérifier si ce chemin est meilleur
         if (tentativeGScore < gScore.get(voisinKey)!) {
           // Ce chemin est meilleur, l'enregistrer
@@ -189,7 +179,7 @@ export class AlgoNettoyageService extends AlgoCheminOptimalService {
     return [];
   }
 
-  protected override log(message: string) {
+  private log(message: string) {
     this.loggerService.add(`AlgoNettoyageService: ${message}`);
   }
 }
