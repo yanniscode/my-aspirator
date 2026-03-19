@@ -28,18 +28,24 @@ export class MaisonService {
   }
 
   // TODO: possible refactoring de méthode dans un service API (récupération des données dans des objets JSON / appels HTTP)
-  // appelée par MainComponent
+  /**
+   * Appel des paramètres de la Maison (datas)
+   *
+   * @returns
+   */
   public getMaisonParams(): MaisonModel {
     console.log("MaisonService - getMaisonParams()");
 
     // Création des paramètres de la maison
     const largeurMaison: number = 10;
     const hauteurMaison: number = 8;
-    const obstacles: GridPosition[] = [
-      { row: 3, col: 2 }, { row: 4, col: 2 }, { row: 4, col: 3 },
-      { row: 1, col: 7 }, { row: 2, col: 7 }, { row: 3, col: 7 },
-      { row: 6, col: 4 }, { row: 6, col: 5 }, { row: 6, col: 6 }
-    ];
+
+    const obstacles: GridPosition[] = [];
+    // const obstacles: GridPosition[] = [
+    //   { row: 3, col: 2 }, { row: 4, col: 2 }, { row: 4, col: 3 },
+    //   { row: 1, col: 7 }, { row: 2, col: 7 }, { row: 3, col: 7 },
+    //   { row: 6, col: 4 }, { row: 6, col: 5 }, { row: 6, col: 6 }
+    // ];
 
     const isNettoyageComplete = false;
 
@@ -52,6 +58,11 @@ export class MaisonService {
     return newMaison;
   }
 
+  /**
+   * Initialisation de la maison (datas)
+   *
+   * @param maisonModel
+   */
   public initMaison(maisonModel: MaisonModel): void {
     console.log("MaisonService - initMaison()");
 
@@ -65,6 +76,14 @@ export class MaisonService {
     });
   }
 
+  /**
+   * Construction de la maison (datas)
+   *
+   * @param largeur
+   * @param hauteur
+   * @param obstacles
+   * @returns
+   */
   private buildMaison(
     largeur: number,
     hauteur: number,
@@ -83,29 +102,42 @@ export class MaisonService {
     );
   }
 
-  private updateMaisonCell(gridPosition: GridPosition, newCellElement: CellElement) {
+  /**
+   * Mise à jour effective d'une case (datas)
+   *
+   * @param newCellElement
+   * @returns
+   */
+  private updateMaisonCell(newCellElement: CellElement): void {
     console.log("MaisonService - updateMaisonCell()");
 
     const maison: CellElement[][] = this._maisonSignal()?.maison;
-    if (maison!.length <= 0 || maison[0]?.length <= 0) return;
 
-    if (gridPosition.row < 0 || gridPosition.row >= maison.length || gridPosition.col < 0 || gridPosition.col >= (maison[0]?.length ?? 0)) {
-      console.warn(`updateMaisonCell: position (${gridPosition.row}, ${gridPosition.col}) hors limites`);
+    if ((maison?.length <= 0) || maison[0]?.length <= 0) return;
+
+    if (newCellElement.position.row < 0 || newCellElement.position.row >= maison.length
+      || newCellElement.position.col < 0 || newCellElement.position.col >= (maison[0]?.length ?? 0)) {
+      console.warn(`updateMaisonCell: position (${newCellElement.position.row}, ${newCellElement.position.col}) hors limites`);
       return;
     }
 
     this._maisonSignal.update(current => ({
       ...current,
       maison: current.maison.map((rowMaison, i) =>
-        i === gridPosition.row
-          ? rowMaison.map((cellElement, j) => j === gridPosition.col ? newCellElement : cellElement)
+        i === newCellElement.position.row
+          ? rowMaison.map((cellElement, j) => j === newCellElement.position.col ? newCellElement : cellElement)
           : rowMaison
       )
     }));
   }
 
-  public updateMaisonRobotsBases(robotBasePosition: GridPosition): void {
-    console.log("MaisonService - updateMaisonRobotsBases()");
+  /**
+   * Ajout de la base d'un robot au décors (datas)
+   *
+   * @param robotBasePosition
+   */
+  public updateMaisonRobotBase(robotBasePosition: GridPosition): void {
+    console.log("MaisonService - updateMaisonRobotsBase()");
 
     console.log("maison dimensions:",
       this._maisonSignal().maison.length,     // hauteur
@@ -117,13 +149,52 @@ export class MaisonService {
     const newRobotBaseCell: CellElement = {
       position: { ...robotBasePosition },
       type: 'B',
-      visited: false
+      visited: false,
+      reserved: false
     };
-    this.updateMaisonCell(newRobotBaseCell.position, newRobotBaseCell);
+    this.updateMaisonCell(newRobotBaseCell);
   }
 
-  public updateMaisonCellules(lastPosition: GridPosition): void {
-    console.log("MaisonService - updateMaisonCellules()");
+  /**
+   * Permet de mettre à jour une case comme étant réservée ou non (utile si plusieurs robots)
+   *
+   * @param nextPosition
+   * @param reservedStatus
+   * @returns
+   */
+  public updateReservedCell(nextPosition: GridPosition, reservedStatus: boolean): void {
+    console.log("MaisonService - updateReservedCell()");
+
+    const maisonModel = this.maisonSignal();
+    if (!maisonModel) return;
+
+    // Copie par référence, ici, pas par valeur:
+    const reservedPosition: CellElement = !maisonModel?.maison[nextPosition.row]
+      ? new CellElement
+      : maisonModel?.maison[nextPosition.row][nextPosition.col] ? { ...maisonModel?.maison[nextPosition.row][nextPosition.col] } : new CellElement();
+
+    if (!reservedPosition) return;
+
+    // Ici, l'update du  signal est automatique car on a une copie par référence
+
+    // On ne veut pas que le status de la base soit modifiée
+    if (reservedPosition.type !== 'B') {
+      // On passe la case au status réservé ou non
+      reservedPosition.reserved = reservedStatus;
+    }
+
+    this.updateMaisonCell(reservedPosition);
+  }
+
+  /**
+   * Permet de mettre à jour une case comme visitée (datas)
+   *
+   * @param lastPosition
+   * @param visitedStatus
+   * @returns
+   */
+  public updateVisitedCell(lastPosition: GridPosition, visitedStatus: boolean): void {
+    console.log("MaisonService - updateVisitedCell()");
 
     const maisonModel = this.maisonSignal();
     if (!maisonModel) return;
@@ -137,15 +208,22 @@ export class MaisonService {
 
     // Ici, l'update du  signal est automatique car on a une copie par référence
 
-    // On ne veut pas que la case de la base soit modifiée
+    // On ne veut pas que le status de la base soit modifiée
     if (lastVisitedCell.type !== 'B') {
-      lastVisitedCell.visited = true;
-      lastVisitedCell.type = '_';
+      lastVisitedCell.visited = visitedStatus;
+      if (lastVisitedCell.visited) {
+        lastVisitedCell.type = '_';
+      }
     }
 
-    this.updateMaisonCell(lastVisitedCell.position, lastVisitedCell);
+    this.updateMaisonCell(lastVisitedCell);
   }
 
+  /**
+   * Vérifie si le nettoyage est terminé
+   *
+   * @returns
+   */
   public toutEstNettoye(): boolean {
     console.log("MaisonService - toutEstNettoye()");
     const maisonModel = this.maisonSignal();

@@ -427,11 +427,14 @@ export class RobotAspiratorDataService implements OnDestroy {
     const maisonModel: MaisonModel = this.maisonSignal();
     if (!maisonModel) return new GridPosition();
 
-    // Chercher la prochaine cellule non visitée
-    const prochaineCellule = this.cheminOptimalService.trouverProchaineDestination(maisonModel.maison, robotModelInput.position);
-    console.log(prochaineCellule);
+    // Dé-réserver la position actuelle:
+    this.maisonService.updateReservedCell(robotModelInput.position, false);
 
-    if (!prochaineCellule) {
+    // Chercher la prochaine case non visitée
+    let prochaineCaseNonVisitee: CellElement | null = this.cheminOptimalService.trouverProchaineDestination(maisonModel.maison, robotModelInput.position);
+    console.log(prochaineCaseNonVisitee);
+
+    if (!prochaineCaseNonVisitee) {
       console.log("La maison est entièrement nettoyée !");
 
       let positionRetourALaBase: GridPosition = this.retournerALaBase(robotModelInput);
@@ -443,11 +446,14 @@ export class RobotAspiratorDataService implements OnDestroy {
       }
 
       return positionRetourALaBase;
+    } else if (!prochaineCaseNonVisitee.reserved) {
+      // Réserver la position non-visitée la plus proche, si elle est accessible
+      this.maisonService.updateReservedCell(prochaineCaseNonVisitee.position, true);
     }
 
     // Utiliser un algorithme de recherche de chemin optimal pour rechercher le pas suivant du robot
     let nextPositionNettoyage: GridPosition = this.cheminOptimalService.trouverPositionSuivante(
-      maisonModel.maison, robotModelInput.position, prochaineCellule.position
+      maisonModel.maison, robotModelInput.position, prochaineCaseNonVisitee.position
     );
 
     console.log("nextPositionNettoyage :" + nextPositionNettoyage);
@@ -528,7 +534,7 @@ export class RobotAspiratorDataService implements OnDestroy {
     this._robotSignals.forEach((robotSignal) => {
       console.log("RobotAspiratorDataService - updateMaisonVisitedCells");
       const robot: RobotAspiratorModel = robotSignal();
-      this.maisonService.updateMaisonCellules(robot.lastPosition);
+      this.maisonService.updateVisitedCell(robot.lastPosition, true);
     });
   }
 

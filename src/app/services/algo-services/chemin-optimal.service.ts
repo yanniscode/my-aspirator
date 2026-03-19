@@ -47,22 +47,23 @@ export class CheminOptimalService {
     const visited: Set<string> = new Set();
 
     // Ajout de la position actuelle aux positions visitées:
-    const positionKey = `${position.col},${position.row}`;
+    const positionKey: string = `${position.col},${position.row}`;
     visited.add(positionKey);
 
-    // Recherche des cases d'à côté:
-    // Ajouter les cellules adjacentes à la position actuelle
+    // Recherche des cases adjacentes à la position actuelle
+    // On ne les ajoute à la queue que si elles ne sont pas réservées par un autre robot
     this.obtenirCellulesAdjacentes(maison, position).forEach(cellElement => {
-      queue.push({ cellElement: cellElement, distance: 1 });
-      visited.add(`${cellElement.position.col},${cellElement.position.row}`);
+      if (!cellElement.reserved) {
+        queue.push({ cellElement: cellElement, distance: 1 });
+        visited.add(`${cellElement.position.col},${cellElement.position.row}`);
+      }
     });
 
-    // Pour chaque case d'à côté, on refait l'opération, jusqu'à ce qu'on aie trouvé une case non-visitée
     // On ajoute la position adjacente à la queue
+    // On refait l'opération jusqu'à ce qu'on aie trouvé une case non-visitée
     while (queue.length > 0) {
       const { cellElement: cellElement, distance } = queue.shift()!;
 
-      // TODO: Si la cellule n'est pas "réservée" par un autre robot
       // Si la cellule n'est pas encore visitée et n'est pas un obstacle, la retourner
       if (!cellElement.visited && cellElement.type !== 'X' && cellElement.type !== 'B') {
         return cellElement;
@@ -243,12 +244,12 @@ export class CheminOptimalService {
   private obtenirCellulesAdjacentes(maison: CellElement[][], position: GridPosition): CellElement[] {
     // console.log("CheminOptimalService - obtenirCellulesAdjacentes()");
 
-    const directions = [
-      { dx: 0, dy: -1 }, // Nord
-      { dx: 1, dy: 0 },  // Est
-      { dx: 0, dy: 1 },  // Sud
-      { dx: -1, dy: 0 }  // Ouest
-    ];
+    let direction: { dx: number, dy: number } = { dx: 0, dy: 0 };
+    let directions: Map<number, typeof direction> = new Map();
+    directions.set(0, { dx: 0, dy: -1 }); // Nord
+    directions.set(1, { dx: 1, dy: 0 }); // Est
+    directions.set(2, { dx: 0, dy: 1 }); // Sud
+    directions.set(3, { dx: -1, dy: 0 }); // Ouest
 
     const cellules: CellElement[] = [];
 
@@ -256,7 +257,7 @@ export class CheminOptimalService {
       const newX = position.col + dir.dx;
       const newY = position.row + dir.dy;
 
-      // Vérifier si la nouvelle position est dans les limites de la maison et si c'est un bloc de type mur
+      // Vérifier si la nouvelle position est dans les limites de la maison et si c'est un bloc de type Mur
       if (newX >= 0 && newX < maison[0].length &&
         newY >= 0 && newY < maison.length &&
         "X" != maison[newY][newX].type

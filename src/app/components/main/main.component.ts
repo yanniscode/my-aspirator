@@ -103,7 +103,7 @@ export class MainComponent implements OnDestroy {
       // 3/ Ajout de la base du robot dans la Maison
       const robotBasePosition: GridPosition = { ...robotViewModel.basePosition };
       // TODO: remettre
-      this.maisonService.updateMaisonRobotsBases(robotBasePosition);
+      this.maisonService.updateMaisonRobotBase(robotBasePosition);
     });
   }
 
