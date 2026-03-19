@@ -3,6 +3,7 @@ import { FactoryService } from '../factory.service';
 import { RobotModel } from '../../../classes/models/robot-model';
 import { RobotAspiratorDataService } from '../../data-services/robot-data-services/robot-aspirator-data-service/robot-aspirator-data.service';
 import { RobotDataService } from '../../data-services/robot-data-services/robot-data.service';
+import { RobotAspiratorAnimationService } from '../../graphic-services/animation-service/robot-aspirator-animation-service/robot-aspirator-animation.service';
 
 @Injectable({
   providedIn: 'root',
@@ -11,6 +12,7 @@ export class RobotFactoryService extends FactoryService {
 
   private robotDataService = inject(RobotDataService);
   private robotAspiratorDataService = inject(RobotAspiratorDataService);
+  private robotAspiratorAnimationService = inject(RobotAspiratorAnimationService);
 
   public robotNames = signal<string[]>([]);
 
@@ -21,10 +23,15 @@ export class RobotFactoryService extends FactoryService {
    * 
    * @returns 
    */
-  public override getRobotsParams(): RobotModel[] {
+  public override getRobotsParams(TYPE_ACTION_ROBOT: string): RobotModel[] {
     console.log("RobotFactoryService - getRobotsParams()");
-    // upcast du type spécifique RobotAspiratorModel vers le type générique RobotModel
-    return [...this.robotAspiratorDataService.createRobotsParams()];
+
+    // pattern "factory": upcast du type enfant RobotAspiratorModel vers le type parent RobotModel
+    if (TYPE_ACTION_ROBOT === "aspirator") {
+      return [...this.robotAspiratorDataService.createRobotsParams()];
+    } else {
+      return [];
+    }
   }
 
   /**
@@ -45,5 +52,29 @@ export class RobotFactoryService extends FactoryService {
     });
 
     return this.robotNames;
+  }
+
+  /**
+   * déclenche le type d'animation souhaité
+   */
+  public declencheAnimationService(TYPE_ACTION_ROBOT: string): void {
+    console.log("RobotFactoryService - setRobotListSignals()");
+
+    if (TYPE_ACTION_ROBOT === "aspirator") {
+      console.log("déclenchement de l'animation du robot Aspirateur");
+      this.robotAspiratorAnimationService.startRobotsAnimation();
+    }
+  }
+
+  /**
+   * met en pause selon le type d'animation souhaité
+   */
+  public pauseAnimationService(TYPE_ACTION_ROBOT: string): void {
+    console.log("RobotFactoryService - setRobotListSignals()");
+
+    if (TYPE_ACTION_ROBOT === "aspirator") {
+      console.log("déclenchement de l'animation du robot Aspirateur");
+      this.robotAspiratorAnimationService.onRobotsPause();
+    }
   }
 }

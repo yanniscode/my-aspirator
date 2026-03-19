@@ -32,6 +32,8 @@ export class MainComponent implements OnDestroy {
   private robotFactoryService = inject(RobotFactoryService);
   private loggerService = inject(LoggerService);
 
+  private TYPE_ACTION_ROBOT = "";
+
   // pour le template
   public readonly maisonViewModel: Signal<MaisonModel> = computed(() =>
     this.maisonNettoyageService.maisonSignal()
@@ -50,12 +52,13 @@ export class MainComponent implements OnDestroy {
 
   constructor() {
     console.log("MainComponent - constructor()");
+    this.TYPE_ACTION_ROBOT = "aspirator";
 
     // initialisation des params de la maison et des robots
     const maisonModel: MaisonModel = { ...this.maisonNettoyageService.getMaisonParams() };
     this.maisonNettoyageService.initMaison(maisonModel);
 
-    this.robotViewModelTab = [...this.robotFactoryService.getRobotsParams()];
+    this.robotViewModelTab = [...this.robotFactoryService.getRobotsParams(this.TYPE_ACTION_ROBOT)];
     this.isRobotMapStarted = false;
     this.robotNames = this.robotFactoryService.setRobotListSignals(this.robotViewModelTab);
     if (!this.robotNames) return;
@@ -73,7 +76,7 @@ export class MainComponent implements OnDestroy {
     console.log("MainComponent - pause");
 
     if (this.isRobotMapStarted) {
-      this.maisonChildComponent.onRobotsPause();
+      this.robotFactoryService.pauseAnimationService(this.TYPE_ACTION_ROBOT);
       this.isRobotMapStarted = false;
     } else {
       console.log("robot(s) actuellement en pause");
@@ -85,7 +88,7 @@ export class MainComponent implements OnDestroy {
 
     // Démarrage avec des signaux:
     if (!this.isRobotMapStarted) {
-      this.maisonChildComponent.startRobotsMapInterval();
+      this.robotFactoryService.declencheAnimationService(this.TYPE_ACTION_ROBOT);
       this.isRobotMapStarted = true;
     } else {
       console.log("(re)démarrage impossible");
