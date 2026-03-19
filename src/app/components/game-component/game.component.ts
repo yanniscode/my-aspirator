@@ -14,11 +14,11 @@ import { RobotModel } from '../../classes/models/robot-model';
 import { RobotAspiratorModel } from '../../classes/models/robot-aspirator-model';
 
 @Component({
-  selector: 'app-maison',
+  selector: 'app-game',
   standalone: true,
   imports: [TableModule],
-  templateUrl: './maison.component.html',
-  styleUrl: './maison.component.css',
+  templateUrl: './game.component.html',
+  styleUrl: './game.component.css',
   changeDetection: ChangeDetectionStrategy.Default,
   encapsulation: ViewEncapsulation.None,
   // TODO: remplacer animation d'intro
@@ -32,8 +32,8 @@ import { RobotAspiratorModel } from '../../classes/models/robot-aspirator-model'
   //   ]),
   // ]
 })
-export class MaisonComponent implements AfterViewInit, OnDestroy {
-  @ViewChild('maisonCanvas', { static: true }) maisonCanvas!: ElementRef<HTMLCanvasElement>;
+export class GameComponent implements AfterViewInit, OnDestroy {
+  @ViewChild('gameCanvas', { static: true }) gameCanvas!: ElementRef<HTMLCanvasElement>;
 
   private maisonNettoyageService = inject(MaisonNettoyageService);
   public robotDataService = inject(RobotDataService);
@@ -107,7 +107,7 @@ export class MaisonComponent implements AfterViewInit, OnDestroy {
   private readonly STEP_DURATION = 600; // Durée d'un déplacement complet (ms)
 
   constructor() {
-    console.log("MaisonComponent - constructor()");
+    console.log("GameComponent - constructor()");
   }
 
   /**
@@ -116,6 +116,8 @@ export class MaisonComponent implements AfterViewInit, OnDestroy {
    * On dessine le fond de la maison pour activer le contexte.
    */
   private initCanvasContext(canvas: HTMLCanvasElement): void {
+    console.log("GameComponent - initCanvasContext()");
+
     this.ctx = canvas.getContext('2d')!;
     this.ctx.fillStyle = this.ROW_COLOR;
     this.ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -125,6 +127,8 @@ export class MaisonComponent implements AfterViewInit, OnDestroy {
    * Chargement des images pour le canvas
    */
   private async loadCanvasImages(): Promise<void> {
+    console.log("GameComponent - loadCanvasImages()");
+
     await this.assetMaisonService.loadAssets();
     await this.assetRobotService.loadAssets();
   }
@@ -133,6 +137,8 @@ export class MaisonComponent implements AfterViewInit, OnDestroy {
    * Affichage des images sur le canvas
    */
   private render(): void {
+    // console.log("GameComponent - render()");
+
     // Efface tout
     this.ctx.clearRect(0, 0, this.WIDTH, this.HEIGHT);
     // Dessine tout
@@ -141,9 +147,11 @@ export class MaisonComponent implements AfterViewInit, OnDestroy {
   }
 
   async ngAfterViewInit(): Promise<void> {
+    console.log("GameComponent - ngAfterViewInit()");
+
     if (this.isRunning) return;
 
-    const canvas = this.maisonCanvas.nativeElement;
+    const canvas = this.gameCanvas.nativeElement;
     const maison = this.maisonNettoyageService.maisonSignal();
     canvas.width = maison.maison[0].length * this.CELL_SIZE;
     canvas.height = maison.maison.length * this.CELL_SIZE;
@@ -160,7 +168,8 @@ export class MaisonComponent implements AfterViewInit, OnDestroy {
   * Nettoyage complet du service
   */
   public ngOnDestroy(): void {
-    console.log("MaisonComponent - ngOnDestroy()");
+    console.log("GameComponent - ngOnDestroy()");
+
     this.stopAllAnimation();
     console.log('Service de robots arrêté');
   }
@@ -169,12 +178,15 @@ export class MaisonComponent implements AfterViewInit, OnDestroy {
 * Nettoyage complet du service (animation où tous les robots s'arrêtent)
 */
   public onRobotsPause(): void {
-    console.log("MaisonComponent - onRobotsPause()");
+    console.log("GameComponent - onRobotsPause()");
+
     this.isRunning = false;
     console.log('Service de robots mis en pause');
   }
 
   private stopAllAnimation(): void {
+    console.log("GameComponent - stopAllAnimation()");
+
     console.log('Animation stopped');
     this.isRunning = false;
 
@@ -187,6 +199,8 @@ export class MaisonComponent implements AfterViewInit, OnDestroy {
   }
 
   private pauseAllAnimation(): void {
+    console.log("GameComponent - pauseAllAnimation()");
+
     console.log('Animation stopped');
     // important pour stopper l'animation quand plus de robot actif:
     this.isRunning = false;
@@ -199,6 +213,8 @@ export class MaisonComponent implements AfterViewInit, OnDestroy {
   }
 
   private drawGrille(): void {
+    // console.log("GameComponent - drawGrille()");
+
     const maison = this.maisonNettoyageService.maisonSignal();
 
     maison.maison.forEach((row, rowIndex) => {
@@ -241,6 +257,8 @@ export class MaisonComponent implements AfterViewInit, OnDestroy {
   }
 
   private drawRobotLabels(robot: RobotModel, x: number, y: number): void {
+    // console.log("GameComponent - drawRobotLabels()");
+
     const LABEL_HEIGHT = 28;  // hauteur totale des deux labels (12 + 16)
 
     // Détecte si les labels dépassent du canvas en bas
@@ -300,6 +318,8 @@ export class MaisonComponent implements AfterViewInit, OnDestroy {
   };
 
   private drawRobots() {
+    // console.log("GameComponent - drawRobots()");
+
     const robotImage: HTMLImageElement = this.assetRobotService.getImage('robot');
     //  Guard clause — on ne dessine pas si l'image n'est pas chargée
     if (!robotImage) {
@@ -338,7 +358,7 @@ export class MaisonComponent implements AfterViewInit, OnDestroy {
 * @returns
 */
   public startRobotsMapInterval(): void {
-    console.log("MaisonComponent - startRobotsMapInterval()");
+    console.log("GameComponent - startRobotsMapInterval()");
 
     if (this._robotSignals.size <= 0) return;
 
@@ -396,6 +416,6 @@ export class MaisonComponent implements AfterViewInit, OnDestroy {
   }
 
   private log(message: string): void {
-    this.loggerService.add(`MaisonComponent: ${message}`);
+    this.loggerService.add(`GameComponent: ${message}`);
   }
 }

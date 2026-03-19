@@ -1,8 +1,8 @@
 import { Component, OnDestroy, ViewChild, ViewEncapsulation, inject, ChangeDetectionStrategy, computed, Signal, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
-import { MaisonComponent } from '../maison/maison.component';
-import { MessagesComponent } from '../messages/messages.component';
+import { GameComponent } from '../game-component/game.component';
+import { MessagesComponent } from '../messages-component/messages.component';
 import { MaisonModel } from '../../classes/models/maison-model';
 import { LoggerService } from '../../services/logger-service/logger.service';
 import { RobotAspiratorWithNextPositionsTabService } from '../../services/robot-action-services/robot-aspirator-with-next-positions-tab-service/robot-aspirator/robot-aspirator/robot-aspirator-with-next-positions-tab-service/robot-aspirator-with-next-positions-tab.service';
@@ -15,7 +15,7 @@ import { RobotFactoryService } from '../../services/factory-services/robot-facto
   selector: 'app-main',
   standalone: true,
   imports: [
-    MaisonComponent, MessagesComponent, FormsModule, TableModule,
+    GameComponent, MessagesComponent, FormsModule, TableModule,
   ],
   templateUrl: './main.component.html',
   styleUrl: './main.component.css',
@@ -25,7 +25,7 @@ import { RobotFactoryService } from '../../services/factory-services/robot-facto
 })
 export class MainComponent implements OnDestroy {
   // instantiation de composant enfant
-  @ViewChild(MaisonComponent) maisonChildComponent!: MaisonComponent;
+  @ViewChild(GameComponent) maisonChildComponent!: GameComponent;
 
   private maisonNettoyageService = inject(MaisonNettoyageService);
   public robotDataService = inject(RobotDataService);
