@@ -29,32 +29,6 @@ export abstract class RobotDataService {
   */
   public abstract createRobotsParams(): RobotModel[];
 
-  // public abstract setRobotListSignals(robotModelTab: RobotModel[]): void;
-
-  /**
-* Enregistre un nouveau robot dans la liste
-*/
-  public registerRobotInList(robotModel: RobotModel): void {
-    console.log("RobotDataService - registerRobotInList()");
-
-    if (!this._robotSignals.has(robotModel.robotName)) {
-      this._robotSignals.set(robotModel.robotName, signal(robotModel));
-    } else {
-      console.warn(`Robot ${robotModel.robotName} déjà enregistré`);
-    }
-  }
-
-  /**
-  * Désenregistre un robot et nettoie son signal
-  */
-  public unregisterRobotFromList(robotName: string): void {
-    console.log("RobotDataService - unregisterRobotFromList()");
-
-    if (this._robotSignals.delete(robotName)) {
-      console.log(`Robot ${robotName} désenregistré`);
-    }
-  }
-
   /**
    *
    *  Lecture directe (non-réactive) de l'état actuel du robot

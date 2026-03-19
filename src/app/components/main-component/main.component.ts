@@ -5,7 +5,6 @@ import { GameComponent } from '../game-component/game.component';
 import { MessagesComponent } from '../messages-component/messages.component';
 import { MaisonModel } from '../../classes/models/maison-model';
 import { LoggerService } from '../../services/main-services/logger-service/logger.service';
-import { RobotDataService } from '../../services/robot-services/robot-data-services/robot-data.service';
 import { RobotModel } from '../../classes/models/robot-model';
 import { RobotAspiratorWithNextPositionsTabService } from '../../services/robot-services/robot-algos-deplacement-services/robot-aspirator-with-next-positions-tab-service/robot-aspirator-with-next-positions-tab.service';
 import { MaisonDataNettoyageService } from '../../services/maison-services/maison-data-services/maison-data-nettoyage-service/maison-data-nettoyage.service';
@@ -30,8 +29,8 @@ export class MainComponent implements AfterViewInit, OnDestroy {
   private gameComponent: GameComponent;
 
   private maisonDataNettoyageService = inject(MaisonDataNettoyageService);
-  public robotDataService = inject(RobotDataService);
-  private robotDataFactoryService = inject(RobotDataFactoryService);
+  // appel dans le template, donc public:
+  public robotDataFactoryService = inject(RobotDataFactoryService);
   private loggerService = inject(LoggerService);
 
   private TYPE_ACTION_ROBOT = "";
@@ -41,7 +40,8 @@ export class MainComponent implements AfterViewInit, OnDestroy {
     this.maisonDataNettoyageService.maisonSignal()
   );
 
-  private readonly _robotSignals: Map<string, Signal<RobotModel>> = this.robotDataService.robotSignals;
+  // on récupère la liste de signals à partir de la factory de robots dans un type générique (RobotModel)
+  private readonly _robotSignals: Map<string, Signal<RobotModel>> = this.robotDataFactoryService.getRobotSignalsList();
   // Signal computed qui expose les valeurs de la Map de robots sous forme de tableau
   public readonly robotList: Signal<RobotModel[]> = computed(() =>
     Array.from(this._robotSignals.values()).map(signal => signal())
@@ -78,7 +78,7 @@ export class MainComponent implements AfterViewInit, OnDestroy {
     console.log('MainComponent - ngOnDestroy()');
 
     this.robotViewModelTab.forEach(robotModel => {
-      this.robotDataService.unregisterRobotFromList(robotModel.robotName);
+      this.robotDataFactoryService.unregisterRobotFromList(robotModel.robotName);
     });
     console.log(`Nettoyage du composant Maison - ${this.robotViewModelTab.length} robots`);
   }

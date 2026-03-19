@@ -39,7 +39,7 @@
     <div class="robot-liste-infos">
         @for (robot of robotViewModelTab; track robot) {
         <div class="robot-card">
-            @if (robotDataService.getRobotSignal(robot.robotName)(); as robot) {
+            @if (robotDataFactoryService.getRobotSignal(robot.robotName)(); as robot) {
             <h3>🤖 {{ robot.robotName }}</h3>
             <div class="robot-info">
                 <!-- <p>🔋 Batterie: {{ robot.batterie }}%</p> -->
