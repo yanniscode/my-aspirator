@@ -1,13 +1,12 @@
 import { TestBed } from '@angular/core/testing';
+import { MaisonService } from './maison.service';
 
-import { CheminOptimalService } from './chemin-optimal.service';
-
-describe('CheminOptimalService', () => {
-  let service: CheminOptimalService;
+describe('MaisonService', () => {
+  let service: MaisonService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(CheminOptimalService);
+    service = TestBed.inject(MaisonService);
   });
 
   it('should be created', () => {

@@ -1,12 +1,12 @@
 import { Injectable } from "@angular/core";
 import { Subscription, Observable, Subscriber, Subject, takeUntil, tap, finalize, timer, map, takeWhile } from "rxjs";
 
-import { MessageService } from "../../../../../message-service/message.service";
+import { LoggerService } from "../../../../../logger-service/logger.service";
 import { RobotServiceDtoOut } from "../../../../../../classes/dtos/robot-service-dto-out";
 import { GridPosition } from "../../../../../../classes/models/grid-position";
 import { MaisonModel } from "../../../../../../classes/models/maison-model";
 import { RobotAspiratorModel } from "../../../../../../classes/models/robot-aspirator-model";
-import { CheminOptimalService } from "../../../../../algo-services/chemin-optimal-service/chemin-optimal.service";
+import { CheminOptimalService } from "../../../../../algo-services/chemin-optimal.service";
 
 @Injectable() // Pas de providedIn: 'root' car on veut une instance du service par composant appelant RobotAspiratorComponent, pas un singleton
 export class RobotAspiratorWithNextPositionsTabService {
@@ -18,7 +18,7 @@ export class RobotAspiratorWithNextPositionsTabService {
   private robot: RobotAspiratorModel;
   private robotServiceDtoOut: RobotServiceDtoOut;
 
-  constructor(private messageService: MessageService, private cheminOptimalService: CheminOptimalService) {
+  constructor(private loggerService: LoggerService, private cheminOptimalService: CheminOptimalService) {
     console.log("RobotAspiratorWithNextPositionsTabService - constructor()");
 
     this.maisonModel = new MaisonModel();
@@ -382,6 +382,6 @@ export class RobotAspiratorWithNextPositionsTabService {
   }
 
   public log(message: string) {
-    this.messageService.add(`RobotAspiratorWithNextPositionsTabService: ${message}`);
+    this.loggerService.add(`RobotAspiratorWithNextPositionsTabService: ${message}`);
   }
 }

@@ -1,21 +1,18 @@
-import { computed, inject, Injectable, OnDestroy, Signal, signal, WritableSignal } from '@angular/core';
+import { inject, Injectable, OnDestroy, Signal, signal, WritableSignal } from '@angular/core';
 import { RobotAspiratorModel } from '../../classes/models/robot-aspirator-model';
-import { MaisonModel } from '../../classes/models/maison-model';
 import { GridPosition } from '../../classes/models/grid-position';
-import { MessageService } from '../message-service/message.service';
-import { MaisonService } from '../maison-service/maison.service';
+import { LoggerService } from '../logger-service/logger.service';
 import { PixelPosition } from '../../classes/models/pixel-position';
-import { AssetService } from '../asset-service/asset.service';
-import { NettoyageService } from '../nettoyage-service/nettoyage.service';
+import { NettoyageService } from '../algo-services/nettoyage.service';
+import { AssetRobotService } from '../asset-service/asset-robot-service/asset-robot.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export abstract class RobotService implements OnDestroy {
 
-  protected messageService: MessageService = inject(MessageService);
-  protected assetService = inject(AssetService);
-  protected maisonService = inject(MaisonService);
+  protected loggerService: LoggerService = inject(LoggerService);
+  protected assetRobotService = inject(AssetRobotService);
   protected nettoyageService: NettoyageService = inject(NettoyageService);
 
   // Map en lecture seule pour stocker les signaux computed de chaque robot à afficher
@@ -25,10 +22,6 @@ export abstract class RobotService implements OnDestroy {
 
   // Configuration de l'animation
   protected PIXELS_PER_STEP: number = 0; // Pixels à parcourir dans un intervale donné
-
-  public readonly maisonSignal: Signal<MaisonModel> = computed(() =>
-    this.maisonService.maisonSignal()
-  );
 
   constructor() {
     console.log("RobotAspiratorDataService - constructor()");
@@ -62,7 +55,7 @@ export abstract class RobotService implements OnDestroy {
     let isRobotStarted = false;
     let isRobotReturningToBase = false;
     let robotWidth = 50;
-    let labelColor = this.assetService.getRandomRobotLabelColor();
+    let labelColor = this.assetRobotService.getRandomRobotLabelColor();
 
     // 2 - Instanciation d'un robot:
     let robot1Model = new RobotAspiratorModel();
@@ -91,7 +84,7 @@ export abstract class RobotService implements OnDestroy {
     isRobotStarted = false;
     isRobotReturningToBase = false;
     robotWidth = 50;
-    labelColor = this.assetService.getRandomRobotLabelColor();
+    labelColor = this.assetRobotService.getRandomRobotLabelColor();
 
     let robot2Model = new RobotAspiratorModel();
     robot2Model.robotName = robotName;
@@ -119,7 +112,7 @@ export abstract class RobotService implements OnDestroy {
     isRobotStarted = false;
     isRobotReturningToBase = false;
     robotWidth = 50;
-    labelColor = this.assetService.getRandomRobotLabelColor();
+    labelColor = this.assetRobotService.getRandomRobotLabelColor();
 
     let robot3Model = new RobotAspiratorModel();
     robot3Model.robotName = robotName;
@@ -147,7 +140,7 @@ export abstract class RobotService implements OnDestroy {
     isRobotStarted = false;
     isRobotReturningToBase = false;
     robotWidth = 50;
-    labelColor = this.assetService.getRandomRobotLabelColor();
+    labelColor = this.assetRobotService.getRandomRobotLabelColor();
 
     let robot4Model = new RobotAspiratorModel();
     robot4Model.robotName = robotName;

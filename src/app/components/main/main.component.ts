@@ -1,19 +1,15 @@
 import { Component, OnDestroy, ViewChild, ViewEncapsulation, inject, ChangeDetectionStrategy, signal, computed, Signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
-
-import { MaisonService } from '../../services/maison-service/maison.service';
-
 import { MaisonComponent } from '../maison/maison.component';
 import { MessagesComponent } from '../messages/messages.component';
-
 import { MaisonModel } from '../../classes/models/maison-model';
 import { RobotAspiratorModel } from '../../classes/models/robot-aspirator-model';
-import { MessageService } from '../../services/message-service/message.service';
+import { LoggerService } from '../../services/logger-service/logger.service';
 import { RobotAspiratorWithNextPositionsTabService } from '../../services/robot-actions-service/robot-aspirator-with-next-positions-tab-service/robot-aspirator/robot-aspirator/robot-aspirator-with-next-positions-tab-service/robot-aspirator-with-next-positions-tab.service';
 import { GridPosition } from '../../classes/models/grid-position';
-import { AssetService } from '../../services/asset-service/asset.service';
 import { RobotAspiratorService } from '../../services/robot-aspirator-service/robot-aspirator.service';
+import { MaisonNettoyageService } from '../../services/maison-services/maison-nettoyage.service';
 
 @Component({
   selector: 'app-main',
@@ -31,14 +27,13 @@ export class MainComponent implements OnDestroy {
   // instantiation de composant enfant
   @ViewChild(MaisonComponent) maisonChildComponent!: MaisonComponent;
 
-  private maisonService = inject(MaisonService);
+  private maisonNettoyageService = inject(MaisonNettoyageService);
   private robotAspiratorService = inject(RobotAspiratorService);
-  public assetService = inject(AssetService);
-  private messageService = inject(MessageService);
+  private loggerService = inject(LoggerService);
 
   // pour le template
   public readonly maisonViewModel: Signal<MaisonModel> = computed(() =>
-    this.maisonService.maisonSignal()
+    this.maisonNettoyageService.maisonSignal()
   );
 
   public robotViewModelTab: RobotAspiratorModel[];
@@ -51,8 +46,8 @@ export class MainComponent implements OnDestroy {
     console.log("MainComponent - constructor()");
 
     // initialisation des params de la maison et des robots
-    const maisonModel: MaisonModel = { ...this.maisonService.getMaisonParams() };
-    this.maisonService.initMaison(maisonModel);
+    const maisonModel: MaisonModel = { ...this.maisonNettoyageService.getMaisonParams() };
+    this.maisonNettoyageService.initMaison(maisonModel);
 
     this.robotViewModelTab = [...this.robotAspiratorService.getRobotsParams()];
     this.isRobotMapStarted = false;
@@ -103,11 +98,11 @@ export class MainComponent implements OnDestroy {
       // 3/ Ajout de la base du robot dans la Maison
       const robotBasePosition: GridPosition = { ...robotViewModel.basePosition };
       // TODO: remettre
-      this.maisonService.updateMaisonRobotBase(robotBasePosition);
+      this.maisonNettoyageService.updateMaisonRobotBase(robotBasePosition);
     });
   }
 
   private log(message: string) {
-    this.messageService.add(`MainComponent: ${message}`);
+    this.loggerService.add(`MainComponent: ${message}`);
   }
 }

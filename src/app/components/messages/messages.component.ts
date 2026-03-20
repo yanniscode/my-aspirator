@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 
-import { MessageService } from '../../services/message-service/message.service';
+import { LoggerService } from '../../services/logger-service/logger.service';
 
 @Component({
   selector: 'app-messages',
@@ -11,7 +11,7 @@ import { MessageService } from '../../services/message-service/message.service';
 export class MessagesComponent {
 
   // public car accédé depuis le template
-  public messageService = inject(MessageService);
+  public loggerService = inject(LoggerService);
 
   constructor() {
     console.log("MessagesComponent - constructor()");

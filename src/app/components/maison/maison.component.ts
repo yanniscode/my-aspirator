@@ -1,16 +1,14 @@
 import { Component, ViewEncapsulation, ChangeDetectionStrategy, inject, ViewChild, ElementRef, computed, Signal, signal, OnDestroy, AfterViewInit } from '@angular/core';
-
 import { TableModule } from "primeng/table";
-
-import { MessageService } from '../../services/message-service/message.service';
+import { LoggerService } from '../../services/logger-service/logger.service';
 import { MaisonModel } from '../../classes/models/maison-model';
 import { GridPosition } from '../../classes/models/grid-position';
 import { CellElement } from '../../classes/models/cellElement';
-import { MaisonService } from '../../services/maison-service/maison.service';
 import { RobotAspiratorModel } from '../../classes/models/robot-aspirator-model';
-import { AssetService } from '../../services/asset-service/asset.service';
 import { PixelPosition } from '../../classes/models/pixel-position';
 import { RobotAspiratorService } from '../../services/robot-aspirator-service/robot-aspirator.service';
+import { MaisonNettoyageService } from '../../services/maison-services/maison-nettoyage.service';
+import { AssetRobotService } from '../../services/asset-service/asset-robot-service/asset-robot.service';
 
 @Component({
   selector: 'app-maison',
@@ -34,10 +32,10 @@ import { RobotAspiratorService } from '../../services/robot-aspirator-service/ro
 export class MaisonComponent implements AfterViewInit, OnDestroy {
   @ViewChild('maisonCanvas', { static: true }) maisonCanvas!: ElementRef<HTMLCanvasElement>;
 
-  private maisonService = inject(MaisonService);
+  private maisonNettoyageService = inject(MaisonNettoyageService);
   public robotAspiratorService = inject(RobotAspiratorService);
-  private assetService = inject(AssetService);
-  private messageService = inject(MessageService);
+  private assetRobotService = inject(AssetRobotService);
+  private loggerService = inject(LoggerService);
 
   private ctx!: CanvasRenderingContext2D;
 
@@ -52,7 +50,7 @@ export class MaisonComponent implements AfterViewInit, OnDestroy {
 
   // variables de template binding (@input vers le composant robot):
   public readonly maisonViewModel: Signal<MaisonModel> = computed(() =>
-    this.maisonService.maisonSignal()
+    this.maisonNettoyageService.maisonSignal()
   );
 
   // Params de la maison (tableau)
@@ -121,14 +119,14 @@ export class MaisonComponent implements AfterViewInit, OnDestroy {
     if (this.isRunning) return;
 
     const canvas = this.maisonCanvas.nativeElement;
-    const maison = this.maisonService.maisonSignal();
+    const maison = this.maisonNettoyageService.maisonSignal();
     canvas.width = maison.maison[0].length * this.CELL_SIZE;
     canvas.height = maison.maison.length * this.CELL_SIZE;
 
     //  Fix Firefox
     this.initCanvasContext(canvas);
 
-    await this.assetService.loadAssets();
+    await this.assetRobotService.loadAssets();
     this.render();
   }
 
@@ -175,7 +173,7 @@ export class MaisonComponent implements AfterViewInit, OnDestroy {
   }
 
   private drawGrille(): void {
-    const maison = this.maisonService.maisonSignal();
+    const maison = this.maisonNettoyageService.maisonSignal();
 
     maison.maison.forEach((row, rowIndex) => {
 
@@ -202,7 +200,7 @@ export class MaisonComponent implements AfterViewInit, OnDestroy {
         const offsetX = (this.CELL_SIZE - innerSize) / 2;
         const offsetY = (this.CELL_SIZE - innerSize) / 2;
 
-        const img: HTMLImageElement | undefined = this.assetService.getImageForCell(cell.type);
+        const img: HTMLImageElement | undefined = this.assetRobotService.getImageForCell(cell.type);
         if (img) {
           this.ctx.drawImage(
             img,
@@ -241,7 +239,7 @@ export class MaisonComponent implements AfterViewInit, OnDestroy {
 
     // Label batterie
     this.ctx.font = '8px Arial';
-    this.ctx.fillStyle = this.assetService.getBatterieColor(robot.batterie);
+    this.ctx.fillStyle = this.assetRobotService.getRobotBatterieColor(robot.batterie);
     this.ctx.fillText(
       `${robot.batterie ?? -1}%`,
       x + robot.robotWidth / 2,
@@ -272,7 +270,7 @@ export class MaisonComponent implements AfterViewInit, OnDestroy {
   };
 
   private drawRobots() {
-    const robotImage: HTMLImageElement = this.assetService.getImage('robot');
+    const robotImage: HTMLImageElement = this.assetRobotService.getImage('robot');
     //  Guard clause — on ne dessine pas si l'image n'est pas chargée
     if (!robotImage) {
       console.warn('Image robot non chargée');
@@ -375,6 +373,6 @@ export class MaisonComponent implements AfterViewInit, OnDestroy {
   }
 
   private log(message: string): void {
-    this.messageService.add(`MaisonComponent: ${message}`);
+    this.loggerService.add(`MaisonComponent: ${message}`);
   }
 }

@@ -4,17 +4,11 @@ import { AssetConfig } from './asset-config';
 @Injectable({
   providedIn: 'root',
 })
-export class AssetService {
+export abstract class AssetService {
 
   private images: Map<string, HTMLImageElement> = new Map();
 
-  private readonly ASSETS: AssetConfig[] = [
-    { name: 'robot', path: '/assets/megaman.png' },
-    { name: 'mur', path: '/assets/texture-mur.png' },
-    { name: 'base', path: '/assets/texture-base.png' },
-    { name: 'visitee', path: '/assets/texture-visitee.png' },
-    { name: 'nonVisitee', path: '/assets/texture-non-visitee.png' },
-  ];
+  protected ASSETS: AssetConfig[] = [{ name: '', path: '' }];
 
   private _assetsLoaded: WritableSignal<boolean> = signal(false);
   public assetsLoaded: Signal<boolean> = this._assetsLoaded.asReadonly();
@@ -23,34 +17,20 @@ export class AssetService {
   public loadingError: Signal<string | null> = this._loadingError.asReadonly();
 
   // Variables pour les couleurs du robot (actuellement: pour le nom)
-  private colorLetters = '0123456789ABCDEF';
+  protected colorLetters = '0123456789ABCDEF';
   public robotColor = '#';
 
   constructor() {
     this.images = new Map<string, HTMLImageElement>();
   }
 
-  // On définit une couleur random pour le label du robot
-  public getRandomRobotLabelColor(): string {
-    this.robotColor = "#";
-    for (var i = 0; i < 6; i++) {
-      this.robotColor += this.colorLetters[Math.floor(Math.random() * 16)];
-    }
-    return this.robotColor;
-  }
-
-  // Bonus — couleur batterie selon niveau (vert/orange/rouge)
-  public getBatterieColor(batterie: number | undefined): string {
-    if (batterie === undefined || batterie < 0) return '#ffffff';
-    if (batterie > 20) return '#00ff00';  // vert
-    if (batterie > 10) return '#ffa500';  // orange
-    return '#ff0000';                      // rouge
-  }
-
   /**
-* Récupère une image chargée par son nom.
-* Retourne undefined si l'image n'existe pas ou n'est pas encore chargée.
-*/
+   * Récupère une image chargée par son nom.
+   * Retourne undefined si l'image n'existe pas ou n'est pas encore chargée.
+   *
+   * @param name
+   * @returns
+   */
   public getImage(name: string): HTMLImageElement {
     const img = this.images.get(name);
     if (!img) {
@@ -59,21 +39,26 @@ export class AssetService {
     return img; // TypeScript sait que c'est HTMLImageElement, plus de undefined
   }
 
-  public getImageForCell(type: string): HTMLImageElement | undefined {
-    switch (type) {
-      case 'O': return this.getImage('nonVisitee');
-      case 'X': return this.getImage('mur');
-      case 'B': return this.getImage('base');
-      case '_': return this.getImage('visitee');
-      default: return undefined;
-    }
-  }
+  /**
+   *
+   * @param type
+   */
+  public abstract getImageForCell(type: string): HTMLImageElement | undefined;
 
-  public isLoaded(): boolean {
-    return this.images.size === this.ASSETS.length;
-  }
+  // /**
+  //  *
+  //  * @returns
+  //  */
+  // public isLoaded(): boolean {
+  //   return this.images.size === this.ASSETS.length;
+  // }
 
-  // Promise = adaptée au chargement d'assets. Le chargement d'images est un événement "one-shot"
+  /**
+   * Promise = adaptée au chargement d'assets. Le chargement d'images est un événement "one-shot"
+   *
+   * @param asset
+   * @returns
+   */
   private loadImage(asset: AssetConfig): Promise<void> {
     return new Promise((resolve, reject) => {
       const img = new Image();

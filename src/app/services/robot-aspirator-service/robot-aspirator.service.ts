@@ -1,15 +1,22 @@
-import { Injectable, OnDestroy, WritableSignal } from '@angular/core';
+import { computed, inject, Injectable, OnDestroy, Signal, WritableSignal } from '@angular/core';
 import { RobotAspiratorModel } from '../../classes/models/robot-aspirator-model';
 import { MaisonModel } from '../../classes/models/maison-model';
 import { GridPosition } from '../../classes/models/grid-position';
 import { PixelPosition } from '../../classes/models/pixel-position';
 import { CellElement } from '../../classes/models/cellElement';
 import { RobotService } from '../robot-service/robot.service';
+import { MaisonNettoyageService } from '../maison-services/maison-nettoyage.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class RobotAspiratorService extends RobotService implements OnDestroy {
+
+  private maisonNettoyageService = inject(MaisonNettoyageService);
+
+  public readonly maisonSignal: Signal<MaisonModel> = computed(() =>
+    this.maisonNettoyageService.maisonSignal()
+  );
 
   constructor() {
     console.log("RobotAspiratorService - constructor()");
@@ -61,7 +68,7 @@ export class RobotAspiratorService extends RobotService implements OnDestroy {
           this.activateReturnToBase(robot);
           return;
         }
-        else if (this.maisonService.toutEstNettoye()) {
+        else if (this.maisonNettoyageService.toutEstVisite()) {
 
           console.log(`### updateAllRobots() - Maison entièrement nettoyée ou bien: limite de batterie atteinte : le robot doit rentrer à la base - Batterie: ${robot.batterie}%`);
 
@@ -206,7 +213,7 @@ export class RobotAspiratorService extends RobotService implements OnDestroy {
     if (!maisonModel) return new GridPosition();
 
     // Dé-réserver la position actuelle:
-    this.maisonService.updateReservedCell(robotModelInput.position, false);
+    this.maisonNettoyageService.updateReservedCell(robotModelInput.position, false);
 
     // Chercher la prochaine case non visitée
     let prochaineCaseNonVisitee: CellElement | null = this.nettoyageService.trouverProchaineDestination(maisonModel.maison, robotModelInput.position);
@@ -226,7 +233,7 @@ export class RobotAspiratorService extends RobotService implements OnDestroy {
       return positionRetourALaBase;
     } else if (!prochaineCaseNonVisitee.reserved) {
       // Réserver la position non-visitée la plus proche, si elle est accessible
-      this.maisonService.updateReservedCell(prochaineCaseNonVisitee.position, true);
+      this.maisonNettoyageService.updateReservedCell(prochaineCaseNonVisitee.position, true);
     }
 
     // Utiliser un algorithme de recherche de chemin optimal pour rechercher le pas suivant du robot
@@ -291,12 +298,12 @@ export class RobotAspiratorService extends RobotService implements OnDestroy {
 
     this._robotSignals.forEach((robotSignal) => {
       const robot: RobotAspiratorModel = robotSignal();
-      this.maisonService.updateVisitedCell(robot.lastPosition, true);
+      this.maisonNettoyageService.updateVisitedCell(robot.lastPosition, true);
     });
   }
 
   // TODO: revoir CSS de la maison si on affiche ces logs dans l'ihm
   private log(message: string) {
-    this.messageService.add(`RobotAspiratorService: ${message}`);
+    this.loggerService.add(`RobotAspiratorService: ${message}`);
   }
 }

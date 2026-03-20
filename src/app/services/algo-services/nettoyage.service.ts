@@ -1,8 +1,7 @@
 import { Injectable } from '@angular/core';
-
-import { GridPosition } from '../../classes/models/grid-position';
 import { CellElement } from '../../classes/models/cellElement';
-import { CheminOptimalService } from '../algo-services/chemin-optimal-service/chemin-optimal.service';
+import { GridPosition } from '../../classes/models/grid-position';
+import { CheminOptimalService } from './chemin-optimal.service';
 
 @Injectable({
   providedIn: 'root'
@@ -191,6 +190,6 @@ export class NettoyageService extends CheminOptimalService {
   }
 
   protected override log(message: string) {
-    this.messageService.add(`CheminOptimalService: ${message}`);
+    this.loggerService.add(`CheminOptimalService: ${message}`);
   }
 }

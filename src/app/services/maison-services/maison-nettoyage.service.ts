@@ -1,30 +1,20 @@
-import { inject, Injectable, Signal, signal, WritableSignal } from '@angular/core';
-
-import { MaisonModel } from '../../classes/models/maison-model';
+import { inject, Injectable } from '@angular/core';
+import { MaisonService } from './maison.service';
 import { CellElement } from '../../classes/models/cellElement';
 import { GridPosition } from '../../classes/models/grid-position';
-import { MessageService } from '../message-service/message.service';
+import { MaisonModel } from '../../classes/models/maison-model';
+import { LoggerService } from '../logger-service/logger.service';
 
 @Injectable({
   providedIn: 'root'
 })
-export class MaisonService {
+export class MaisonNettoyageService extends MaisonService {
 
-  private messageService = inject(MessageService);
+  private loggerService = inject(LoggerService);
 
   constructor() {
-    console.log("MaisonService - constructor()");
-  }
-
-  // Instanciation de la maison:
-  // Privé et mutable — seul le service peut écrire dedans
-  // readonly sur la déclaration TypeScript signifie que la référence au signal ne peut pas être réassignée — pas que le signal lui-même est immuable
-  private readonly _maisonSignal: WritableSignal<MaisonModel> = signal<MaisonModel>(new MaisonModel());
-  // Public et lecture seule — les composants peuvent seulement lire
-  public readonly maisonSignal: Signal<MaisonModel> = this._maisonSignal.asReadonly();
-
-  public updateMaison(maison: MaisonModel): void {
-    this._maisonSignal.set(maison);
+    console.log("MaisonNettoyageService - constructor()");
+    super();
   }
 
   // TODO: possible refactoring de méthode dans un service API (récupération des données dans des objets JSON / appels HTTP)
@@ -34,7 +24,7 @@ export class MaisonService {
    * @returns
    */
   public getMaisonParams(): MaisonModel {
-    console.log("MaisonService - getMaisonParams()");
+    console.log("MaisonNettoyageService - getMaisonParams()");
 
     // Création des paramètres de la maison
     const largeurMaison: number = 10;
@@ -64,7 +54,7 @@ export class MaisonService {
    * @param maisonModel
    */
   public initMaison(maisonModel: MaisonModel): void {
-    console.log("MaisonService - initMaison()");
+    console.log("MaisonNettoyageService - initMaison()");
 
     this._maisonSignal.set({
       ...new MaisonModel(),
@@ -84,12 +74,12 @@ export class MaisonService {
    * @param obstacles
    * @returns
    */
-  private buildMaison(
+  protected buildMaison(
     largeur: number,
     hauteur: number,
     obstacles: GridPosition[]
   ): CellElement[][] {
-    console.log("MaisonService - buildMaison()");
+    console.log("MaisonNettoyageService - buildMaison()");
 
     return Array.from({ length: hauteur }, (_, row) =>
       Array.from({ length: largeur }, (_, col) => {
@@ -103,41 +93,12 @@ export class MaisonService {
   }
 
   /**
-   * Mise à jour effective d'une case (datas)
-   *
-   * @param newCellElement
-   * @returns
-   */
-  private updateMaisonCell(newCellElement: CellElement): void {
-    console.log("MaisonService - updateMaisonCell()");
-
-    const maison: CellElement[][] = this._maisonSignal()?.maison;
-
-    if ((maison?.length <= 0) || maison[0]?.length <= 0) return;
-
-    if (newCellElement.position.row < 0 || newCellElement.position.row >= maison.length
-      || newCellElement.position.col < 0 || newCellElement.position.col >= (maison[0]?.length ?? 0)) {
-      console.warn(`updateMaisonCell: position (${newCellElement.position.row}, ${newCellElement.position.col}) hors limites`);
-      return;
-    }
-
-    this._maisonSignal.update(current => ({
-      ...current,
-      maison: current.maison.map((rowMaison, i) =>
-        i === newCellElement.position.row
-          ? rowMaison.map((cellElement, j) => j === newCellElement.position.col ? newCellElement : cellElement)
-          : rowMaison
-      )
-    }));
-  }
-
-  /**
    * Ajout de la base d'un robot au décors (datas)
    *
    * @param robotBasePosition
    */
   public updateMaisonRobotBase(robotBasePosition: GridPosition): void {
-    console.log("MaisonService - updateMaisonRobotsBase()");
+    console.log("MaisonNettoyageService - updateMaisonRobotsBase()");
 
     console.log("maison dimensions:",
       this._maisonSignal().maison.length,     // hauteur
@@ -163,7 +124,7 @@ export class MaisonService {
    * @returns
    */
   public updateReservedCell(nextPosition: GridPosition, reservedStatus: boolean): void {
-    console.log("MaisonService - updateReservedCell()");
+    console.log("MaisonNettoyageService - updateReservedCell()");
 
     const maisonModel = this.maisonSignal();
     if (!maisonModel) return;
@@ -194,7 +155,7 @@ export class MaisonService {
    * @returns
    */
   public updateVisitedCell(lastPosition: GridPosition, visitedStatus: boolean): void {
-    console.log("MaisonService - updateVisitedCell()");
+    console.log("MaisonNettoyageService - updateVisitedCell()");
 
     const maisonModel = this.maisonSignal();
     if (!maisonModel) return;
@@ -224,8 +185,8 @@ export class MaisonService {
    *
    * @returns
    */
-  public toutEstNettoye(): boolean {
-    console.log("MaisonService - toutEstNettoye()");
+  public toutEstVisite(): boolean {
+    console.log("MaisonNettoyageService - toutEstNettoye()");
     const maisonModel = this.maisonSignal();
     if (!maisonModel) return true;
 
@@ -240,6 +201,6 @@ export class MaisonService {
   }
 
   private log(message: string) {
-    this.messageService.add(`MaisonService: ${message}`);
+    this.loggerService.add(`MaisonNettoyageService: ${message}`);
   }
 }

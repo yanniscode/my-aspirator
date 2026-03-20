@@ -1,14 +1,14 @@
 import { inject, Injectable } from '@angular/core';
-import { CellElement } from '../../../classes/models/cellElement';
-import { GridPosition } from '../../../classes/models/grid-position';
-import { MessageService } from '../../message-service/message.service';
+import { CellElement } from '../../classes/models/cellElement';
+import { GridPosition } from '../../classes/models/grid-position';
+import { LoggerService } from '../logger-service/logger.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CheminOptimalService {
 
-  protected messageService: MessageService = inject(MessageService);
+  protected loggerService: LoggerService = inject(LoggerService);
 
   constructor() { }
 
@@ -283,6 +283,6 @@ export class CheminOptimalService {
   }
 
   protected log(message: string) {
-    this.messageService.add(`CheminOptimalService: ${message}`);
+    this.loggerService.add(`CheminOptimalService: ${message}`);
   }
 }

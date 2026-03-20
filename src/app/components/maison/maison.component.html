@@ -5,7 +5,7 @@
 <!-- ne plus utiliser ici pour test -->
 <!-- @for (robot of robotList(); track robot) {
 <div class="robot-card">
-  @if (robotAspiratorDataService.getRobotSignal(robot.robotName)(); as robot) {
+  @if (robotAspiratorService.getRobotSignal(robot.robotName)(); as robot) {
   <h3>🤖 {{ robot.robotName }}</h3>
   <div class="robot-info">
     <p>🔋 Batterie: {{ robot.batterie }}%</p>
