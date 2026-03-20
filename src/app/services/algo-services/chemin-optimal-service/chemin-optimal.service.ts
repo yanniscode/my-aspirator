@@ -1,8 +1,7 @@
 import { inject, Injectable } from '@angular/core';
-
-import { GridPosition } from '../../classes/models/grid-position';
-import { MessageService } from '../message-service/message.service';
-import { CellElement } from '../../classes/models/cellElement';
+import { CellElement } from '../../../classes/models/cellElement';
+import { GridPosition } from '../../../classes/models/grid-position';
+import { MessageService } from '../../message-service/message.service';
 
 @Injectable({
   providedIn: 'root'
@@ -264,6 +263,23 @@ export class CheminOptimalService {
       }
     });
     return cellules;
+  }
+
+  /**
+* Recherche de la distance du robot à sa base
+*
+* @param maison
+* @param basePosition
+* @param position
+* @returns
+*/
+  public distanceDeLaBase(maison: CellElement[][], basePosition: GridPosition, position: GridPosition): number {
+    console.log("RobotAspiratorDataService - distanceDeLaBase()");
+
+    const chemin: GridPosition[] = this.trouverChemin(maison, position, basePosition);
+    console.log(chemin.length);
+
+    return chemin.length;
   }
 
   protected log(message: string) {

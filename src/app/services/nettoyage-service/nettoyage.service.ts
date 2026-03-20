@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 
 import { GridPosition } from '../../classes/models/grid-position';
 import { CellElement } from '../../classes/models/cellElement';
-import { CheminOptimalService } from '../algo-services/chemin-optimal.service';
+import { CheminOptimalService } from '../algo-services/chemin-optimal-service/chemin-optimal.service';
 
 @Injectable({
   providedIn: 'root'

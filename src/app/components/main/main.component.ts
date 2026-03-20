@@ -11,9 +11,9 @@ import { MaisonModel } from '../../classes/models/maison-model';
 import { RobotAspiratorModel } from '../../classes/models/robot-aspirator-model';
 import { MessageService } from '../../services/message-service/message.service';
 import { RobotAspiratorWithNextPositionsTabService } from '../../services/robot-actions-service/robot-aspirator-with-next-positions-tab-service/robot-aspirator/robot-aspirator/robot-aspirator-with-next-positions-tab-service/robot-aspirator-with-next-positions-tab.service';
-import { RobotAspiratorDataService } from '../../services/robot-aspirator-data-service/robot-aspirator-data.service';
 import { GridPosition } from '../../classes/models/grid-position';
 import { AssetService } from '../../services/asset-service/asset.service';
+import { RobotAspiratorService } from '../../services/robot-aspirator-service/robot-aspirator.service';
 
 @Component({
   selector: 'app-main',
@@ -32,7 +32,7 @@ export class MainComponent implements OnDestroy {
   @ViewChild(MaisonComponent) maisonChildComponent!: MaisonComponent;
 
   private maisonService = inject(MaisonService);
-  private robotAspiratorDataService = inject(RobotAspiratorDataService);
+  private robotAspiratorService = inject(RobotAspiratorService);
   public assetService = inject(AssetService);
   private messageService = inject(MessageService);
 
@@ -54,7 +54,7 @@ export class MainComponent implements OnDestroy {
     const maisonModel: MaisonModel = { ...this.maisonService.getMaisonParams() };
     this.maisonService.initMaison(maisonModel);
 
-    this.robotViewModelTab = [...this.robotAspiratorDataService.getRobotsParams()];
+    this.robotViewModelTab = [...this.robotAspiratorService.getRobotsParams()];
     this.isRobotMapStarted = false;
     this.initRobotsViewModelDatas();
   }
@@ -62,7 +62,7 @@ export class MainComponent implements OnDestroy {
   public ngOnDestroy(): void {
     console.log('MainComponent - ngOnDestroy()');
     this.robotViewModelTab.forEach(robotModel => {
-      this.robotAspiratorDataService.unregisterRobotFromList(robotModel.robotName);
+      this.robotAspiratorService.unregisterRobotFromList(robotModel.robotName);
     });
     console.log(`Nettoyage du composant Maison - ${this.robotViewModelTab.length} robots`);
   }
@@ -95,7 +95,7 @@ export class MainComponent implements OnDestroy {
 
     this.robotViewModelTab.forEach((robotViewModel: RobotAspiratorModel) => {
       // 1/ ajout du robot à la liste:
-      this.robotAspiratorDataService.registerRobotInList(robotViewModel);
+      this.robotAspiratorService.registerRobotInList(robotViewModel);
 
       // 2/ enregistrer le nom de chaque robot dans la liste de robotNames pour le template binding:
       this.robotNames.update(robotNames => [...robotNames, robotViewModel.robotName]);

@@ -1,13 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 
-import { RobotAspiratorDataService } from './robot-aspirator-data.service';
+import { RobotService } from './robot.service';
 
 describe('RobotAspiratorDataService', () => {
-  let service: RobotAspiratorDataService;
+  let service: RobotService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(RobotAspiratorDataService);
+    service = TestBed.inject(RobotService);
   });
 
   it('should be created', () => {
