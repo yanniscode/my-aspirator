@@ -1,6 +1,6 @@
-import { Direction } from "../utils/direction";
-import { GridPosition } from "./grid-position";
-import { PixelPosition } from "./pixel-position";
+import { Direction } from "../../utils/direction";
+import { GridPosition } from "../grid-position";
+import { PixelPosition } from "../pixel-position";
 
 export class RobotModel {
 

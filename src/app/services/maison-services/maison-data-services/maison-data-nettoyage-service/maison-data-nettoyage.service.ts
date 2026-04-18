@@ -2,8 +2,8 @@ import { inject, Injectable } from '@angular/core';
 import { MaisonDataService as MaisonDataService } from '../maison-data.service';
 import { CellElement } from '../../../../classes/models/cellElement';
 import { GridPosition } from '../../../../classes/models/grid-position';
-import { MaisonModel } from '../../../../classes/models/maison-model';
 import { LoggerService } from '../../../main-services/logger-service/logger.service';
+import { MaisonModel } from '../../../../classes/models/maison-model/maison-model';
 
 @Injectable({
   providedIn: 'root'

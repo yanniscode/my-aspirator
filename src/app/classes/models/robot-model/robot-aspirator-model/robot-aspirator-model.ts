@@ -1,5 +1,5 @@
-import { GridPosition } from "./grid-position";
-import { RobotModel } from "./robot-model";
+import { GridPosition } from "../../grid-position";
+import { RobotModel } from "../robot-model";
 
 export class RobotAspiratorModel extends RobotModel {
     // Position de la base de charge du robot

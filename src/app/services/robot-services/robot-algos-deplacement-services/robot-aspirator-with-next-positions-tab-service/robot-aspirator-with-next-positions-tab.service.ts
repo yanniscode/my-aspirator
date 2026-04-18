@@ -2,10 +2,10 @@ import { Injectable } from "@angular/core";
 import { Subscription, Observable, Subscriber, Subject, takeUntil, tap, finalize, timer, map, takeWhile } from "rxjs";
 import { RobotServiceDtoOut } from "../../../../classes/dtos/robot-service-dto-out";
 import { GridPosition } from "../../../../classes/models/grid-position";
-import { MaisonModel } from "../../../../classes/models/maison-model";
-import { RobotAspiratorModel } from "../../../../classes/models/robot-aspirator-model";
+import { RobotAspiratorModel } from "../../../../classes/models/robot-model/robot-aspirator-model/robot-aspirator-model";
 import { LoggerService } from "../../../main-services/logger-service/logger.service";
 import { AlgoCheminOptimalService } from "../../../main-services/algos-deplacement-services/algo-chemin-optimal.service";
+import { MaisonModel } from "../../../../classes/models/maison-model/maison-model";
 
 @Injectable() // Pas de providedIn: 'root' car on veut une instance du service par composant appelant RobotAspiratorComponent, pas un singleton
 export class RobotAspiratorWithNextPositionsTabService {

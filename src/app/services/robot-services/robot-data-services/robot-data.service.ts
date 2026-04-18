@@ -1,5 +1,5 @@
 import { Injectable, Signal, signal, WritableSignal } from '@angular/core';
-import { RobotModel } from '../../../classes/models/robot-model';
+import { RobotModel } from '../../../classes/models/robot-model/robot-model';
 import { PixelPosition } from '../../../classes/models/pixel-position';
 import { GridPosition } from '../../../classes/models/grid-position';
 

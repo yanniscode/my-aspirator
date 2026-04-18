@@ -1,7 +1,7 @@
 import { inject, Injectable, Signal } from '@angular/core';
-import { MaisonModel } from '../../../classes/models/maison-model';
 import { MaisonDataService } from '../maison-data-services/maison-data.service';
 import { MaisonDataNettoyageService } from '../maison-data-services/maison-data-nettoyage-service/maison-data-nettoyage.service';
+import { MaisonModel } from '../../../classes/models/maison-model/maison-model';
 
 @Injectable({
   providedIn: 'root',

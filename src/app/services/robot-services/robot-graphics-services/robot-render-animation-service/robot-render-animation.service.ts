@@ -1,7 +1,7 @@
 import { inject, Injectable, WritableSignal } from '@angular/core';
 import { PixelPosition } from '../../../../classes/models/pixel-position';
-import { RobotAspiratorModel } from '../../../../classes/models/robot-aspirator-model';
-import { RobotModel } from '../../../../classes/models/robot-model';
+import { RobotAspiratorModel } from '../../../../classes/models/robot-model/robot-aspirator-model/robot-aspirator-model';
+import { RobotModel } from '../../../../classes/models/robot-model/robot-model';
 import { RobotDataService } from '../../robot-data-services/robot-data.service';
 import { AssetRobotService } from '../asset-robot-service/asset-robot.service';
 import { RenderAnimationService } from '../../../main-services/graphics-services/render-animation-service/render-animation.service';

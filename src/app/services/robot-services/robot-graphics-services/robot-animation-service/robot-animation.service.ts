@@ -1,5 +1,5 @@
 import { inject, Injectable, OnDestroy, WritableSignal, computed } from '@angular/core';
-import { RobotModel } from '../../../../classes/models/robot-model';
+import { RobotModel } from '../../../../classes/models/robot-model/robot-model';
 import { RobotActionAspiratorService } from '../../robot-action-services/robot-action-aspirator-service/robot-action-aspirator.service';
 import { RobotActionService } from '../../robot-action-services/robot-action.service';
 import { RobotDataService } from '../../robot-data-services/robot-data.service';

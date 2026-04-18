@@ -1,5 +1,6 @@
-import { CellElement } from "./cellElement";
-import { GridPosition } from "./grid-position";
+import { CellElement } from "../cellElement";
+import { GridPosition } from "../grid-position";
+
 
 export class MaisonModel {
     public maison;

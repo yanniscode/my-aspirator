@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { GridPosition } from '../../../classes/models/grid-position';
 import { PixelPosition } from '../../../classes/models/pixel-position';
-import { RobotAspiratorModel } from '../../../classes/models/robot-aspirator-model';
+import { RobotAspiratorModel } from '../../../classes/models/robot-model/robot-aspirator-model/robot-aspirator-model';
 import { LoggerService } from '../../main-services/logger-service/logger.service';
 import { Direction } from '../../../classes/utils/direction';
 

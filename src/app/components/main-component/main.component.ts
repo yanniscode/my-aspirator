@@ -3,12 +3,12 @@ import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
 import { GameComponent } from '../game-component/game.component';
 import { MessagesComponent } from '../messages-component/messages.component';
-import { MaisonModel } from '../../classes/models/maison-model';
 import { LoggerService } from '../../services/main-services/logger-service/logger.service';
-import { RobotModel } from '../../classes/models/robot-model';
+import { RobotModel } from '../../classes/models/robot-model/robot-model';
 import { RobotAspiratorWithNextPositionsTabService } from '../../services/robot-services/robot-algos-deplacement-services/robot-aspirator-with-next-positions-tab-service/robot-aspirator-with-next-positions-tab.service';
 import { RobotDataFactoryService } from '../../services/robot-services/robot-data-factory-service/robot-data-factory.service';
 import { MaisonDataFactoryService } from '../../services/maison-services/maison-data-factory-service/maison-data-factory.service';
+import { MaisonModel } from '../../classes/models/maison-model/maison-model';
 
 @Component({
   selector: 'app-main',

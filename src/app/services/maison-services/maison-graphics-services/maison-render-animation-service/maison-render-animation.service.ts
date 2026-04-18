@@ -1,10 +1,10 @@
 import { inject, Injectable, WritableSignal } from '@angular/core';
 import { MaisonDataNettoyageService } from '../../maison-data-services/maison-data-nettoyage-service/maison-data-nettoyage.service';
-import { MaisonModel } from '../../../../classes/models/maison-model';
-import { RobotModel } from '../../../../classes/models/robot-model';
+import { RobotModel } from '../../../../classes/models/robot-model/robot-model';
 import { RobotDataService } from '../../../robot-services/robot-data-services/robot-data.service';
 import { AssetMaisonService } from '../asset-maison-service/asset-maison.service';
 import { RenderAnimationService } from '../../../main-services/graphics-services/render-animation-service/render-animation.service';
+import { MaisonModel } from '../../../../classes/models/maison-model/maison-model';
 
 @Injectable({
   providedIn: 'root',

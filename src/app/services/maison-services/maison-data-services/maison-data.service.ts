@@ -1,8 +1,8 @@
 import { Injectable, Signal, signal, WritableSignal } from '@angular/core';
 
-import { MaisonModel } from '../../../classes/models/maison-model';
 import { CellElement } from '../../../classes/models/cellElement';
 import { GridPosition } from '../../../classes/models/grid-position';
+import { MaisonModel } from '../../../classes/models/maison-model/maison-model';
 
 @Injectable({
   providedIn: 'root'
