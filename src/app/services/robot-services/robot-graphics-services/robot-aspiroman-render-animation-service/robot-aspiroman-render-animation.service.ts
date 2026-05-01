@@ -20,7 +20,7 @@ export class RobotAspiromanRenderAnimationService extends RenderAnimationService
   private readonly CELL_SIZE = 50;  // largeur d'une cellule de la maison
   private readonly HEIGHT = 400;    // hauteur de la maison
 
-  protected readonly _robotSignals: Map<string, WritableSignal<AspiromanModel>>
+  protected readonly aspiromanSignals: Map<string, WritableSignal<AspiromanModel>>
     = this.robotAspiromanDataService.aspiromanSignals;
 
   /**
@@ -33,7 +33,7 @@ export class RobotAspiromanRenderAnimationService extends RenderAnimationService
 
     this.ctx = ctx;
 
-    for (const [robotName, robotSignal] of this._robotSignals) {
+    for (const [robotName, robotSignal] of this.aspiromanSignals) {
       const robot: AspiromanModel | undefined = robotSignal();
       if (!robot) continue;
 

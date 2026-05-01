@@ -16,11 +16,11 @@ export abstract class MaisonDataService {
   // Public et lecture seule — les composants peuvent seulement lire
   public readonly maisonSignal: Signal<MaisonModel> = this._maisonSignal.asReadonly();
 
-  // /**
-  //  * Mise à jour intégrale de la maison
-  //  * 
-  //  * @param maison 
-  //  */
+  /**
+   * Mise à jour intégrale de la maison
+   *
+   * @param maison
+   */
   // public updateMaison(maison: MaisonModel): void {
   //   this._maisonSignal.set(maison);
   // }
@@ -63,7 +63,7 @@ export abstract class MaisonDataService {
   protected updateMaisonCell(newCellElement: CellElement): void {
     console.log("MaisonDataService - updateMaisonCell()");
 
-    const maison: CellElement[][] = this._maisonSignal()?.maison;
+    const maison: CellElement[][] = this.maisonSignal()?.maison;
 
     if ((maison?.length <= 0) || maison[0]?.length <= 0) return;
 

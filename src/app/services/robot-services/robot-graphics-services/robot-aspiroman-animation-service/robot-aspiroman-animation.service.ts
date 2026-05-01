@@ -14,7 +14,7 @@ export class RobotAspiromanAnimationService extends AnimationService implements 
   protected ctx!: CanvasRenderingContext2D;
 
   /* Variables des robots: */
-  protected readonly _robotSignals: Map<string, WritableSignal<AspiromanModel>>
+  protected readonly aspiromanSignals: Map<string, WritableSignal<AspiromanModel>>
     = this.robotAspiromanDataService.aspiromanSignals;
 
   /* Variables pour la Vue: */
@@ -56,6 +56,6 @@ export class RobotAspiromanAnimationService extends AnimationService implements 
       this.animationFrameId = undefined;
     }
     // On vide la map de signaux (réinitialisation complète des robots)
-    this._robotSignals.clear();
+    this.aspiromanSignals.clear();
   }
 }

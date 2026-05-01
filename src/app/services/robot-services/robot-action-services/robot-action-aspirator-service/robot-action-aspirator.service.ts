@@ -20,9 +20,8 @@ export class RobotActionAspiratorService extends RobotActionService {
   private maisonDataNettoyageService = inject(MaisonDataNettoyageService);
 
   // Map en lecture seule pour stocker les signaux computed de chaque robot à afficher
-  private readonly _robotSignals: Map<string, WritableSignal<RobotAspiratorModel>>
+  private readonly robotAspiratorSignals: Map<string, WritableSignal<RobotAspiratorModel>>
     = this.robotAspiratorDataService.robotAspiratorSignals;
-  public robotSignals: Map<string, Signal<RobotAspiratorModel>> = this._robotSignals;
 
   public readonly maisonSignal: Signal<MaisonModel> = computed(() =>
     this.maisonDataNettoyageService.maisonSignal()
@@ -43,10 +42,10 @@ export class RobotActionAspiratorService extends RobotActionService {
   public calculateNewDirectionsForAllRobots(): void {
     console.log("RobotActionAspiratorService - calculateNewDirectionsForAllRobots()");
 
-    if (this._robotSignals.size <= 0) return;
+    if (this.robotAspiratorSignals.size <= 0) return;
 
     // Parcourt tous les robots
-    this._robotSignals.forEach((robotSignal: WritableSignal<RobotAspiratorModel>, robotName) => {
+    this.robotAspiratorSignals.forEach((robotSignal: WritableSignal<RobotAspiratorModel>, robotName) => {
 
       const robot = robotSignal();
       if (!robot) return;
@@ -135,7 +134,7 @@ export class RobotActionAspiratorService extends RobotActionService {
   protected moveRobot(robotName: string, nextPosition: GridPosition): void {
     console.log("RobotActionAspiratorService - moveRobot()");
 
-    const robotSignal: WritableSignal<RobotAspiratorModel> | undefined = this._robotSignals.get(robotName);
+    const robotSignal: WritableSignal<RobotAspiratorModel> | undefined = this.robotAspiratorSignals.get(robotName);
     if (!robotSignal) return;
 
     const robot = robotSignal();
@@ -156,7 +155,7 @@ export class RobotActionAspiratorService extends RobotActionService {
   protected moveRobotReturningToBase(robotName: string, position: GridPosition, nextPosition: GridPosition): void {
     console.log("RobotActionAspiratorService - moveRobotReturningToBase()");
 
-    const robotSignal: WritableSignal<RobotAspiratorModel> | undefined = this._robotSignals.get(robotName);
+    const robotSignal: WritableSignal<RobotAspiratorModel> | undefined = this.robotAspiratorSignals.get(robotName);
     if (!robotSignal) return;
 
     const robot = robotSignal();
@@ -191,7 +190,7 @@ export class RobotActionAspiratorService extends RobotActionService {
   protected stopRobot(robotName: string): void {
     console.log("RobotActionAspiratorService - stopRobot()");
 
-    const robotSignal: WritableSignal<RobotAspiratorModel> | undefined = this._robotSignals.get(robotName);
+    const robotSignal: WritableSignal<RobotAspiratorModel> | undefined = this.robotAspiratorSignals.get(robotName);
     if (!robotSignal) return;
 
     robotSignal.update(robot => ({
@@ -317,7 +316,7 @@ export class RobotActionAspiratorService extends RobotActionService {
   public updateRobotsVisitedCells(): void {
     console.log("RobotActionAspiratorService - updateRobotsVisitedCells()");
 
-    this._robotSignals.forEach((robotSignal) => {
+    this.robotAspiratorSignals.forEach((robotSignal) => {
       const robot: RobotAspiratorModel = robotSignal();
       this.maisonDataNettoyageService.updateVisitedCell(robot.lastPosition, true);
     });

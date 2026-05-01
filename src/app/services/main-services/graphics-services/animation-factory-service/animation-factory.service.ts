@@ -1,4 +1,4 @@
-import { inject, Injectable, WritableSignal } from '@angular/core';
+import { inject, Injectable, Signal, WritableSignal } from '@angular/core';
 import { AssetService } from '../asset-service/asset.service';
 import { AssetMaisonService } from '../../../maison-services/maison-graphics-services/asset-maison-service/asset-maison.service';
 import { AssetRobotService } from '../../../robot-services/robot-graphics-services/asset-robot-service/asset-robot.service';
@@ -33,7 +33,7 @@ export class AnimationFactoryService {
   private robotAspiromanRenderAnimationService = inject(RobotAspiromanRenderAnimationService) as RenderAnimationService;
   private robotRenderAnimationServicesTab: RenderAnimationService[] = [this.maisonRenderAnimationService, this.robotAspiratorRenderAnimationService, this.robotAspiromanRenderAnimationService];
 
-  public robotSignals: Map<string, WritableSignal<RobotModel>> = this.robotDataFactoryService.robotSignals;
+  public robotSignals: Map<string, Signal<RobotModel>> = this.robotDataService.robotSignals;
 
   protected ctx!: CanvasRenderingContext2D;
 
@@ -140,7 +140,7 @@ export class AnimationFactoryService {
       // Nouvelle direction selon la durée de STEP_DURATION
       else if (sequenceEnded) {
         // s'il n'y a plus de robot actif à la fin de la séquence d'animation, on stoppe directement l'animation
-        if (!this.robotDataFactoryService.hasActiveRobots()) {
+        if (!this.robotDataService.hasActiveRobots()) {
           console.log("pauseAllAnimation 2");
 
           this.pauseAllAnimation();
@@ -182,7 +182,7 @@ export class AnimationFactoryService {
       robotActionService.updateRobotsVisitedCells();
     });
 
-      // TODO: garder ici ??
+    // TODO: garder ici ??
     // Efface tout
     // this.ctx.clearRect(0, 0, this.WIDTH, this.HEIGHT);
     // Mise à jour de la position du robot et de la maison (vue)

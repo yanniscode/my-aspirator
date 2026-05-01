@@ -1,4 +1,4 @@
-import { Component, OnDestroy, ViewChild, ViewEncapsulation, inject, ChangeDetectionStrategy, computed, Signal, signal, AfterViewInit } from '@angular/core';
+import { Component, OnDestroy, ViewChild, ViewEncapsulation, inject, ChangeDetectionStrategy, computed, Signal, signal, AfterViewInit, WritableSignal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
 import { GameComponent } from '../game-component/game.component';
@@ -31,18 +31,18 @@ export class MainComponent implements AfterViewInit, OnDestroy {
   private maisonDataFactoryService = inject(MaisonDataFactoryService);
   // appel dans le template, donc public:
   public robotDataFactoryService = inject(RobotDataFactoryService);
+
   private loggerService = inject(LoggerService);
 
   // pour le template
   public readonly maisonViewModel: Signal<MaisonModel> = this.maisonDataFactoryService.getMaisonSignal();
 
   // on récupère la liste de signals à partir de la factory de robots dans un type générique (RobotModel)
-  private readonly _robotSignals: Map<string, Signal<RobotModel>> = this.robotDataFactoryService.buildRobotSignalsList();
-  public robotSignals: Map<string, Signal<RobotModel | undefined>> = this._robotSignals;
+  public robotSignals: Map<string, Signal<RobotModel>> = this.robotDataFactoryService.robotSignals;
 
   // Signal computed qui expose les valeurs de la Map de robots sous forme de tableau
   public readonly robotList: Signal<RobotModel[]> = computed(() =>
-    Array.from(this._robotSignals.values()).map(signal => signal())
+    Array.from(this.robotSignals.values()).map(signal => signal())
   );
 
   public robotViewModelTab: RobotModel[];
@@ -61,7 +61,8 @@ export class MainComponent implements AfterViewInit, OnDestroy {
     this.robotViewModelTab = [...this.robotDataFactoryService.createRobotsParams()];
     this.isRobotMapStarted = false;
 
-    this._robotSignals = this.robotDataFactoryService.buildRobotSignalsList();
+    // initialisation des données des robots et la Map de signaux par la factory
+    this.robotDataFactoryService.buildRobotSignalsList();
   }
 
   ngAfterViewInit(): void {
@@ -73,11 +74,10 @@ export class MainComponent implements AfterViewInit, OnDestroy {
   ngOnDestroy(): void {
     console.log('MainComponent - ngOnDestroy()');
 
-    // TODO: revoir
-    // this.robotViewModelTab.forEach(robotModel => {
-    //   this.robotDataFactoryService.unregisterRobotFromList(robotModel.robotName);
-    // });
-    console.log(`Nettoyage de la Main - ${this.robotViewModelTab.length} robots`);
+    this.robotViewModelTab.forEach(robotModel => {
+      this.robotDataFactoryService.clearAllRobotsList(robotModel.robotName);
+    });
+    console.log(`Nettoyage de la méthode Main - ${this.robotViewModelTab.length} robots`);
   }
 
   public pause(): void {

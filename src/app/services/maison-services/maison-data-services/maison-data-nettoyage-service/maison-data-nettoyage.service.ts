@@ -101,8 +101,8 @@ export class MaisonDataNettoyageService extends MaisonDataService {
     console.log("MaisonDataNettoyageService - updateMaisonRobotsBase()");
 
     console.log("maison dimensions:",
-      this._maisonSignal().maison.length,     // hauteur
-      this._maisonSignal().maison[0]?.length  // largeur
+      this.maisonSignal().maison.length,     // hauteur
+      this.maisonSignal().maison[0]?.length  // largeur
     );
     console.log("base position:", robotBasePosition);
 

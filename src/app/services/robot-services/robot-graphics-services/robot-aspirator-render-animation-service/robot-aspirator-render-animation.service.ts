@@ -20,20 +20,20 @@ export class RobotAspiratorRenderAnimationService extends RenderAnimationService
   private readonly CELL_SIZE = 50;  // largeur d'une cellule de la maison
   private readonly HEIGHT = 400;    // hauteur de la maison
 
-  protected readonly _robotSignals: Map<string, WritableSignal<RobotAspiratorModel>>
+  protected readonly robotAspiratorSignals: Map<string, WritableSignal<RobotAspiratorModel>>
     = this.robotAspiratorDataService.robotAspiratorSignals;
 
   /**
-   * 
-   * @param ctx 
-   * @returns 
+   *
+   * @param ctx
+   * @returns
    */
   public override drawObject(ctx: CanvasRenderingContext2D): CanvasRenderingContext2D {
     console.log("RobotAspiratorRenderAnimationService - drawObject()");
 
     this.ctx = ctx;
 
-    for (const [robotName, robotSignal] of this._robotSignals) {
+    for (const [robotName, robotSignal] of this.robotAspiratorSignals) {
       const robot: RobotAspiratorModel | undefined = robotSignal();
       if (!robot) continue;
 
@@ -73,9 +73,9 @@ export class RobotAspiratorRenderAnimationService extends RenderAnimationService
   }
 
   /**
-   * 
-   * @param robot 
-   * @returns 
+   *
+   * @param robot
+   * @returns
    */
   protected override getRobotCtxFrame(robot: RobotAspiratorModel): HTMLImageElement {
     console.log("RobotAspiratorRenderAnimationService - getRobotCtxFrame()");
@@ -105,11 +105,11 @@ export class RobotAspiratorRenderAnimationService extends RenderAnimationService
   }
 
   /**
-   * 
-   * @param robot 
-   * @param x 
-   * @param y 
-   * @returns 
+   *
+   * @param robot
+   * @param x
+   * @param y
+   * @returns
    */
   protected override drawRobotLabels(robot: RobotAspiratorModel, x: number, y: number): void {
     // console.log("RobotAspiratorRenderAnimationService - drawRobotLabels()");

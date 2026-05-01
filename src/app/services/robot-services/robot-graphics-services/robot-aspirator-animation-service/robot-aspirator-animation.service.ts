@@ -13,7 +13,7 @@ export abstract class RobotAspiratorAnimationService extends AnimationService im
   protected ctx!: CanvasRenderingContext2D;
 
   /* Variables des robots: */
-  protected readonly _robotSignals: Map<string, WritableSignal<RobotAspiratorModel>>
+  protected readonly robotAspiratorSignals: Map<string, WritableSignal<RobotAspiratorModel>>
     = this.robotAspiratorDataService.robotAspiratorSignals;
 
   /* Variables pour la Vue: */
@@ -55,7 +55,7 @@ export abstract class RobotAspiratorAnimationService extends AnimationService im
       this.animationFrameId = undefined;
     }
     // On vide la map de signaux (réinitialisation complète des robots)
-    this._robotSignals.clear();
+    this.robotAspiratorSignals.clear();
   }
 
   /**

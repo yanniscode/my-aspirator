@@ -1,4 +1,4 @@
-import { computed, inject, Injectable, Signal, signal, WritableSignal } from '@angular/core';
+import { inject, Injectable, Signal, signal, WritableSignal } from '@angular/core';
 import { RobotModel } from '../../../classes/models/robot-model/robot-model';
 import { RobotAspiratorDataService } from '../robot-data-services/robot-aspirator-data-service/robot-aspirator-data.service';
 import { RobotDataService } from '../robot-data-services/robot-data.service';
@@ -21,30 +21,15 @@ export class RobotDataFactoryService {
   /**
   * Map en lecture seule pour stocker les signaux computed de chaque robot à afficher
   */
-  protected readonly _robotSignals: Map<string, WritableSignal<RobotModel>> = new Map<string, WritableSignal<RobotModel>>();
-  public robotSignals: Map<string, WritableSignal<RobotModel>> = this._robotSignals;
+  public robotSignals: Map<string, Signal<RobotModel>> = this.robotDataService.robotSignals;
 
-  /**
-   *
-   *  Lecture directe (non-réactive) de l'état actuel du robot
-   *  Retourne le signal readonly du robot
-   *
-   * @param robotName
-   * @returns
-   */
   public getRobotSignal(robotName: string): Signal<RobotModel | undefined> {
-    console.log("RobotDataService - getRobotSignal()");
-
-    const writableSignal: WritableSignal<RobotModel> | undefined = this._robotSignals.get(robotName);
-    return writableSignal?.asReadonly() ?? signal(undefined);
+    return this.robotDataService.getRobotSignal(robotName);
   }
 
-  // computed vérifiant si la map de robots un un robot "aspiroman" est à l'état démarré
-  public readonly hasActiveRobots = computed(() =>
-    [...this._robotSignals.values()].some(signal => signal()?.isRobotStarted)
-    // ou si l'on veut filtrer par type de robot:
-    // [...this._robotSignals.values()].some(signal => (signal()?.robotType === "aspiroman") && signal()?.isRobotStarted)
-  );
+  public hasActiveRobots(): Signal<boolean> {
+    return this.robotDataService.hasActiveRobots;
+  }
 
   /**
    * Méthode de factory : renvoie les paramètres des robots avec un upcast vers le type générique RobotModel[]
@@ -67,7 +52,7 @@ export class RobotDataFactoryService {
    *
    * @returns
    */
-  public buildRobotSignalsList(): Map<string, Signal<RobotModel>> {
+  public buildRobotSignalsList(): void {
     console.log("RobotDataFactoryService - buildRobotSignalsList()");
 
     for (let i = 0; i < this.robotDataServicesTab.length; i++) {
@@ -75,15 +60,13 @@ export class RobotDataFactoryService {
         this.robotSignals.set(robotSignal().robotName, robotSignal as WritableSignal<RobotModel>);
       });
     }
-    return this.robotSignals;
   }
 
-  // TODO: revoir
-  // /**
-  // * Désenregistre un robot et nettoie son signal
-  // */
-  // public unregisterRobotFromList(robotName: string): void {
-  //   console.log("RobotDataFactoryService - unregisterRobotFromList()");
-  //   this.robotDataService.unregisterRobotFromList(robotName);
-  // }
+  /**
+  * Désenregistre un robot et nettoie son signal
+  */
+  public clearAllRobotsList(robotName: string): void {
+    console.log("RobotDataFactoryService - clearAllRobotsList()");
+    this.robotDataService.clearAllRobotsList(robotName);
+  }
 }
