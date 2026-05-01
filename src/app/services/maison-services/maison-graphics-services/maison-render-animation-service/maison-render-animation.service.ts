@@ -1,10 +1,9 @@
 import { inject, Injectable, WritableSignal } from '@angular/core';
 import { MaisonDataNettoyageService } from '../../maison-data-services/maison-data-nettoyage-service/maison-data-nettoyage.service';
-import { RobotModel } from '../../../../classes/models/robot-model/robot-model';
-import { RobotDataService } from '../../../robot-services/robot-data-services/robot-data.service';
 import { AssetMaisonService } from '../asset-maison-service/asset-maison.service';
 import { RenderAnimationService } from '../../../main-services/graphics-services/render-animation-service/render-animation.service';
 import { MaisonModel } from '../../../../classes/models/maison-model/maison-model';
+import { RobotAspiratorModel } from '../../../../classes/models/robot-model/robot-aspirator-model/robot-aspirator-model';
 
 @Injectable({
   providedIn: 'root',
@@ -13,7 +12,6 @@ export class MaisonRenderAnimationService extends RenderAnimationService {
 
   private maisonDataNettoyageService = inject(MaisonDataNettoyageService);
   private assetMaisonService = inject(AssetMaisonService);
-  private robotDataService = inject(RobotDataService);
 
   protected ctx!: CanvasRenderingContext2D;
 
@@ -21,10 +19,7 @@ export class MaisonRenderAnimationService extends RenderAnimationService {
   private readonly CELL_PADDING = 6;      // td-maison: padding: 0.5rem (≈ 8px)
   private readonly ROW_COLOR = 'rgb(0, 140, 133)';      // tr-maison: background
 
-  protected readonly _robotSignals: Map<string, WritableSignal<RobotModel>>
-    = this.robotDataService.robotSignals;
-
-  public drawObject(ctx: CanvasRenderingContext2D): CanvasRenderingContext2D {
+  public override drawObject(ctx: CanvasRenderingContext2D): CanvasRenderingContext2D {
     console.log("MaisonRenderAnimationService - drawObject()");
 
     // récupération du canvas avec ses données pour ajouter les données de la maison
@@ -70,5 +65,12 @@ export class MaisonRenderAnimationService extends RenderAnimationService {
       });
     });
     return this.ctx;
+  }
+
+  protected override getRobotCtxFrame(robot: RobotAspiratorModel): HTMLImageElement {
+    throw new Error('Method not implemented.');
+  }
+  protected override drawRobotLabels(robot: RobotAspiratorModel, x: number, y: number): void {
+    throw new Error('Method not implemented.');
   }
 }

@@ -37,7 +37,9 @@ export class MainComponent implements AfterViewInit, OnDestroy {
   public readonly maisonViewModel: Signal<MaisonModel> = this.maisonDataFactoryService.getMaisonSignal();
 
   // on récupère la liste de signals à partir de la factory de robots dans un type générique (RobotModel)
-  private readonly _robotSignals: Map<string, Signal<RobotModel>> = this.robotDataFactoryService.getRobotSignalsList();
+  private readonly _robotSignals: Map<string, Signal<RobotModel>> = this.robotDataFactoryService.buildRobotSignalsList();
+  public robotSignals: Map<string, Signal<RobotModel | undefined>> = this._robotSignals;
+
   // Signal computed qui expose les valeurs de la Map de robots sous forme de tableau
   public readonly robotList: Signal<RobotModel[]> = computed(() =>
     Array.from(this._robotSignals.values()).map(signal => signal())
@@ -50,15 +52,16 @@ export class MainComponent implements AfterViewInit, OnDestroy {
 
   constructor() {
     console.log("MainComponent - constructor()");
+
     this.gameComponent = this.maisonChildComponent;
 
     // initialisation des params de la maison et des robots
     this.maisonDataFactoryService.setMaisonParams();
 
-    this.robotViewModelTab = [...this.robotDataFactoryService.getRobotsParams()];
+    this.robotViewModelTab = [...this.robotDataFactoryService.createRobotsParams()];
     this.isRobotMapStarted = false;
-    this.robotNames = this.robotDataFactoryService.setRobotSignalsList(this.robotViewModelTab);
-    if (!this.robotNames) return;
+
+    this._robotSignals = this.robotDataFactoryService.buildRobotSignalsList();
   }
 
   ngAfterViewInit(): void {
@@ -70,10 +73,11 @@ export class MainComponent implements AfterViewInit, OnDestroy {
   ngOnDestroy(): void {
     console.log('MainComponent - ngOnDestroy()');
 
-    this.robotViewModelTab.forEach(robotModel => {
-      this.robotDataFactoryService.unregisterRobotFromList(robotModel.robotName);
-    });
-    console.log(`Nettoyage du composant Maison - ${this.robotViewModelTab.length} robots`);
+    // TODO: revoir
+    // this.robotViewModelTab.forEach(robotModel => {
+    //   this.robotDataFactoryService.unregisterRobotFromList(robotModel.robotName);
+    // });
+    console.log(`Nettoyage de la Main - ${this.robotViewModelTab.length} robots`);
   }
 
   public pause(): void {

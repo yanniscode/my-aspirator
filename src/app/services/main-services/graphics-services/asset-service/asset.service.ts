@@ -41,12 +41,12 @@ export abstract class AssetService {
   }
 
   /**
-   * Récupère la trame d'animation du robot selon sa direction et son index (animationProgress)
+   * Récupère la trame d'animation du robot selon sa direction et son index (animationFrame)
    * @param direction
    * @param indexImage
    * @returns
    */
-  public getRobotImageByHisFrameAndDirection(direction: Direction, animationProgress: number): HTMLImageElement {
+  public getRobotImageByHisFrameAndDirection(direction: Direction, animationFrame: number): HTMLImageElement {
 
     let dir = "e";
 
@@ -62,7 +62,7 @@ export abstract class AssetService {
     else if (direction === Direction.WEST) {
       dir = "w";
     }
-    return this.getImage('robot-' + dir + animationProgress);
+    return this.getImage('robot-' + dir + animationFrame);
   }
 
   /**
@@ -104,9 +104,9 @@ export abstract class AssetService {
   }
 
   /**
- * Charge toutes les images de manière asynchrone.
- * Utilisation d'une Promise pour attendre le chargement → utile pour la game loop
- */
+   * Charge toutes les images de manière asynchrone.
+   * Utilisation d'une Promise pour attendre le chargement → utile pour la game loop
+   */
   public loadAssets(): Promise<void> {
     const promises = this.ASSETS.map(asset => this.loadImage(asset));
 

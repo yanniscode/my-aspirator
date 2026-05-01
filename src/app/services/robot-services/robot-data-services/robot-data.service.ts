@@ -45,6 +45,11 @@ export abstract class RobotDataService {
   }
 
   /**
+  * Renvoie la map de signaux de robot
+  */
+  public abstract getRobotSignalsList(): Map<string, Signal<RobotModel>>;
+
+  /**
   * Retourne le nombre de robots actifs
   */
   // getRobotCount(): number {
@@ -53,69 +58,23 @@ export abstract class RobotDataService {
 
   // MÉTHODES D'ACTION SUR LE ROBOT:
 
-  public updateCurrentCoordinates(name: string): PixelPosition {
-    console.log("RobotDataService - updateCurrentCoordinates()");
-
-    let robotAnimationSignal = this.getRobotSignal(name) as Signal<RobotModel | undefined>;
-    if (!robotAnimationSignal) return new PixelPosition(-50, -50);
-    console.log(robotAnimationSignal);
-
-    const robot: RobotModel | undefined = robotAnimationSignal();
-    if (!robot) return new PixelPosition(-50, -50);
-
-    // calcul de la position actuelle en pixels du robot en fonction de son index dans le tableau représentant l'espace en 2D (la maison)
-    // (nécessaire sinon bug au retour à la base)
-    const x = this.calculatePixelCoordinates(robot.position).x;
-    const y = this.calculatePixelCoordinates(robot.position).y;
-    if (!robot.isRobotStarted) return new PixelPosition(x, y);
-
-    this.moveRobotCoordinates(name, robot.lastPosition, robot.position);
-
-    const progress: Signal<number> = this._animationProgress.asReadonly();
-
-    const startCoordinate = { ...robot.startCoordinate };
-    const targetCoordinate = { ...robot.targetCoordinate };
-    // Interpolation linéaire (calcul de valeurs intermédiaires) entre startCoordinate et targetCoordinate
-    const newXCoordinate = startCoordinate.x + (targetCoordinate.x - startCoordinate.x) * progress();
-    const newYCoordinate = startCoordinate.y + (targetCoordinate.y - startCoordinate.y) * progress();
-    console.log("new Coordinate = " + newXCoordinate + " - " + newYCoordinate);
-
-    // Attention: inversion des coordonnées pour l'affichage: col = x, row = y
-    return new PixelPosition(newXCoordinate, newYCoordinate);
-  }
+  /**
+   *
+   * @param name
+   */
+  public abstract updateCurrentCoordinates(name: string, progress: number): PixelPosition;
 
   /**
   * Déplace manuellement un robot à une position pour le nettoyage
   */
-  public moveRobotCoordinates(robotName: string, position: GridPosition, nextPosition: GridPosition): void {
-    console.log("RobotDataService - moveRobotCoordinates()");
-
-    const robotSignal: WritableSignal<RobotModel> | undefined = this._robotSignals.get(robotName);
-    if (!robotSignal) return;
-
-    const robot = robotSignal();
-    if (!robot) return;
-
-    const newStartCoordinate: PixelPosition = this.calculatePixelCoordinates(position);
-    const newTargetCoordinate: PixelPosition = this.calculatePixelCoordinates(nextPosition);
-
-    if (newStartCoordinate.x !== newTargetCoordinate.x || newStartCoordinate.y !== newTargetCoordinate.y) {
-
-      robotSignal.update(robot => ({
-        ...robot,
-        startCoordinate: { ...newStartCoordinate }, // la précédente coordonnée est modifiée avec l'actuelle
-        targetCoordinate: { ...newTargetCoordinate }, // la nouvelle coordonnée prend sa valeur suivante
-      }));
-    }
-    console.log(`### ${robotName}: tableau[${nextPosition.col},${nextPosition.row}] → pixels(${newTargetCoordinate.x}, ${newTargetCoordinate.y})`);
-  }
+  public abstract moveRobotCoordinates(robotName: string, position: GridPosition, nextPosition: GridPosition): void;
 
   /**
-  * Conversion de l'index dans le tableau (GridPosition) en Coordonnée en Pixels (PixelPosition) pour l'affichage CSS
-  *
-  * @param grid
-  * @returns
-  */
+   * Conversion de l'index dans le tableau (GridPosition) en Coordonnée en Pixels (PixelPosition) pour l'affichage CSS
+   *
+   * @param grid
+   * @returns
+   */
   public calculatePixelCoordinates(grid: GridPosition): PixelPosition {
     // console.log("RobotDataService - calculatePixelCoordinates()");
 

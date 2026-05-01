@@ -1,22 +1,29 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, Signal, signal, WritableSignal } from '@angular/core';
 import { RobotDataService as RobotDataService } from '../robot-data.service';
 import { RobotAspiratorModel } from '../../../../classes/models/robot-model/robot-aspirator-model/robot-aspirator-model';
 import { GridPosition } from '../../../../classes/models/grid-position';
 import { LoggerService } from '../../../main-services/logger-service/logger.service';
-import { RobotActionAspiratorService } from '../../robot-action-services/robot-action-aspirator-service/robot-action-aspirator.service';
 import { AssetRobotService } from '../../robot-graphics-services/asset-robot-service/asset-robot.service';
 import { MaisonDataNettoyageService } from '../../../maison-services/maison-data-services/maison-data-nettoyage-service/maison-data-nettoyage.service';
 import { Direction } from '../../../../classes/utils/direction';
+import { PixelPosition } from '../../../../classes/models/pixel-position';
 
 @Injectable({
   providedIn: 'root',
 })
 export class RobotAspiratorDataService extends RobotDataService {
 
-  private robotActionAspiratorService = inject(RobotActionAspiratorService);
   private assetRobotService = inject(AssetRobotService);
   private maisonDataNettoyageService = inject(MaisonDataNettoyageService);
   private loggerService = inject(LoggerService);
+
+  /**
+* Map en lecture seule pour stocker les signaux computed de chaque robot à afficher
+*/
+  protected readonly _robotAspiratorSignals: Map<string, WritableSignal<RobotAspiratorModel>> = new Map<string, WritableSignal<RobotAspiratorModel>>();
+  public robotAspiratorSignals: Map<string, WritableSignal<RobotAspiratorModel>> = this._robotAspiratorSignals;
+
+  private robotNames = signal<string[]>([]);
 
   constructor() {
     console.log("RobotAspiratorDataService - constructor");
@@ -38,8 +45,8 @@ export class RobotAspiratorDataService extends RobotDataService {
     let robotDirection = Direction.EAST;
     let lastPosition = { ...basePosition };
     let position = { ...basePosition };
-    let startCoordinate = this.robotActionAspiratorService.calculatePixelCoordinates(basePosition);
-    let targetCoordinate = this.robotActionAspiratorService.calculatePixelCoordinates(basePosition);
+    let startCoordinate = this.calculatePixelCoordinates(basePosition);
+    let targetCoordinate = this.calculatePixelCoordinates(basePosition);
     let batterie = 4.5;
     let isRobotStarted = false;
     let isRobotReturningToBase = false;
@@ -71,8 +78,8 @@ export class RobotAspiratorDataService extends RobotDataService {
     robotDirection = Direction.WEST;
     lastPosition = { ...basePosition };
     position = { ...basePosition };
-    startCoordinate = this.robotActionAspiratorService.calculatePixelCoordinates(basePosition);
-    targetCoordinate = this.robotActionAspiratorService.calculatePixelCoordinates(basePosition);
+    startCoordinate = this.calculatePixelCoordinates(basePosition);
+    targetCoordinate = this.calculatePixelCoordinates(basePosition);
     batterie = 20;
     isRobotStarted = false;
     isRobotReturningToBase = false;
@@ -103,8 +110,8 @@ export class RobotAspiratorDataService extends RobotDataService {
     robotDirection = Direction.WEST;
     lastPosition = { ...basePosition };
     position = { ...basePosition };
-    startCoordinate = this.robotActionAspiratorService.calculatePixelCoordinates(basePosition);
-    targetCoordinate = this.robotActionAspiratorService.calculatePixelCoordinates(basePosition);
+    startCoordinate = this.calculatePixelCoordinates(basePosition);
+    targetCoordinate = this.calculatePixelCoordinates(basePosition);
     batterie = 30;
     isRobotStarted = false;
     isRobotReturningToBase = false;
@@ -135,8 +142,8 @@ export class RobotAspiratorDataService extends RobotDataService {
     robotDirection = Direction.EAST;
     lastPosition = { ...basePosition };
     position = { ...basePosition };
-    startCoordinate = this.robotActionAspiratorService.calculatePixelCoordinates(basePosition);
-    targetCoordinate = this.robotActionAspiratorService.calculatePixelCoordinates(basePosition);
+    startCoordinate = this.calculatePixelCoordinates(basePosition);
+    targetCoordinate = this.calculatePixelCoordinates(basePosition);
     batterie = 40;
     isRobotStarted = false;
     isRobotReturningToBase = false;
@@ -162,12 +169,15 @@ export class RobotAspiratorDataService extends RobotDataService {
 
     // pour test de 1 ou plusieurs robots
     const robotModelTab: RobotAspiratorModel[] = [{ ...robot1Model }, { ...robot2Model }, { ...robot3Model }, { ...robot4Model }];
-    // const robotModelTab = [{ ...robot2Model }, { ...robot3Model }, { ...robot4Model }];
-    // const robotModelTab = [{ ...robot1Model }, { ...robot4Model }];
-    // const robotModelTab = [{ ...robot1Model }];
-
+    // const robotModelTab: RobotAspiratorModel[] = [{ ...robot2Model }, { ...robot3Model }, { ...robot4Model }];
+    // const robotModelTab: RobotAspiratorModel[] = [{ ...robot1Model }, { ...robot4Model }];
+    // const robotModelTab: RobotAspiratorModel[] = [{ ...robot1Model }];
+    // const robotModelTab: RobotAspiratorModel[] = [];
     // spécifique aux robots aspirateurs: ajout de leurs bases de charge
     this.setRobotAspiratorBases(robotModelTab);
+
+    // Ajout des robots à la liste de Signals:
+    this.setRobotSignalsList(robotModelTab);
 
     return robotModelTab;
   }
@@ -186,5 +196,118 @@ export class RobotAspiratorDataService extends RobotDataService {
 
   private log(message: string) {
     this.loggerService.add(`MainComponent: ${message}`);
+  }
+
+  /**
+   * Méthode de factory qui enregistre les signaux des robots dans une liste (pour synchroniser les données)
+   *
+   * @param robotModel
+   */
+  public setRobotSignalsList(robotModelTab: RobotAspiratorModel[]): WritableSignal<string[]> {
+    console.log("RobotAspiratorDataService - setRobotSignalsList()");
+
+    robotModelTab.forEach((robotModel: RobotAspiratorModel) => {
+      // 1/ ajout du robot à la liste:
+      const robotAspiratorModel: RobotAspiratorModel = { ...robotModel };
+      this.registerRobotInList(robotAspiratorModel);
+
+      // 2/ enregistrer le nom de chaque robot dans la liste de robotNames pour le template binding:
+      this.robotNames.update(robotNames => [...robotNames, robotModel.robotName]);
+    });
+
+    return this.robotNames;
+  }
+
+  /**
+  * Enregistre un nouveau robot dans la liste
+  */
+  public registerRobotInList(robotModel: RobotAspiratorModel): void {
+    console.log("RobotAspiratorDataService - registerRobotInList()");
+
+    if (!this.robotAspiratorSignals.has(robotModel.robotName)) {
+      this.robotAspiratorSignals.set(robotModel.robotName, signal(robotModel));
+    } else {
+      console.warn(`Robot ${robotModel.robotName} déjà enregistré`);
+    }
+  }
+
+  /**
+ * Méthode de factory qui récupère les signaux des robots dans une liste (pour synchroniser les données)
+ *
+ * @returns
+ */
+  public override getRobotSignalsList(): Map<string, Signal<RobotAspiratorModel>> {
+    console.log("RobotAspiratorDataService - getRobotSignalsList()");
+
+    // TODO: revoir appel de params spés
+    return this.robotAspiratorSignals;
+  }
+
+  /**
+   *
+   * @param name
+   * @returns
+   */
+  public updateCurrentCoordinates(name: string, progress: number): PixelPosition {
+    console.log("RobotDataService - updateCurrentCoordinates()");
+
+    let robotAspiratorSignal = this.robotAspiratorSignals.get(name) as Signal<RobotAspiratorModel | undefined>;
+    console.log("robotAspiratorSignal = " + robotAspiratorSignal);
+    if (!robotAspiratorSignal) return new PixelPosition(-50, -50);
+    console.log(robotAspiratorSignal);
+
+    const robot: RobotAspiratorModel | undefined = robotAspiratorSignal();
+    if (!robot) return new PixelPosition(-50, -50);
+
+    // calcul de la position actuelle en pixels du robot en fonction de son index dans le tableau représentant l'espace en 2D (la maison)
+    // (nécessaire sinon bug au retour à la base)
+    const x = this.calculatePixelCoordinates(robot.position).x;
+    const y = this.calculatePixelCoordinates(robot.position).y;
+    if (!robot.isRobotStarted) return new PixelPosition(x, y);
+
+    this.moveRobotCoordinates(name, robot.lastPosition, robot.position);
+
+    // const progress: Signal<number> = this.animationProgress;
+    console.log("updateCurrentCoordinates - progress = " + this.animationProgress());
+
+    const startCoordinate = { ...robot.startCoordinate };
+    const targetCoordinate = { ...robot.targetCoordinate };
+    // Interpolation linéaire (calcul de valeurs intermédiaires) entre startCoordinate et targetCoordinate
+    const newXCoordinate = startCoordinate.x + (targetCoordinate.x - startCoordinate.x) * progress;
+    const newYCoordinate = startCoordinate.y + (targetCoordinate.y - startCoordinate.y) * progress;
+    console.log("new Coordinate = " + newXCoordinate + " - " + newYCoordinate);
+
+    // Attention: inversion des coordonnées pour l'affichage: col = x, row = y
+    return new PixelPosition(newXCoordinate, newYCoordinate);
+  }
+
+  /**
+   *
+   * @param robotName
+   * @param position
+   * @param nextPosition
+   * @returns
+   */
+  public moveRobotCoordinates(robotName: string, position: GridPosition, nextPosition: GridPosition): void {
+    console.log("RobotDataService - moveRobotCoordinates()");
+
+    const robotSignal: WritableSignal<RobotAspiratorModel> | undefined = this.robotAspiratorSignals.get(robotName);
+    if (!robotSignal) return;
+
+    const robot = robotSignal();
+    if (!robot) return;
+
+    const newStartCoordinate: PixelPosition = this.calculatePixelCoordinates(position);
+    const newTargetCoordinate: PixelPosition = this.calculatePixelCoordinates(nextPosition);
+
+    if (newStartCoordinate.x !== newTargetCoordinate.x || newStartCoordinate.y !== newTargetCoordinate.y) {
+
+      robotSignal.update(robot => ({
+        ...robot,
+        startCoordinate: { ...newStartCoordinate }, // la précédente coordonnée est modifiée avec l'actuelle
+        targetCoordinate: { ...newTargetCoordinate }, // la nouvelle coordonnée prend sa valeur suivante
+      }));
+    }
+    console.log(`### ${robotName}: tableau[${nextPosition.col},${nextPosition.row}] → pixels(${newTargetCoordinate.x}, ${newTargetCoordinate.y})`);
   }
 }
