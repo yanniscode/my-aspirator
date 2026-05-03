@@ -194,10 +194,6 @@ export class RobotAspiratorDataService extends RobotDataService {
     });
   }
 
-  private log(message: string) {
-    this.loggerService.add(`MainComponent: ${message}`);
-  }
-
   /**
    * Méthode de factory qui enregistre les signaux des robots dans une liste (pour synchroniser les données)
    *
@@ -232,7 +228,7 @@ export class RobotAspiratorDataService extends RobotDataService {
   }
 
   /**
- * Méthode de factory qui récupère les signaux des robots dans une liste (pour synchroniser les données)
+ * Méthode de factory qui récupère les signaux des robots selon le type spécifié dans une liste (pour synchroniser les données)
  *
  * @returns
  */
@@ -309,5 +305,9 @@ export class RobotAspiratorDataService extends RobotDataService {
       }));
     }
     console.log(`### ${robotName}: tableau[${nextPosition.col},${nextPosition.row}] → pixels(${newTargetCoordinate.x}, ${newTargetCoordinate.y})`);
+  }
+
+  private log(message: string) {
+    this.loggerService.add(`MainComponent: ${message}`);
   }
 }

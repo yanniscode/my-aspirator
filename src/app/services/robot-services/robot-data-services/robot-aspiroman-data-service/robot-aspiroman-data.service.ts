@@ -139,7 +139,7 @@ export class RobotAspiromanDataService extends RobotDataService {
   }
 
   /**
-   * Méthode de factory qui récupère les signaux des robots dans une liste (pour synchroniser les données)
+   * Méthode de factory qui récupère les signaux des robots du type spécifié dans une liste (pour synchroniser les données)
    *
    * @returns
    */

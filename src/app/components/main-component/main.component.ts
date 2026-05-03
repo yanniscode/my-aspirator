@@ -46,7 +46,6 @@ export class MainComponent implements AfterViewInit, OnDestroy {
   );
 
   public robotViewModelTab: RobotModel[];
-  public robotNames = signal<string[]>([]);
 
   private isRobotMapStarted: boolean = false;
 

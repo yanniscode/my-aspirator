@@ -17,6 +17,14 @@ export abstract class RobotDataService {
   protected readonly _robotSignals: Map<string, WritableSignal<RobotModel>> = new Map<string, WritableSignal<RobotModel>>();
   public readonly robotSignals: Map<string, Signal<RobotModel>> = this._robotSignals;
 
+  // Signal pour le progress (0 à 1)
+  protected readonly _animationProgress: WritableSignal<number> = signal(0);
+  public animationProgress: WritableSignal<number> = this._animationProgress;
+
+  constructor() {
+    this.PIXELS_PER_STEP = 50;
+  }
+
   /**
    *
    *  Lecture directe (non-réactive) de l'état actuel du robot
@@ -33,17 +41,9 @@ export abstract class RobotDataService {
   }
 
   /**
-   * Renvoie la map de signaux de robot
+   * Renvoie la map de signaux de robot selon le type spécifié
    */
   public abstract getRobotSignalsList(): Map<string, Signal<RobotModel>>;
-
-  // Signal pour le progress (0 à 1)
-  protected readonly _animationProgress: WritableSignal<number> = signal(0);
-  public animationProgress: WritableSignal<number> = this._animationProgress;
-
-  constructor() {
-    this.PIXELS_PER_STEP = 50;
-  }
 
   /**
    * Instancie la liste de robots avec leurs données

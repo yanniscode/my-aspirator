@@ -16,8 +16,6 @@ export class RobotDataFactoryService {
   // Pattern factory: tableau de Robot Data Services de type spécifiques vers un type générique
   private robotDataServicesTab: RobotDataService[] = [this.robotAspiratorDataService, this.robotAspiromanDataService];
 
-  public robotNames = signal<string[]>([]);
-
   /**
   * Map en lecture seule pour stocker les signaux computed de chaque robot à afficher
   */
