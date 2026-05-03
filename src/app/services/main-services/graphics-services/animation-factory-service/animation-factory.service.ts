@@ -1,39 +1,29 @@
-import { inject, Injectable, Signal, WritableSignal } from '@angular/core';
+import { inject, Injectable, Signal } from '@angular/core';
 import { AssetService } from '../asset-service/asset.service';
-import { AssetMaisonService } from '../../../maison-services/maison-graphics-services/asset-maison-service/asset-maison.service';
-import { AssetRobotService } from '../../../robot-services/robot-graphics-services/asset-robot-service/asset-robot.service';
-import { RobotDataFactoryService } from '../../../robot-services/robot-data-factory-service/robot-data-factory.service';
 import { RobotModel } from '../../../../classes/models/robot-model/robot-model';
-import { RobotDataService } from '../../../robot-services/robot-data-services/robot-data.service';
-import { RobotActionAspiromanService } from '../../../robot-services/robot-action-services/robot-action-aspiroman-service/robot-action-aspiroman.service';
-import { MaisonRenderAnimationService } from '../../../maison-services/maison-graphics-services/maison-render-animation-service/maison-render-animation.service';
-import { RobotAspiromanRenderAnimationService } from '../../../robot-services/robot-graphics-services/robot-aspiroman-render-animation-service/robot-aspiroman-render-animation.service';
 import { RenderAnimationService } from '../render-animation-service/render-animation.service';
 import { RobotActionService } from '../../../robot-services/robot-action-services/robot-action.service';
-import { RobotActionAspiratorService } from '../../../robot-services/robot-action-services/robot-action-aspirator-service/robot-action-aspirator.service';
-import { RobotAspiratorRenderAnimationService } from '../../../robot-services/robot-graphics-services/robot-aspirator-render-animation-service/robot-aspirator-render-animation.service';
+import { RenderFactoryService } from '../render-factory-service/render-factory.service';
+import { ActionFactoryService } from '../action-factory-service/action-factory.service';
+import { AssetFactoryService } from '../asset-factory-service/asset-factory.service';
+import { RobotDataFactoryService } from '../../../robot-services/robot-data-factory-service/robot-data-factory.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AnimationFactoryService {
 
-  private robotDataService = inject(RobotDataService);
-  private robotDataFactoryService = inject(RobotDataFactoryService)
-  private assetMaisonService = inject(AssetMaisonService) as AssetService;
-  private assetRobotService = inject(AssetRobotService) as AssetService;
-  private assetServicesTab: AssetService[] = [this.assetMaisonService, this.assetRobotService];
+  private robotDataFactoryService = inject(RobotDataFactoryService);
+  public robotSignals: Map<string, Signal<RobotModel>> = this.robotDataFactoryService.robotSignals;
 
-  private robotActionAspiratorService = inject(RobotActionAspiratorService) as RobotActionService;
-  private robotActionAspiromanService = inject(RobotActionAspiromanService) as RobotActionService;
-  private robotActionServicesTab: RobotActionService[] = [this.robotActionAspiratorService, this.robotActionAspiromanService];
+  private assetFactoryService = inject(AssetFactoryService);
+  private assetServicesTab: AssetService[] = this.assetFactoryService.getAssetServicesTab();
 
-  private maisonRenderAnimationService = inject(MaisonRenderAnimationService) as RenderAnimationService;
-  private robotAspiratorRenderAnimationService = inject(RobotAspiratorRenderAnimationService) as RenderAnimationService;
-  private robotAspiromanRenderAnimationService = inject(RobotAspiromanRenderAnimationService) as RenderAnimationService;
-  private robotRenderAnimationServicesTab: RenderAnimationService[] = [this.maisonRenderAnimationService, this.robotAspiratorRenderAnimationService, this.robotAspiromanRenderAnimationService];
+  private actionFactoryService = inject(ActionFactoryService);
+  private actionServicesTab: RobotActionService[] = this.actionFactoryService.getActionServicesTab();
 
-  public robotSignals: Map<string, Signal<RobotModel>> = this.robotDataService.robotSignals;
+  private renderFactoryService = inject(RenderFactoryService);
+  private renderAnimationServicesTab: RenderAnimationService[] = this.renderFactoryService.getRenderAnimationServicesTab();
 
   protected ctx!: CanvasRenderingContext2D;
 
@@ -46,6 +36,9 @@ export class AnimationFactoryService {
 
   // Animation des robots: id de la trame en cours
   protected animationFrameId?: number;
+
+  private readonly WIDTH = 500;
+  private readonly HEIGHT = 400;
 
   // Configuration de l'animation
   protected readonly STEP_DURATION = 600; // Durée d'un déplacement complet (ms)
@@ -119,10 +112,10 @@ export class AnimationFactoryService {
     let lastStepTime = performance.now();
     let progress = 0;
 
-    console.log("animationProgress = " + this.robotDataService.animationProgress());
+    console.log("animationProgress = " + this.robotDataFactoryService.animationProgress());
     console.log("progress = " + progress);
 
-    this.robotDataService.animationProgress.set(progress);
+    this.robotDataFactoryService.animationProgress.set(progress);
 
     // boucle générale de l'animation
     const animate = (currentTime: number) => {
@@ -140,7 +133,7 @@ export class AnimationFactoryService {
       // Nouvelle direction selon la durée de STEP_DURATION
       else if (sequenceEnded) {
         // s'il n'y a plus de robot actif à la fin de la séquence d'animation, on stoppe directement l'animation
-        if (!this.robotDataService.hasActiveRobots()) {
+        if (!this.robotDataFactoryService.hasActiveRobots()) {
           console.log("pauseAllAnimation 2");
 
           this.pauseAllAnimation();
@@ -151,16 +144,16 @@ export class AnimationFactoryService {
         lastStepTime = currentTime;
 
         // 2. Calcul des nouvelles directions (qui lit progress = 0)
-        this.robotActionServicesTab.forEach(robotActionService => {
-          robotActionService.calculateNewDirectionsForAllRobots();
-          robotActionService.updateRobotsVisitedCells();
+        this.actionServicesTab.forEach(actionService => {
+          actionService.calculateNewDirectionsForAllRobots();
+          actionService.updateRobotsVisitedCells();
         });
 
       } else {
         // En cours d'animation
         progress = deltaTime / this.STEP_DURATION;
         // Mettre à jour le signal de progression
-        this.robotDataService.animationProgress.set(progress);
+        this.robotDataFactoryService.animationProgress.set(progress);
       }
 
       // TODO: garder ici ??
@@ -168,7 +161,7 @@ export class AnimationFactoryService {
       // this.ctx.clearRect(0, 0, this.WIDTH, this.HEIGHT);
 
       // 3. Mise à jour de la position du robot et de la maison (vue)
-      this.robotRenderAnimationServicesTab.forEach(robotRenderAnimationService => {
+      this.renderAnimationServicesTab.forEach(robotRenderAnimationService => {
         this.ctx = robotRenderAnimationService.drawObject(this.ctx);
       });
 
@@ -177,21 +170,35 @@ export class AnimationFactoryService {
       return this.ctx;
     };
 
-    this.robotActionServicesTab.forEach(robotActionService => {
-      robotActionService.calculateNewDirectionsForAllRobots();
-      robotActionService.updateRobotsVisitedCells();
+    this.actionServicesTab.forEach(actionService => {
+      actionService.calculateNewDirectionsForAllRobots();
+      actionService.updateRobotsVisitedCells();
     });
 
     // TODO: garder ici ??
     // Efface tout
     // this.ctx.clearRect(0, 0, this.WIDTH, this.HEIGHT);
     // Mise à jour de la position du robot et de la maison (vue)
-    this.ctx = this.maisonRenderAnimationService.drawObject(this.ctx);
-    this.robotRenderAnimationServicesTab.forEach(robotRenderAnimationService => {
-      this.ctx = robotRenderAnimationService.drawObject(this.ctx);
+    this.renderAnimationServicesTab.forEach(renderAnimationService => {
+      this.ctx = renderAnimationService.drawObject(this.ctx);
     });
     this.animationFrameId = requestAnimationFrame(animate);
 
+    return this.ctx;
+  }
+
+  /**
+ * Affichage des images sur le canvas
+ */
+  public renderAnimation(ctx: CanvasRenderingContext2D): CanvasRenderingContext2D {
+    // console.log("RenderFactoryService - renderAnimation()");
+    this.ctx = ctx;
+    // Efface tout
+    this.ctx.clearRect(0, 0, this.WIDTH, this.HEIGHT);
+    // Dessine tout
+    this.renderAnimationServicesTab.forEach(renderAnimationService => {
+      this.ctx = renderAnimationService.drawObject(this.ctx);
+    });
     return this.ctx;
   }
 

@@ -33,9 +33,9 @@
 </div>
 
 <div class="infos-container">
-    <h2>Main Test Signaux avec {{ robotList().length }} robots</h2>
+    <h2>Main Test Signaux avec {{ robotsList().length }} robots</h2>
 
-    <!-- TODO - utilisé ici pour test: n'a pas accès aux infos spécifiques au robot aspirateur (car robot générique dans la Main) -->
+    <!-- Note: accès uniquement aux infos génériques des robots (ex: pas le niveau de batterie, spécifique au robot aspirateur) -->
     <div class="robot-liste-infos">
         @for (robot of robotViewModelTab; track robot) {
         <div class="robot-card">

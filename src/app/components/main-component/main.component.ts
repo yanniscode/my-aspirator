@@ -1,4 +1,4 @@
-import { Component, OnDestroy, ViewChild, ViewEncapsulation, inject, ChangeDetectionStrategy, computed, Signal, signal, AfterViewInit, WritableSignal } from '@angular/core';
+import { Component, OnDestroy, ViewChild, ViewEncapsulation, inject, ChangeDetectionStrategy, computed, Signal, signal, AfterViewInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
 import { GameComponent } from '../game-component/game.component';
@@ -41,7 +41,7 @@ export class MainComponent implements AfterViewInit, OnDestroy {
   public robotSignals: Map<string, Signal<RobotModel>> = this.robotDataFactoryService.robotSignals;
 
   // Signal computed qui expose les valeurs de la Map de robots sous forme de tableau
-  public readonly robotList: Signal<RobotModel[]> = computed(() =>
+  public readonly robotsList: Signal<RobotModel[]> = computed(() =>
     Array.from(this.robotSignals.values()).map(signal => signal())
   );
 
@@ -58,11 +58,11 @@ export class MainComponent implements AfterViewInit, OnDestroy {
     // initialisation des params de la maison et des robots
     this.maisonDataFactoryService.setMaisonParams();
 
-    this.robotViewModelTab = [...this.robotDataFactoryService.createRobotsParams()];
+    this.robotDataFactoryService.createRobotsParams();
+    // copie de la liste de signaux pour le template, qui l'accepte mieux sous forme de tableau
+    // pour éviter de multiples recalculs
+    this.robotViewModelTab = this.robotsList();
     this.isRobotMapStarted = false;
-
-    // initialisation des données des robots et la Map de signaux par la factory
-    this.robotDataFactoryService.buildRobotSignalsList();
   }
 
   ngAfterViewInit(): void {
@@ -73,10 +73,7 @@ export class MainComponent implements AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     console.log('MainComponent - ngOnDestroy()');
-
-    this.robotViewModelTab.forEach(robotModel => {
-      this.robotDataFactoryService.clearAllRobotsList(robotModel.robotName);
-    });
+    this.robotDataFactoryService.clearAllRobotsList();
     console.log(`Nettoyage de la méthode Main - ${this.robotViewModelTab.length} robots`);
   }
 

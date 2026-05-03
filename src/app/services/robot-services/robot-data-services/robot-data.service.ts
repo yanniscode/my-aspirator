@@ -1,4 +1,4 @@
-import { computed, Injectable, Signal, signal, WritableSignal } from '@angular/core';
+import { Injectable, Signal, signal, WritableSignal } from '@angular/core';
 import { RobotModel } from '../../../classes/models/robot-model/robot-model';
 import { PixelPosition } from '../../../classes/models/pixel-position';
 import { GridPosition } from '../../../classes/models/grid-position';
@@ -50,14 +50,7 @@ export abstract class RobotDataService {
    */
   public abstract createRobotsParams(): RobotModel[];
 
-  // computed vérifiant si la map de robots un un robot "aspiroman" est à l'état démarré
-  public readonly hasActiveRobots: Signal<boolean> = computed(() =>
-    [...this._robotSignals.values()].some(signal => signal()?.isRobotStarted)
-    // ou si l'on veut filtrer par type de robot:
-    // [...this._robotSignals.values()].some(signal => (signal()?.robotType === "aspiroman") && signal()?.isRobotStarted)
-  );
-
-  public clearAllRobotsList(robotName: string): void {
+  public clearAllRobotsList(): void {
     console.log("RobotDataFactoryService - clearAllRobotsList()");
     this.robotSignals.clear();
   }

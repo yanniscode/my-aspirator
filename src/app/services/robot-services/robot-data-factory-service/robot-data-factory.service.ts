@@ -1,4 +1,4 @@
-import { inject, Injectable, Signal, signal, WritableSignal } from '@angular/core';
+import { computed, inject, Injectable, Signal, signal, WritableSignal } from '@angular/core';
 import { RobotModel } from '../../../classes/models/robot-model/robot-model';
 import { RobotAspiratorDataService } from '../robot-data-services/robot-aspirator-data-service/robot-aspirator-data.service';
 import { RobotDataService } from '../robot-data-services/robot-data.service';
@@ -27,16 +27,25 @@ export class RobotDataFactoryService {
     return this.robotDataService.getRobotSignal(robotName);
   }
 
-  public hasActiveRobots(): Signal<boolean> {
-    return this.robotDataService.hasActiveRobots;
-  }
+  /**
+   * computed vérifiant si la map de robots est à l'état démarré
+   * note: fonctionne ici, mais pas si on la place dans RobotDataService
+   */
+  public readonly hasActiveRobots: Signal<boolean> = computed(() =>
+    [...this.robotSignals.values()].some(signal => signal()?.isRobotStarted)
+    // ou si l'on veut filtrer par type de robot:
+    // [...this._robotSignals.values()].some(signal => (signal()?.robotType === "aspiroman") && signal()?.isRobotStarted)
+  );
+
+  public animationProgress: WritableSignal<number> = this.robotDataService.animationProgress;
 
   /**
    * Méthode de factory : renvoie les paramètres des robots avec un upcast vers le type générique RobotModel[]
    */
-  public createRobotsParams(): RobotModel[] {
+  public createRobotsParams(): void {
     console.log("RobotDataFactoryService - createRobotsParams()");
 
+    // initialisation des paramètres des robots
     let robotModelsTab: RobotModel[] = [];
     for (let i = 0; i < this.robotDataServicesTab.length; i++) {
       [...this.robotDataServicesTab[i].createRobotsParams()].map(robot => {
@@ -44,7 +53,8 @@ export class RobotDataFactoryService {
       });
     }
 
-    return robotModelsTab;
+    // initialisation de la Map de signaux
+    this.buildRobotSignalsList();
   }
 
   /**
@@ -65,8 +75,8 @@ export class RobotDataFactoryService {
   /**
   * Désenregistre un robot et nettoie son signal
   */
-  public clearAllRobotsList(robotName: string): void {
+  public clearAllRobotsList(): void {
     console.log("RobotDataFactoryService - clearAllRobotsList()");
-    this.robotDataService.clearAllRobotsList(robotName);
+    this.robotDataService.clearAllRobotsList();
   }
 }

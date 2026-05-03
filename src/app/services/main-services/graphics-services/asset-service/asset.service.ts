@@ -71,6 +71,7 @@ export abstract class AssetService {
    */
   public abstract getImageForCell(type: string): HTMLImageElement | undefined;
 
+  // TODO: supprimer ??
   // /**
   //  *
   //  * @returns
