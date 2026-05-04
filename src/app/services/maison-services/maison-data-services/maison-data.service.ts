@@ -82,36 +82,4 @@ export abstract class MaisonDataService {
       )
     }));
   }
-
-  /**
-   * Ajout de la base d'un robot au décors (datas)
-   *
-   * @param robotBasePosition
-   */
-  public abstract updateMaisonRobotBase(robotBasePosition: GridPosition): void;
-
-  /**
-   * Permet de mettre à jour une case comme étant réservée ou non (utile si plusieurs robots)
-   *
-   * @param nextPosition
-   * @param reservedStatus
-   * @returns
-   */
-  public abstract updateReservedCell(nextPosition: GridPosition, reservedStatus: boolean): void;
-
-  /**
-   * Permet de mettre à jour une case comme visitée (datas)
-   *
-   * @param lastPosition
-   * @param visitedStatus
-   * @returns
-   */
-  public abstract updateVisitedCell(lastPosition: GridPosition, visitedStatus: boolean): void;
-
-  /**
-   * Vérifie si le nettoyage est terminé
-   *
-   * @returns
-   */
-  public abstract toutEstVisite(): boolean;
 }

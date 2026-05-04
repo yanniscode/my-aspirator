@@ -1,8 +1,9 @@
-import { Component, ViewEncapsulation, ChangeDetectionStrategy, inject, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, ViewEncapsulation, ChangeDetectionStrategy, inject, ViewChild, ElementRef, AfterViewInit, Signal } from '@angular/core';
 import { TableModule } from "primeng/table";
 import { LoggerService } from '../../services/main-services/logger-service/logger.service';
 import { MaisonDataNettoyageService } from '../../services/maison-services/maison-data-services/maison-data-nettoyage-service/maison-data-nettoyage.service';
 import { AnimationFactoryService } from '../../services/main-services/graphics-services/animation-factory-service/animation-factory.service';
+import { MaisonDataFactoryService } from '../../services/maison-services/maison-data-factory-service/maison-data-factory.service';
 
 @Component({
   selector: 'app-game',
@@ -26,7 +27,7 @@ import { AnimationFactoryService } from '../../services/main-services/graphics-s
 export class GameComponent implements AfterViewInit {
   @ViewChild('gameCanvas', { static: true }) gameCanvas!: ElementRef<HTMLCanvasElement>;
 
-  private maisonDataNettoyageService = inject(MaisonDataNettoyageService);
+  private maisonDataFactoryService = inject(MaisonDataFactoryService);
   private animationFactoryService = inject(AnimationFactoryService);
 
   private loggerService = inject(LoggerService);
@@ -48,22 +49,10 @@ export class GameComponent implements AfterViewInit {
     await this.initialiseAfterView(this.gameCanvas);
   }
 
-  public onStart() {
-    console.log("GameComponent - onStart()");
-
-    this.ctx = this.animationFactoryService.declencheAnimationService(this.ctx);
-  }
-
-  public onPause(): void {
-    console.log("GameComponent - onPause");
-
-    this.animationFactoryService.pauseAnimationService(this.ctx);
-  }
-
   public async initialiseAfterView(gameCanvas: ElementRef<HTMLCanvasElement>): Promise<void> {
     console.log("GameComponent - ngAfterViewInit()");
 
-    const maison = this.maisonDataNettoyageService.maisonSignal();
+    const maison = this.maisonDataFactoryService.maisonSignal();
     // adaptation de la taille du canvas à la maison (représente tout l'environnement)
     const canvas = gameCanvas.nativeElement;
     canvas.width = maison.maison[0].length * this.CELL_SIZE;
@@ -77,6 +66,18 @@ export class GameComponent implements AfterViewInit {
     await this.animationFactoryService.loadCanvasImages();
 
     this.ctx = this.animationFactoryService.renderAnimation(this.ctx);
+  }
+
+  public onStart() {
+    console.log("GameComponent - onStart()");
+
+    this.ctx = this.animationFactoryService.startAnimation(this.ctx);
+  }
+
+  public onPause(): void {
+    console.log("GameComponent - onPause");
+
+    this.animationFactoryService.onRobotsPause(this.ctx);
   }
 
   private log(message: string): void {

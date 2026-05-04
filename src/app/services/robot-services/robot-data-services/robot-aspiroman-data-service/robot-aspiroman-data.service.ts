@@ -110,7 +110,7 @@ export class RobotAspiromanDataService extends RobotDataService {
    *
    * @param robotModel
    */
-  public setRobotSignalsList(robotModelTab: AspiromanModel[]): WritableSignal<string[]> {
+  public override setRobotSignalsList(robotModelTab: AspiromanModel[]): void {
     console.log("RobotAspiromanDataService - setRobotSignalsList()");
 
     robotModelTab.forEach((robotModel: AspiromanModel) => {
@@ -121,14 +121,12 @@ export class RobotAspiromanDataService extends RobotDataService {
       // 2/ enregistrer le nom de chaque robot dans la liste de robotNames pour le template binding:
       this.robotNames.update(robotNames => [...robotNames, robotModel.robotName]);
     });
-
-    return this.robotNames;
   }
 
   /**
   * Enregistre un nouveau robot dans la liste
   */
-  public registerRobotInList(robotModel: AspiromanModel): void {
+  protected registerRobotInList(robotModel: AspiromanModel): void {
     console.log("RobotAspiromanDataService - registerRobotInList()");
 
     if (!this.aspiromanSignals.has(robotModel.robotName)) {
@@ -143,7 +141,7 @@ export class RobotAspiromanDataService extends RobotDataService {
    *
    * @returns
    */
-  public getRobotSignalsList(): Map<string, Signal<AspiromanModel>> {
+  public override getRobotSignalsList(): Map<string, Signal<AspiromanModel>> {
     console.log("RobotAspiromanDataService - getRobotSignalsList()");
 
     // TODO: revoir appel de params spés
@@ -157,7 +155,7 @@ export class RobotAspiromanDataService extends RobotDataService {
    * @param progress
    * @returns
    */
-  public updateCurrentCoordinates(name: string, progress: number): PixelPosition {
+  public override updateCurrentCoordinates(name: string, progress: number): PixelPosition {
     console.log("RobotDataService - updateCurrentCoordinates()");
 
     let aspiromanSignal = this.aspiromanSignals.get(name) as Signal<AspiromanModel | undefined>;
@@ -193,7 +191,7 @@ export class RobotAspiromanDataService extends RobotDataService {
    * @param nextPosition
    * @returns
    */
-  public moveRobotCoordinates(robotName: string, position: GridPosition, nextPosition: GridPosition): void {
+  public override moveRobotCoordinates(robotName: string, position: GridPosition, nextPosition: GridPosition): void {
     console.log("RobotDataService - moveRobotCoordinates()");
 
     const robotSignal: WritableSignal<AspiromanModel> | undefined = this.aspiromanSignals.get(robotName);

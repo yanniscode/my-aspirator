@@ -39,7 +39,7 @@ export class RobotActionAspiromanService extends RobotActionService {
   /**
    * Calcule de nouvelles directions pour la Map de robots
    */
-  public calculateNewDirectionsForAllRobots(): void {
+  public override calculateNewDirectionsForAllRobots(): void {
     console.log("RobotActionAspiromanService - calculateNewDirectionsForAllRobots()");
 
     if (this.aspiromanSignals.size <= 0) return;
@@ -114,30 +114,9 @@ export class RobotActionAspiromanService extends RobotActionService {
   }
 
   /**
-   * Activation du retour à la base
-   *
-   * @param robot
-   * @returns
-   */
-  protected activateReturnToBase(robot: AspiromanModel): void {
-    console.log("RobotActionAspiromanService - activateReturnToBase()");
-
-    const nextPosition = this.retournerALaBase(robot);
-    if (!nextPosition) {
-      this.stopRobot(robot.robotName);
-      return;
-    }
-
-    // MAJ du robot: retour à la base
-    this.moveRobotReturningToBase(robot.robotName, robot.position, nextPosition);
-
-    console.log(`### Nouvelle position de retour à la base trouvée pour le Robot ${robot.robotName} : row = ${nextPosition.col}, col = ${nextPosition.row} - Batterie: ${robot.batterie}%`);
-  }
-
-  /**
   * Déplace manuellement un robot à une position
   */
-  protected moveRobot(robotName: string, nextPosition: GridPosition): void {
+  protected override moveRobot(robotName: string, nextPosition: GridPosition): void {
     console.log("RobotActionAspiromanService - moveRobot()");
 
     const robotSignal: WritableSignal<AspiromanModel> | undefined = this.aspiromanSignals.get(robotName);
@@ -159,49 +138,14 @@ export class RobotActionAspiromanService extends RobotActionService {
   }
 
   /**
-   * Déplacement du robot vers sa base de charge
-   *
-   * @param robotName
-   * @param position
-   * @param nextPosition
-   * @returns
-   */
-  protected moveRobotReturningToBase(robotName: string, position: GridPosition, nextPosition: GridPosition): void {
-    console.log("RobotActionAspiromanService - moveRobotReturningToBase()");
-
-    const robotSignal: WritableSignal<AspiromanModel> | undefined = this.aspiromanSignals.get(robotName);
-    if (!robotSignal) return;
-
-    const robot = robotSignal();
-
-    const newStartCoordinate: PixelPosition = this.robotAspiromanDataService.calculatePixelCoordinates(position);
-    const newTargetCoordinate: PixelPosition = this.robotAspiromanDataService.calculatePixelCoordinates(nextPosition);
-
-    if (newStartCoordinate.x !== newTargetCoordinate.x || newStartCoordinate.y !== newTargetCoordinate.y) {
-      robotSignal.update(robot => ({
-        ...robot,
-        isRobotStarted: true,
-        isRobotReturningToBase: true,
-        robotDirection: this.getRobotDirection(robot.position, nextPosition),
-        lastPosition: { ...robot.position },  // la précédente position est modifiée avec l'actuelle
-        position: { ...nextPosition },        // la nouvelle position prend sa valeur suivante
-        batterie: robot.batterie - robot.consommationParMouvement
-      }));
-      console.log(`### ${robotName}: tableau [${nextPosition.col},${nextPosition.row}] → pixels (${newTargetCoordinate.x}, ${newTargetCoordinate.y}) - batterie (${robot.batterie})`);
-    } else {
-      this.stopRobot(robotName);
-    }
-  }
-
-  /**
-   * Arrêt d'un robot à une position
-   *
-   * @param robotName
-   * @param position
-   * @param nextPosition
-   * @returns
-   */
-  protected stopRobot(robotName: string): void {
+ * Arrêt d'un robot à une position
+ *
+ * @param robotName
+ * @param position
+ * @param nextPosition
+ * @returns
+ */
+  protected override stopRobot(robotName: string): void {
     console.log("RobotActionAspiromanService - stopRobot()");
 
     const robotSignal: WritableSignal<AspiromanModel> | undefined = this.aspiromanSignals.get(robotName);
@@ -277,12 +221,33 @@ export class RobotActionAspiromanService extends RobotActionService {
   }
 
   /**
+* Activation du retour à la base
+*
+* @param robot
+* @returns
+*/
+  private activateReturnToBase(robot: AspiromanModel): void {
+    console.log("RobotActionAspiromanService - activateReturnToBase()");
+
+    const nextPosition = this.retournerALaBase(robot);
+    if (!nextPosition) {
+      this.stopRobot(robot.robotName);
+      return;
+    }
+
+    // MAJ du robot: retour à la base
+    this.moveRobotReturningToBase(robot.robotName, robot.position, nextPosition);
+
+    console.log(`### Nouvelle position de retour à la base trouvée pour le Robot ${robot.robotName} : row = ${nextPosition.col}, col = ${nextPosition.row} - Batterie: ${robot.batterie}%`);
+  }
+
+  /**
    * Retourner à la base de charge
    *
    * @param robotModelInput
    * @returns
    */
-  protected retournerALaBase(robotModelInput: AspiromanModel): GridPosition {
+  private retournerALaBase(robotModelInput: AspiromanModel): GridPosition {
     console.log("RobotActionAspiromanServices - retournerALaBase()");
     console.log("Retour à la base de charge");
 
@@ -302,6 +267,41 @@ export class RobotActionAspiromanService extends RobotActionService {
   }
 
   /**
+   * Déplacement du robot vers sa base de charge
+   *
+   * @param robotName
+   * @param position
+   * @param nextPosition
+   * @returns
+   */
+  private moveRobotReturningToBase(robotName: string, position: GridPosition, nextPosition: GridPosition): void {
+    console.log("RobotActionAspiromanService - moveRobotReturningToBase()");
+
+    const robotSignal: WritableSignal<AspiromanModel> | undefined = this.aspiromanSignals.get(robotName);
+    if (!robotSignal) return;
+
+    const robot = robotSignal();
+
+    const newStartCoordinate: PixelPosition = this.robotAspiromanDataService.calculatePixelCoordinates(position);
+    const newTargetCoordinate: PixelPosition = this.robotAspiromanDataService.calculatePixelCoordinates(nextPosition);
+
+    if (newStartCoordinate.x !== newTargetCoordinate.x || newStartCoordinate.y !== newTargetCoordinate.y) {
+      robotSignal.update(robot => ({
+        ...robot,
+        isRobotStarted: true,
+        isRobotReturningToBase: true,
+        robotDirection: this.getRobotDirection(robot.position, nextPosition),
+        lastPosition: { ...robot.position },  // la précédente position est modifiée avec l'actuelle
+        position: { ...nextPosition },        // la nouvelle position prend sa valeur suivante
+        batterie: robot.batterie - robot.consommationParMouvement
+      }));
+      console.log(`### ${robotName}: tableau [${nextPosition.col},${nextPosition.row}] → pixels (${newTargetCoordinate.x}, ${newTargetCoordinate.y}) - batterie (${robot.batterie})`);
+    } else {
+      this.stopRobot(robotName);
+    }
+  }
+
+  /**
    * Déterminer si le robot doit rentrer ou non à sa base de charge
    *
    * @param batterie
@@ -310,7 +310,7 @@ export class RobotActionAspiromanService extends RobotActionService {
    * @param consommationParMouvement
    * @returns
    */
-  protected robotDoitRentrerALaBase(batterie: number, position: GridPosition, basePosition: GridPosition, consommationParMouvement: number): boolean {
+  private robotDoitRentrerALaBase(batterie: number, position: GridPosition, basePosition: GridPosition, consommationParMouvement: number): boolean {
     console.log("RobotActionAspiromanService - robotDoitRentrerALaBase()");
 
     return (position && batterie <= this.energieNecessairePourRetour(position, basePosition, consommationParMouvement)) ?
@@ -325,7 +325,7 @@ export class RobotActionAspiromanService extends RobotActionService {
    * @param consommationParMouvement
    * @returns
    */
-  protected energieNecessairePourRetour(position: GridPosition, basePosition: GridPosition, consommationParMouvement: number): number {
+  private energieNecessairePourRetour(position: GridPosition, basePosition: GridPosition, consommationParMouvement: number): number {
     // console.log("RobotActionAspiromanService - energieNecessairePourRetour()");
 
     const maisonModel: MaisonModel = this.maisonSignal();
@@ -345,7 +345,7 @@ export class RobotActionAspiromanService extends RobotActionService {
    * @param grid
    * @returns
    */
-  public calculatePixelCoordinates(grid: GridPosition): PixelPosition {
+  public override calculatePixelCoordinates(grid: GridPosition): PixelPosition {
     // console.log("RobotActionAspiromanService - calculatePixelCoordinates()");
 
     return new PixelPosition(
@@ -357,7 +357,7 @@ export class RobotActionAspiromanService extends RobotActionService {
   /**
    * MAJ des position visitée de la maison
    */
-  public updateRobotsVisitedCells(): void {
+  public override updateRobotsVisitedCells(): void {
     console.log("RobotActionAspiromanService - updateRobotsVisitedCells()");
 
     this.aspiromanSignals.forEach((robotSignal) => {

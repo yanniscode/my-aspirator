@@ -59,39 +59,14 @@ export class AnimationFactoryService {
   }
 
   /**
- * Chargement des images pour le canvas
- */
+   * Chargement des images pour le canvas
+   */
   public async loadCanvasImages(): Promise<void> {
     console.log("AnimationFactoryService - loadCanvasImages()");
 
     for (let i = 0; i < this.assetServicesTab.length; i++) {
       await this.assetServicesTab[i].loadAssets();
     }
-  }
-
-  /**
-   * Méthode qui déclenche l'animation globale
-   *
-   * @param ctx
-   * @returns
-   */
-  public declencheAnimationService(ctx: CanvasRenderingContext2D): CanvasRenderingContext2D {
-    console.log("AnimationFactoryService - declencheAnimationService()");
-    this.ctx = ctx;
-    this.ctx = this.startAnimation(ctx);
-
-    return this.ctx;
-  }
-
-  /**
-   * Met en pause selon le type d'animation souhaité
-   *
-   * @param ctx
-   * @returns
-   */
-  public pauseAnimationService(ctx: CanvasRenderingContext2D): void {
-    console.log("AnimationFactoryService - pauseAnimationService()");
-    this.onRobotsPause(ctx);
   }
 
   /**

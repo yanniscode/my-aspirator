@@ -81,24 +81,24 @@ export class RobotAspiromanRenderAnimationService extends RenderAnimationService
     console.log("animationProgress = " + this.robotDataService.animationProgress());
     const robotAnimationFrame = (Number(this.robotDataService.animationProgress().toPrecision(2)) * 100);
     if (!robotAnimationFrame || !robot.isRobotStarted) {
-      return this.assetRobotService.getRobotImageByHisFrameAndDirection(robot.robotDirection, 1);
+      return this.assetRobotService.getRobotImageByFrameAndDirection(robot.robotDirection, 1);
     }
 
     if (20 <= robotAnimationFrame && robotAnimationFrame < 40) {
-      return this.assetRobotService.getRobotImageByHisFrameAndDirection(robot.robotDirection, 2);
+      return this.assetRobotService.getRobotImageByFrameAndDirection(robot.robotDirection, 2);
     }
     else if (40 <= robotAnimationFrame && robotAnimationFrame < 60) {
-      return this.assetRobotService.getRobotImageByHisFrameAndDirection(robot.robotDirection, 3);
+      return this.assetRobotService.getRobotImageByFrameAndDirection(robot.robotDirection, 3);
     }
     else if (60 <= robotAnimationFrame && robotAnimationFrame < 80) {
-      return this.assetRobotService.getRobotImageByHisFrameAndDirection(robot.robotDirection, 4);
+      return this.assetRobotService.getRobotImageByFrameAndDirection(robot.robotDirection, 4);
     }
     else if (80 <= robotAnimationFrame && robotAnimationFrame < 100) {
-      return this.assetRobotService.getRobotImageByHisFrameAndDirection(robot.robotDirection, 5);
+      return this.assetRobotService.getRobotImageByFrameAndDirection(robot.robotDirection, 5);
     }
     else {
       // cas où la trame est < 20 ou > 100
-      return this.assetRobotService.getRobotImageByHisFrameAndDirection(robot.robotDirection, 1);
+      return this.assetRobotService.getRobotImageByFrameAndDirection(robot.robotDirection, 1);
     }
   }
 

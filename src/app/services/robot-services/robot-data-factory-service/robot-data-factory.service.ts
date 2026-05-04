@@ -1,4 +1,4 @@
-import { computed, inject, Injectable, Signal, signal, WritableSignal } from '@angular/core';
+import { computed, inject, Injectable, Signal, WritableSignal } from '@angular/core';
 import { RobotModel } from '../../../classes/models/robot-model/robot-model';
 import { RobotAspiratorDataService } from '../robot-data-services/robot-aspirator-data-service/robot-aspirator-data.service';
 import { RobotDataService } from '../robot-data-services/robot-data.service';
@@ -19,7 +19,7 @@ export class RobotDataFactoryService {
   /**
   * Map en lecture seule pour stocker les signaux computed de chaque robot à afficher
   */
-  public robotSignals: Map<string, Signal<RobotModel>> = this.robotDataService.robotSignals;
+  public readonly robotSignals: Map<string, Signal<RobotModel>> = this.robotDataService.robotSignals;
 
   public getRobotSignal(robotName: string): Signal<RobotModel | undefined> {
     return this.robotDataService.getRobotSignal(robotName);
@@ -45,11 +45,12 @@ export class RobotDataFactoryService {
 
     // initialisation des paramètres des robots
     let robotModelsTab: RobotModel[] = [];
-    for (let i = 0; i < this.robotDataServicesTab.length; i++) {
-      [...this.robotDataServicesTab[i].createRobotsParams()].map(robot => {
+
+    this.robotDataServicesTab.forEach(robotDataService => {
+      robotDataService.createRobotsParams().map(robot => {
         robotModelsTab.push(robot);
       });
-    }
+    });
 
     // initialisation de la Map de signaux
     this.buildRobotSignalsList();
@@ -63,11 +64,11 @@ export class RobotDataFactoryService {
   public buildRobotSignalsList(): void {
     console.log("RobotDataFactoryService - buildRobotSignalsList()");
 
-    for (let i = 0; i < this.robotDataServicesTab.length; i++) {
-      this.robotDataServicesTab[i].getRobotSignalsList().forEach(robotSignal => {
+    this.robotDataServicesTab.forEach(robotDataService => {
+      robotDataService.getRobotSignalsList().forEach(robotSignal => {
         this.robotSignals.set(robotSignal().robotName, robotSignal as WritableSignal<RobotModel>);
       });
-    }
+    });
   }
 
   /**

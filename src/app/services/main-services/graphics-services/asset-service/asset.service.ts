@@ -46,7 +46,7 @@ export abstract class AssetService {
    * @param indexImage
    * @returns
    */
-  public getRobotImageByHisFrameAndDirection(direction: Direction, animationFrame: number): HTMLImageElement {
+  public getRobotImageByFrameAndDirection(direction: Direction, animationFrame: number): HTMLImageElement {
 
     let dir = "e";
 

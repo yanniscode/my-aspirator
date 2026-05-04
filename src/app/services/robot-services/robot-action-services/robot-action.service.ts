@@ -1,7 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { GridPosition } from '../../../classes/models/grid-position';
 import { PixelPosition } from '../../../classes/models/pixel-position';
-import { RobotAspiratorModel } from '../../../classes/models/robot-model/robot-aspirator-model/robot-aspirator-model';
 import { LoggerService } from '../../main-services/logger-service/logger.service';
 import { Direction } from '../../../classes/utils/direction';
 
@@ -21,12 +20,6 @@ export abstract class RobotActionService {
    * Met à jour la cellule visitée
    */
   public abstract updateRobotsVisitedCells(): void;
-
-  /**
-   *
-   * @param robot
-   */
-  protected abstract activateReturnToBase(robot: RobotAspiratorModel): void;
 
   protected getRobotDirection(position: GridPosition, nextPosition: GridPosition): string {
     // dx: 0, dy: -1  // Nord
@@ -61,13 +54,6 @@ export abstract class RobotActionService {
    */
   protected abstract moveRobot(robotName: string, position: GridPosition, nextPosition: GridPosition): void;
 
-  /**
-   *
-   * @param robotName
-   * @param position
-   * @param nextPosition
-   */
-  protected abstract moveRobotReturningToBase(robotName: string, position: GridPosition, nextPosition: GridPosition): void;
 
   /**
    * Arrêt d'un robot à une position
@@ -78,31 +64,6 @@ export abstract class RobotActionService {
    * @returns
    */
   protected abstract stopRobot(robotName: string, position: GridPosition, nextPosition: GridPosition): void;
-
-  /**
-   * Retourner à la base de charge
-   *
-   * @param robotModelInput
-   */
-  protected abstract retournerALaBase(robotModelInput: RobotAspiratorModel): GridPosition;
-
-  /**
-   *
-   * @param batterie
-   * @param position
-   * @param basePosition
-   * @param consommationParMouvement
-   */
-  protected abstract robotDoitRentrerALaBase(batterie: number, position: GridPosition, basePosition: GridPosition, consommationParMouvement: number): boolean;
-
-  /**
-   * Estimer l'énergie nécessaire au robot pour retourner à la base
-   *
-   * @param position
-   * @param basePosition
-   * @param consommationParMouvement
-   */
-  protected abstract energieNecessairePourRetour(position: GridPosition, basePosition: GridPosition, consommationParMouvement: number): number;
 
   /**
    * Conversion de l'index dans le tableau (GridPosition) en Coordonnée en Pixels (PixelPosition) pour l'affichage CSS

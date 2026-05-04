@@ -37,9 +37,9 @@ export class RobotActionAspiratorService extends RobotActionService {
   }
 
   /**
-   * Calcule de nouvelles directions selon le temps donné
+   * Calcule de nouvelles directions selon le temps donné et activation des actions spécifiques au robot aspirateur (retour à la base si le niveau de batterie est dépassé)
    */
-  public calculateNewDirectionsForAllRobots(): void {
+  public override calculateNewDirectionsForAllRobots(): void {
     console.log("RobotActionAspiratorService - calculateNewDirectionsForAllRobots()");
 
     if (this.robotAspiratorSignals.size <= 0) return;
@@ -113,25 +113,33 @@ export class RobotActionAspiratorService extends RobotActionService {
     });
   }
 
-  protected activateReturnToBase(robot: RobotAspiratorModel): void {
-    console.log("RobotActionAspiratorService - activateReturnToBase()");
+  /**
+ * Conversion de l'index dans le tableau (GridPosition) en Coordonnée en Pixels (PixelPosition) pour l'affichage CSS
+ *
+ * @param grid
+ * @returns
+ */
+  public override calculatePixelCoordinates(grid: GridPosition): PixelPosition {
+    return new PixelPosition(
+      grid.col * this.PIXELS_PER_STEP,  // col → x (left)
+      grid.row * this.PIXELS_PER_STEP   // row → y (top)
+    );
+  }
 
-    const nextPosition = this.retournerALaBase(robot);
-    if (!nextPosition) {
-      this.stopRobot(robot.robotName);
-      return;
-    }
+  // MAJ des position visitée de la maison:
+  public override updateRobotsVisitedCells(): void {
+    console.log("RobotActionAspiratorService - updateRobotsVisitedCells()");
 
-    // MAJ du robot: retour à la base
-    this.moveRobotReturningToBase(robot.robotName, robot.position, nextPosition);
-
-    console.log(`### Nouvelle position de retour à la base trouvée pour le Robot ${robot.robotName} : row = ${nextPosition.col}, col = ${nextPosition.row} - Batterie: ${robot.batterie}%`);
+    this.robotAspiratorSignals.forEach((robotSignal) => {
+      const robot: RobotAspiratorModel = robotSignal();
+      this.maisonDataNettoyageService.updateVisitedCell(robot.lastPosition, true);
+    });
   }
 
   /**
   * Déplace manuellement un robot à une position pour le nettoyage
   */
-  protected moveRobot(robotName: string, nextPosition: GridPosition): void {
+  protected override moveRobot(robotName: string, nextPosition: GridPosition): void {
     console.log("RobotActionAspiratorService - moveRobot()");
 
     const robotSignal: WritableSignal<RobotAspiratorModel> | undefined = this.robotAspiratorSignals.get(robotName);
@@ -152,42 +160,15 @@ export class RobotActionAspiratorService extends RobotActionService {
     console.log(`### ${robotName}: tableau[${nextPosition.col},${nextPosition.row}]- batterie(${robot.batterie})`);
   }
 
-  protected moveRobotReturningToBase(robotName: string, position: GridPosition, nextPosition: GridPosition): void {
-    console.log("RobotActionAspiratorService - moveRobotReturningToBase()");
-
-    const robotSignal: WritableSignal<RobotAspiratorModel> | undefined = this.robotAspiratorSignals.get(robotName);
-    if (!robotSignal) return;
-
-    const robot = robotSignal();
-
-    const newStartCoordinate: PixelPosition = this.calculatePixelCoordinates(position);
-    const newTargetCoordinate: PixelPosition = this.calculatePixelCoordinates(nextPosition);
-
-    if (newStartCoordinate.x !== newTargetCoordinate.x || newStartCoordinate.y !== newTargetCoordinate.y) {
-      robotSignal.update(robot => ({
-        ...robot,
-        isRobotStarted: true,
-        isRobotReturningToBase: true,
-        robotDirection: this.getRobotDirection(robot.position, nextPosition),
-        lastPosition: { ...robot.position }, // la précédente position est modifiée avec l'actuelle
-        position: { ...nextPosition },        // la nouvelle position prend sa valeur suivante
-        batterie: robot.batterie - robot.consommationParMouvement
-      }));
-      console.log(`### ${robotName}: tableau [${nextPosition.col},${nextPosition.row}] → pixels (${newTargetCoordinate.x}, ${newTargetCoordinate.y}) - batterie (${robot.batterie})`);
-    } else {
-      this.stopRobot(robotName);
-    }
-  }
-
   /**
-   * Arrêt d'un robot à une position
-   *
-   * @param robotName
-   * @param position
-   * @param nextPosition
-   * @returns
-   */
-  protected stopRobot(robotName: string): void {
+ * Arrêt d'un robot à une position
+ *
+ * @param robotName
+ * @param position
+ * @param nextPosition
+ * @returns
+ */
+  protected override stopRobot(robotName: string): void {
     console.log("RobotActionAspiratorService - stopRobot()");
 
     const robotSignal: WritableSignal<RobotAspiratorModel> | undefined = this.robotAspiratorSignals.get(robotName);
@@ -257,8 +238,23 @@ export class RobotActionAspiratorService extends RobotActionService {
     return nextPositionNettoyage;
   }
 
+  private activateReturnToBase(robot: RobotAspiratorModel): void {
+    console.log("RobotActionAspiratorService - activateReturnToBase()");
+
+    const nextPosition = this.retournerALaBase(robot);
+    if (!nextPosition) {
+      this.stopRobot(robot.robotName);
+      return;
+    }
+
+    // MAJ du robot: retour à la base
+    this.moveRobotReturningToBase(robot.robotName, robot.position, nextPosition);
+
+    console.log(`### Nouvelle position de retour à la base trouvée pour le Robot ${robot.robotName} : row = ${nextPosition.col}, col = ${nextPosition.row} - Batterie: ${robot.batterie}%`);
+  }
+
   // Retourner à la base de charge
-  protected retournerALaBase(robotModelInput: RobotAspiratorModel): GridPosition {
+  private retournerALaBase(robotModelInput: RobotAspiratorModel): GridPosition {
     console.log("RobotActionAspiratorService - retournerALaBase()");
     console.log("Retour à la base de charge");
 
@@ -277,7 +273,34 @@ export class RobotActionAspiratorService extends RobotActionService {
     return positionRetourALaBase;
   }
 
-  protected robotDoitRentrerALaBase(batterie: number, position: GridPosition, basePosition: GridPosition, consommationParMouvement: number): boolean {
+  private moveRobotReturningToBase(robotName: string, position: GridPosition, nextPosition: GridPosition): void {
+    console.log("RobotActionAspiratorService - moveRobotReturningToBase()");
+
+    const robotSignal: WritableSignal<RobotAspiratorModel> | undefined = this.robotAspiratorSignals.get(robotName);
+    if (!robotSignal) return;
+
+    const robot = robotSignal();
+
+    const newStartCoordinate: PixelPosition = this.calculatePixelCoordinates(position);
+    const newTargetCoordinate: PixelPosition = this.calculatePixelCoordinates(nextPosition);
+
+    if (newStartCoordinate.x !== newTargetCoordinate.x || newStartCoordinate.y !== newTargetCoordinate.y) {
+      robotSignal.update(robot => ({
+        ...robot,
+        isRobotStarted: true,
+        isRobotReturningToBase: true,
+        robotDirection: this.getRobotDirection(robot.position, nextPosition),
+        lastPosition: { ...robot.position }, // la précédente position est modifiée avec l'actuelle
+        position: { ...nextPosition },        // la nouvelle position prend sa valeur suivante
+        batterie: robot.batterie - robot.consommationParMouvement
+      }));
+      console.log(`### ${robotName}: tableau [${nextPosition.col},${nextPosition.row}] → pixels (${newTargetCoordinate.x}, ${newTargetCoordinate.y}) - batterie (${robot.batterie})`);
+    } else {
+      this.stopRobot(robotName);
+    }
+  }
+
+  private robotDoitRentrerALaBase(batterie: number, position: GridPosition, basePosition: GridPosition, consommationParMouvement: number): boolean {
     console.log("RobotActionAspiratorService - robotDoitRentrerALaBase()");
 
     return (position && batterie <= this.energieNecessairePourRetour(position, basePosition, consommationParMouvement)) ?
@@ -285,7 +308,7 @@ export class RobotActionAspiratorService extends RobotActionService {
   }
 
   // Estimer l'énergie nécessaire au robot pour retourner à la base
-  protected energieNecessairePourRetour(position: GridPosition, basePosition: GridPosition, consommationParMouvement: number): number {
+  private energieNecessairePourRetour(position: GridPosition, basePosition: GridPosition, consommationParMouvement: number): number {
     console.log("RobotActionAspiratorService - energieNecessairePourRetour()");
 
     const maisonModel: MaisonModel = this.maisonSignal();
@@ -297,29 +320,6 @@ export class RobotActionAspiratorService extends RobotActionService {
 
     // Ajouter une marge de sécurité si on veut:
     return (distance * consommationParMouvement) * 1;
-  }
-
-  /**
- * Conversion de l'index dans le tableau (GridPosition) en Coordonnée en Pixels (PixelPosition) pour l'affichage CSS
- *
- * @param grid
- * @returns
- */
-  public calculatePixelCoordinates(grid: GridPosition): PixelPosition {
-    return new PixelPosition(
-      grid.col * this.PIXELS_PER_STEP,  // col → x (left)
-      grid.row * this.PIXELS_PER_STEP   // row → y (top)
-    );
-  }
-
-  // MAJ des position visitée de la maison:
-  public updateRobotsVisitedCells(): void {
-    console.log("RobotActionAspiratorService - updateRobotsVisitedCells()");
-
-    this.robotAspiratorSignals.forEach((robotSignal) => {
-      const robot: RobotAspiratorModel = robotSignal();
-      this.maisonDataNettoyageService.updateVisitedCell(robot.lastPosition, true);
-    });
   }
 
   // TODO: revoir CSS de la maison si on affiche ces logs dans l'ihm

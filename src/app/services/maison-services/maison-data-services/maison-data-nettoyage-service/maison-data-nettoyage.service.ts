@@ -23,7 +23,7 @@ export class MaisonDataNettoyageService extends MaisonDataService {
    *
    * @returns
    */
-  public setMaisonParams(): void {
+  public override setMaisonParams(): void {
     console.log("MaisonDataNettoyageService - setMaisonParams()");
 
     // Création des paramètres de la maison
@@ -53,7 +53,7 @@ export class MaisonDataNettoyageService extends MaisonDataService {
    *
    * @param maisonModel
    */
-  protected initMaison(maisonModel: MaisonModel): void {
+  protected override initMaison(maisonModel: MaisonModel): void {
     console.log("MaisonDataNettoyageService - initMaison()");
 
     this._maisonSignal.set({
@@ -74,7 +74,7 @@ export class MaisonDataNettoyageService extends MaisonDataService {
    * @param obstacles
    * @returns
    */
-  protected buildMaison(
+  protected override buildMaison(
     largeur: number,
     hauteur: number,
     obstacles: GridPosition[]
@@ -93,7 +93,7 @@ export class MaisonDataNettoyageService extends MaisonDataService {
   }
 
   /**
-   * Ajout de la base d'un robot au décors
+   * Ajout de la base d'un robot à la maison (méthode spécifique au cas où on a des robots avec une base de charge, comme les aspirateurs)
    *
    * @param robotBasePosition
    */

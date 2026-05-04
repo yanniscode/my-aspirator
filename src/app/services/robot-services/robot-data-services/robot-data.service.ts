@@ -41,17 +41,34 @@ export abstract class RobotDataService {
   }
 
   /**
-   * Renvoie la map de signaux de robot selon le type spécifié
+   * Méthode générale pour instancier la liste de signaux de robots avec leurs données selon le type spécifié dans la classe qui en hérite
+   * 
+   * @param robotAspiratorModelTab 
+   */
+  public abstract setRobotSignalsList(robotAspiratorModelTab: RobotModel[]): void;
+
+  /**
+   * Renvoie la map de signaux de robot selon le type spécifié dans la classe qui en hérite
    */
   public abstract getRobotSignalsList(): Map<string, Signal<RobotModel>>;
 
   /**
-   * Instancie la liste de robots avec leurs données
+   * enregistre un robot dans la Map de signaux selon le type spécifié dans la classe qui en hérite
+   * 
+   * @param robotModel 
+   */
+  protected abstract registerRobotInList(robotModel: RobotModel): void;
+
+  /**
+   * Instancie la liste de robots avec leurs données selon le type spécifié dans la classe qui en hérite
    */
   public abstract createRobotsParams(): RobotModel[];
 
+  /**
+   * Nettoye la map générique de signaux
+   */
   public clearAllRobotsList(): void {
-    console.log("RobotDataFactoryService - clearAllRobotsList()");
+    console.log("RobotDataService - clearAllRobotsList()");
     this.robotSignals.clear();
   }
 

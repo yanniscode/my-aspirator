@@ -8,7 +8,6 @@ import { RobotModel } from '../../classes/models/robot-model/robot-model';
 import { RobotAspiratorWithNextPositionsTabService } from '../../services/robot-services/robot-algos-deplacement-services/robot-aspirator-with-next-positions-tab-service/robot-aspirator-with-next-positions-tab.service';
 import { RobotDataFactoryService } from '../../services/robot-services/robot-data-factory-service/robot-data-factory.service';
 import { MaisonDataFactoryService } from '../../services/maison-services/maison-data-factory-service/maison-data-factory.service';
-import { MaisonModel } from '../../classes/models/maison-model/maison-model';
 
 @Component({
   selector: 'app-main',
@@ -33,9 +32,6 @@ export class MainComponent implements AfterViewInit, OnDestroy {
   public robotDataFactoryService = inject(RobotDataFactoryService);
 
   private loggerService = inject(LoggerService);
-
-  // pour le template
-  public readonly maisonViewModel: Signal<MaisonModel> = this.maisonDataFactoryService.getMaisonSignal();
 
   // on récupère la liste de signals à partir de la factory de robots dans un type générique (RobotModel)
   public robotSignals: Map<string, Signal<RobotModel>> = this.robotDataFactoryService.robotSignals;
