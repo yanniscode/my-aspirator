@@ -31,19 +31,17 @@ export abstract class RobotActionAspiromanService extends RobotActionService {
   // Configuration de l'animation
   private PIXELS_PER_STEP: number = 0; // Pixels à parcourir dans un intervale donné
 
-  public _playerMove: WritableSignal<string> = signal("");
-  public playerMove: Signal<string> = this._playerMove.asReadonly();
+  public readonly _player1Move: WritableSignal<string> = signal("");
+  public player1Move: WritableSignal<string> = this._player1Move;
+
+  public readonly _player2Move: WritableSignal<string> = signal("");
+  public player2Move: WritableSignal<string> = this._player2Move;
 
   constructor() {
     console.log("RobotActionAspiromanService - constructor()");
     super();
     this.serviceName = "RobotActionAspiromanService";
     this.PIXELS_PER_STEP = 50;
-  }
-
-  public override calculateNewDirectionsForAllRobots(): void {
-    console.log("RobotActionAspiromanService - calculateNewDirectionsForAllRobots()");
-    this.moveRobot('Player 1');
   }
 
   /**
@@ -58,7 +56,13 @@ export abstract class RobotActionAspiromanService extends RobotActionService {
     const robot = robotSignal();
     if (!robot) return;
 
-    const mouvement = this._playerMove();
+    let mouvement = "";
+    if (robot.robotName === "Player 1") {
+      mouvement = this.player1Move();
+    }
+    else if (robot.robotName === "Player 2") {
+      mouvement = this.player2Move();
+    }
     console.log("mouvement = " + mouvement);
 
     let nextPosition: GridPosition = new GridPosition();
@@ -88,7 +92,6 @@ export abstract class RobotActionAspiromanService extends RobotActionService {
     // targetCoordinate = la destination en pixels du nouveau step
     const targetX = nextPosition.col * this.CELL_SIZE;
     const targetY = nextPosition.row * this.CELL_SIZE;
-    // ─────────────────────────────────────────────────────────────────────────
 
     robotSignal.update(robot => ({
       ...robot,
@@ -105,7 +108,12 @@ export abstract class RobotActionAspiromanService extends RobotActionService {
 
     console.log(`### ${robotName}: moveRobot nextPosition[${nextPosition.col},${nextPosition.row}] - batterie(${robot.batterie})`);
 
-    this._playerMove.set("");
+    if (robot.robotName === "Player 1") {
+      this.player1Move.set("");
+    }
+    else if (robot.robotName === "Player 2") {
+      this.player2Move.set("");
+    }
   }
 
   /**

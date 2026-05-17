@@ -72,38 +72,61 @@ export class MainComponent implements AfterViewInit, OnDestroy {
 
   @HostListener('body:keydown', ['$event'])
   keyDown(event: KeyboardEvent) {
-    if (event.code === 'ArrowUp') {
-      this.robotActionAspiromanService._playerMove.set("ArrowUp");
-      if (!this.animationFactoryService.isPlayerRunning) {
+    // Attention: clavier américain
+    // Joueur 1:
+    if (event.code === 'KeyW') {
+      this.robotActionAspiromanService.player1Move.set("ArrowUp");
+      if (!this.animationFactoryService.isPlayer1Running) {
         this.gameComponent.onPlayerAction('Player 1');
       }
-      // this.robotActionAspiromanService.moveRobot('Player 1');
     }
-    else if (event.code === 'ArrowRight') {
-      this.robotActionAspiromanService._playerMove.set("ArrowRight");
-      if (!this.animationFactoryService.isPlayerRunning) {
+    if (event.code === 'KeyD') {
+      this.robotActionAspiromanService.player1Move.set("ArrowRight");
+      if (!this.animationFactoryService.isPlayer1Running) {
         this.gameComponent.onPlayerAction('Player 1');
       }
-      // this.robotActionAspiromanService.moveRobot('Player 1');
     }
-    else if (event.code === 'ArrowDown') {
-      this.robotActionAspiromanService._playerMove.set("ArrowDown");
-      if (!this.animationFactoryService.isPlayerRunning) {
+    if (event.code === 'KeyS') {
+      this.robotActionAspiromanService.player1Move.set("ArrowDown");
+      if (!this.animationFactoryService.isPlayer1Running) {
         this.gameComponent.onPlayerAction('Player 1');
       }
-      // this.robotActionAspiromanService.moveRobot('Player 1');
     }
-    else if (event.code === 'ArrowLeft') {
-      // setTimeout(() => {
-      this.robotActionAspiromanService._playerMove.set("ArrowLeft");
-      if (!this.animationFactoryService.isPlayerRunning) {
+    if (event.code === 'KeyA') {
+      this.robotActionAspiromanService.player1Move.set("ArrowLeft");
+      if (!this.animationFactoryService.isPlayer1Running) {
         this.gameComponent.onPlayerAction('Player 1');
       }
-      // this.robotActionAspiromanService.moveRobot('Player 1');
-      // }, 300);
     }
+    // Joueur 2:
+    if (event.code === 'KeyI') {
+      this.robotActionAspiromanService.player2Move.set("ArrowUp");
+      if (!this.animationFactoryService.isPlayer2Running) {
+        this.gameComponent.onPlayerAction('Player 2');
+      }
+    }
+    if (event.code === 'KeyL') {
+      this.robotActionAspiromanService.player2Move.set("ArrowRight");
+      if (!this.animationFactoryService.isPlayer2Running) {
+        this.gameComponent.onPlayerAction('Player 2');
+      }
+    }
+    if (event.code === 'KeyK') {
+      this.robotActionAspiromanService.player2Move.set("ArrowDown");
+      if (!this.animationFactoryService.isPlayer2Running) {
+        this.gameComponent.onPlayerAction('Player 2');
+      }
+    }
+    if (event.code === 'KeyJ') {
+      this.robotActionAspiromanService.player2Move.set("ArrowLeft");
+      if (!this.animationFactoryService.isPlayer2Running) {
+        this.gameComponent.onPlayerAction('Player 2');
+      }
+    }
+
+    // touches utilitaires (start / pause)
     // else
-    else if (event.code === 'Enter' && !this.isRobotMapStarted) {
+    if (event.code === 'Enter' && !this.isRobotMapStarted) {
       console.log("Enter start()");
       setTimeout(() => {
         this.start();
@@ -111,7 +134,8 @@ export class MainComponent implements AfterViewInit, OnDestroy {
         // this.gameStarted = true;
         // this.gameLoop();
       }, 1);
-    } else if (event.code === 'Enter' && this.isRobotMapStarted) {
+    }
+    else if (event.code === 'Enter' && this.isRobotMapStarted) {
       setTimeout(() => {
         console.log("Enter pause()");
         this.pause();
@@ -119,12 +143,13 @@ export class MainComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  @HostListener('body:keyup', ['$event'])
-  keyUp(event: KeyboardEvent) {
-    if (event.code === 'Enter') {
-      this.pause();
-    }
-  }
+// TODO: supprimer (cause bugs) ?
+  // @HostListener('body:keyup', ['$event'])
+  // keyUp(event: KeyboardEvent) {
+  //   if (event.code === 'Enter') {
+  //     this.pause();
+  //   }
+  // }
 
   public pause(): void {
     console.log("MainComponent - pause");

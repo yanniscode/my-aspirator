@@ -37,7 +37,8 @@ export class RobotDataFactoryService {
 
   public animationProgress: WritableSignal<number> = this.robotDataService.animationProgress;
 
-  public animationPlayerProgress: WritableSignal<number> = this.robotDataService.animationPlayerProgress;
+  public animationPlayer1Progress: WritableSignal<number> = this.robotDataService.animationPlayer1Progress;
+  public animationPlayer2Progress: WritableSignal<number> = this.robotDataService.animationPlayer2Progress;
 
   /**
    * Méthode de factory : renvoie les paramètres des robots avec un upcast vers le type générique RobotModel[]

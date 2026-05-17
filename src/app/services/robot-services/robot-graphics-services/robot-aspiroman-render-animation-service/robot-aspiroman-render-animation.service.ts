@@ -35,17 +35,25 @@ export class RobotAspiromanRenderAnimationService extends RenderAnimationService
       let x: number;
       let y: number;
 
+      let animationPlayerProgress = -1;
+      if (robot.robotName === "Player 1") {
+        animationPlayerProgress = this.robotDataService.animationPlayer1Progress();
+      }
+      else if (robot.robotName === "Player 2") {
+        animationPlayerProgress = this.robotDataService.animationPlayer2Progress();
+      }
+
       if (mustMove === true) {
         // Ancienne branche joueur — conservée si jamais mustMove=true est encore utilisé
         const pixelPosition: PixelPosition = this.robotAspiromanDataService
-          .updateCurrentCoordinates(robotName, this.robotDataService.animationPlayerProgress(), mustMove);
+          .updateCurrentCoordinates(robotName, animationPlayerProgress, mustMove);
         x = pixelPosition.x + (this.CELL_SIZE - robot.robotWidth) / 2;
         y = pixelPosition.y + (this.CELL_SIZE - robot.robotWidth) / 2;
 
       } else {
         // ✅ CORRECTION : interpolation entre startCoordinate et targetCoordinate
         // selon playerAnimationProgress (0 → 1), mis à jour par la boucle joueur.
-        const progress: number = this.robotDataService.animationPlayerProgress();
+        const progress: number = animationPlayerProgress;
 
         const interpX = robot.startCoordinate.x + (robot.targetCoordinate.x - robot.startCoordinate.x) * progress;
         const interpY = robot.startCoordinate.y + (robot.targetCoordinate.y - robot.startCoordinate.y) * progress;
@@ -76,11 +84,20 @@ export class RobotAspiromanRenderAnimationService extends RenderAnimationService
    */
   protected override getRobotCtxFrame(robot: AspiromanModel, mustMove?: boolean): HTMLImageElement | undefined {
     console.log("RobotAspiromanRenderAnimationService - getRobotCtxFrame()");
-    console.log("animationPlayerProgress = " + this.robotDataService.animationPlayerProgress());
+    // console.log("animationPlayer1Progress = " + this.robotDataService.animationPlayer1Progress());
+    // console.log("animationPlayer2Progress = " + this.robotDataService.animationPlayer2Progress());
 
     // if (robot.robotType !== "player") return;
 
-    const robotAnimationFrame = (Number(this.robotDataService.animationPlayerProgress().toPrecision(2)) * 100);
+    let animationPlayerProgress = 0;
+    if (robot.robotName === "Player 1") {
+      animationPlayerProgress = this.robotDataService.animationPlayer1Progress();
+    }
+    else if (robot.robotName === "Player 2") {
+      animationPlayerProgress = this.robotDataService.animationPlayer2Progress();
+    }
+
+    const robotAnimationFrame = (Number(animationPlayerProgress.toPrecision(2)) * 100);
 
     if (!robotAnimationFrame || !robot.isRobotStarted) {
       return this.assetRobotService.getRobotImageByFrameAndDirection(robot.robotDirection, 1);

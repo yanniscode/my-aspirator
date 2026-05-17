@@ -84,7 +84,7 @@ export class GameComponent implements AfterViewInit {
 
   public onPlayerAction(playerName: string) {
     if (this.isGameStarted) {
-      this.ctx = this.animationFactoryService.startAnimationForPlayers(this.ctx, playerName);
+      this.ctx = this.animationFactoryService.startAnimationForPlayer(this.ctx, playerName);
     } else {
       console.log("Partie en pause !");
     }

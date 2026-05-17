@@ -21,8 +21,11 @@ export abstract class RobotDataService {
   protected readonly _animationProgress: WritableSignal<number> = signal(0);
   public animationProgress: WritableSignal<number> = this._animationProgress;
 
-  protected readonly _animationPlayerProgress: WritableSignal<number> = signal(0);
-  public animationPlayerProgress: WritableSignal<number> = this._animationPlayerProgress;
+  protected readonly _animationPlayer1Progress: WritableSignal<number> = signal(0);
+  public animationPlayer1Progress: WritableSignal<number> = this._animationPlayer1Progress;
+
+  protected readonly _animationPlayer2Progress: WritableSignal<number> = signal(0);
+  public animationPlayer2Progress: WritableSignal<number> = this._animationPlayer2Progress;
 
   constructor() {
     this.PIXELS_PER_STEP = 50;
