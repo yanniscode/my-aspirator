@@ -277,6 +277,12 @@ export class AnimationFactoryService {
   }
 
   private drawPlayerFrame(): void {
+    this.ctx.clearRect(0, 0, this.WIDTH, this.HEIGHT);
+
+    this.renderAnimationServicesTab.forEach(service => {
+      this.ctx = service.drawObject(this.ctx);
+    });
+
     this.ctx = this.robotAspiromanRenderAnimationService.drawObject(this.ctx, false);
   }
 

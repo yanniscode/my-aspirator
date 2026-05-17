@@ -30,7 +30,7 @@ export abstract class RobotActionService {
    * @param nextPosition
    * @returns
    */
-  protected getRobotDirection(position: GridPosition, nextPosition: GridPosition): string {
+  protected getRobotDirectionByPosition(position: GridPosition, nextPosition: GridPosition): string {
     // dx: 0, dy: -1  // Nord
     if (position.col - nextPosition.col === 0 && position.row - nextPosition.row === -1) {
       return Direction.NORTH;
@@ -48,10 +48,28 @@ export abstract class RobotActionService {
       return Direction.WEST;
     }
 
-    let direction = "";
+    return "";
+  }
 
+  protected getRobotDirectionByDirection(mouvement: string): string {
+    // dx: 0, dy: -1  // Nord
+    if (mouvement === "ArrowUp") {
+      return Direction.NORTH;
+    }
+    // dx: -1, dy: 0   // Est
+    else if (mouvement === "ArrowRight") {
+      return Direction.EAST;
+    }
+    // dx: 0, dy: 1   // Sud
+    else if (mouvement === "ArrowDown") {
+      return Direction.SOUTH;
+    }
+    // dx: 1, dy: 0  // Ouest
+    else if (mouvement === "ArrowLeft") {
+      return Direction.WEST;
+    }
 
-    return direction;
+    return "";
   }
 
   /**

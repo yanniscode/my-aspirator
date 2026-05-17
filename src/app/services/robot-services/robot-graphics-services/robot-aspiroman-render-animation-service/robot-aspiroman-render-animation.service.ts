@@ -76,14 +76,12 @@ export class RobotAspiromanRenderAnimationService extends RenderAnimationService
    */
   protected override getRobotCtxFrame(robot: AspiromanModel, mustMove?: boolean): HTMLImageElement | undefined {
     console.log("RobotAspiromanRenderAnimationService - getRobotCtxFrame()");
-    console.log("animationPlayerProgress = " + this.robotDataService.animationProgress());
+    console.log("animationPlayerProgress = " + this.robotDataService.animationPlayerProgress());
 
     // if (robot.robotType !== "player") return;
 
-    const robotAnimationFrame = (Number(this.robotDataService.animationProgress().toPrecision(2)) * 100);
+    const robotAnimationFrame = (Number(this.robotDataService.animationPlayerProgress().toPrecision(2)) * 100);
 
-    // if (!robotAnimationFrame) {
-    // if (!robotAnimationFrame || !robot.isRobotStarted || mustMove) {
     if (!robotAnimationFrame || !robot.isRobotStarted) {
       return this.assetRobotService.getRobotImageByFrameAndDirection(robot.robotDirection, 1);
     }

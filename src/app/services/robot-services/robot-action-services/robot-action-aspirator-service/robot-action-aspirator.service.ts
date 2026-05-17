@@ -155,7 +155,7 @@ export class RobotActionAspiratorService extends RobotActionService {
       ...robot,
       isRobotStarted: true,
       isRobotReturningToBase: false,        // le robot ne rentre pas à la base
-      robotDirection: this.getRobotDirection(robot.position, nextPosition),
+      robotDirection: this.getRobotDirectionByPosition(robot.position, nextPosition),
       lastPosition: { ...robot.position },  // la précédente position est modifiée avec l'actuelle
       position: { ...nextPosition },        // la nouvelle position prend sa valeur suivante
       batterie: robot.batterie - robot.consommationParMouvement
@@ -292,7 +292,7 @@ export class RobotActionAspiratorService extends RobotActionService {
         ...robot,
         isRobotStarted: true,
         isRobotReturningToBase: true,
-        robotDirection: this.getRobotDirection(robot.position, nextPosition),
+        robotDirection: this.getRobotDirectionByPosition(robot.position, nextPosition),
         lastPosition: { ...robot.position }, // la précédente position est modifiée avec l'actuelle
         position: { ...nextPosition },        // la nouvelle position prend sa valeur suivante
         batterie: robot.batterie - robot.consommationParMouvement

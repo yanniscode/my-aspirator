@@ -52,7 +52,7 @@ export class RobotAspiromanDataService extends RobotDataService {
     let position = { ...basePosition };
     let startCoordinate = this.calculatePixelCoordinates(basePosition);
     let targetCoordinate = this.calculatePixelCoordinates(basePosition);
-    let batterie = 44;
+    let batterie = 45;
     let isRobotStarted = false;
     let isRobotReturningToBase = false;
     let robotWidth = 42;

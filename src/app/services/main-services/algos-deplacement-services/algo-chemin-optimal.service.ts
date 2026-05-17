@@ -233,6 +233,41 @@ export class AlgoCheminOptimalService {
     return chemin;
   }
 
+  /**
+   * Obtenir la position suivante dans la maison, par rapport à une position et selon la direction donnée (utilitaire pour le Joueur, notamment)
+   *
+   * @param moveDirection
+   * @param position
+   * @param maison
+   * @returns
+   */
+  public obtenirPositionManuelleSuivante(moveDirection: String, position: GridPosition, maison: CellElement[][]): GridPosition {
+    let newPosition: GridPosition = { ...position };
+
+    if (moveDirection === "ArrowUp") {
+      newPosition.row -= 1; // Nord
+    } else if (moveDirection === "ArrowRight") {
+      newPosition.col += 1 // Est
+    } else if (moveDirection === "ArrowDown") {
+      newPosition.row += 1; // Sud
+    } else if (moveDirection === "ArrowLeft") {
+      newPosition.col -= 1; // Ouest
+    }
+
+    const newCol = newPosition.col;
+    const newRow = newPosition.row;
+
+    // Vérifier si la nouvelle position est dans les limites de la maison et si ce n'est pas un mur (bloc de type "X")
+    if (newCol >= 0 && newCol < maison[0].length &&
+      newRow >= 0 && newRow < maison.length &&
+      "X" != maison[newRow][newCol].type
+    ) {
+      return new GridPosition(newRow, newCol);
+    }
+    // sinon, on retourne la position d'origine
+    return position;
+  }
+
   // Obtenir les cellules adjacentes à une position
   public obtenirCellulesAdjacentes(maison: CellElement[][], position: GridPosition): CellElement[] {
     // console.log("AlgoCheminOptimalService - obtenirCellulesAdjacentes()");
@@ -247,15 +282,15 @@ export class AlgoCheminOptimalService {
     const cellules: CellElement[] = [];
 
     directions.forEach(dir => {
-      const newX = position.col + dir.dx;
-      const newY = position.row + dir.dy;
+      const newCol = position.col + dir.dx;
+      const newRow = position.row + dir.dy;
 
-      // Vérifier si la nouvelle position est dans les limites de la maison et si c'est un bloc de type Mur
-      if (newX >= 0 && newX < maison[0].length &&
-        newY >= 0 && newY < maison.length &&
-        "X" != maison[newY][newX].type
+      // Vérifier si la nouvelle position est dans les limites de la maison et si ce n'est pas un mur (bloc de type "X")
+      if (newCol >= 0 && newCol < maison[0].length &&
+        newRow >= 0 && newRow < maison.length &&
+        "X" != maison[newRow][newCol].type
       ) {
-        cellules.push(maison[newY][newX]);
+        cellules.push(maison[newRow][newCol]);
       }
     });
     return cellules;
