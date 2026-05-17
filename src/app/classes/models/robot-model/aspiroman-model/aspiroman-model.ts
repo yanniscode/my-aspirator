@@ -16,6 +16,7 @@ export class AspiromanModel extends RobotModel {
     constructor() {
         super();
         // valeurs par défaut pour l'init du robot:
+        this.robotType = "player"
         this.basePosition = new GridPosition();
         this.batterie = -1;
         // Combien d'énergie est consommée par mouvement

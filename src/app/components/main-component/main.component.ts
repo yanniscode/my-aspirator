@@ -1,4 +1,4 @@
-import { Component, OnDestroy, ViewChild, ViewEncapsulation, inject, ChangeDetectionStrategy, computed, Signal, signal, AfterViewInit } from '@angular/core';
+import { Component, OnDestroy, ViewChild, ViewEncapsulation, inject, ChangeDetectionStrategy, computed, Signal, AfterViewInit, HostListener } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
 import { GameComponent } from '../game-component/game.component';
@@ -8,6 +8,8 @@ import { RobotModel } from '../../classes/models/robot-model/robot-model';
 import { RobotAspiratorWithNextPositionsTabService } from '../../services/robot-services/robot-algos-deplacement-services/robot-aspirator-with-next-positions-tab-service/robot-aspirator-with-next-positions-tab.service';
 import { RobotDataFactoryService } from '../../services/robot-services/robot-data-factory-service/robot-data-factory.service';
 import { MaisonDataFactoryService } from '../../services/maison-services/maison-data-factory-service/maison-data-factory.service';
+import { RobotActionAspiromanService } from '../../services/robot-services/robot-action-services/robot-action-aspiroman-service/robot-action-aspiroman.service';
+import { AnimationFactoryService } from '../../services/main-services/graphics-services/animation-factory-service/animation-factory.service';
 
 @Component({
   selector: 'app-main',
@@ -23,13 +25,13 @@ import { MaisonDataFactoryService } from '../../services/maison-services/maison-
 })
 export class MainComponent implements AfterViewInit, OnDestroy {
   // instantiation de composant enfant
-  @ViewChild(GameComponent) maisonChildComponent!: GameComponent;
+  @ViewChild(GameComponent) gameComponent!: GameComponent;
 
-  private gameComponent: GameComponent;
-
+  private robotActionAspiromanService = inject(RobotActionAspiromanService);
   private maisonDataFactoryService = inject(MaisonDataFactoryService);
   // appel dans le template, donc public:
   public robotDataFactoryService = inject(RobotDataFactoryService);
+  public animationFactoryService = inject(AnimationFactoryService);
 
   private loggerService = inject(LoggerService);
 
@@ -48,8 +50,6 @@ export class MainComponent implements AfterViewInit, OnDestroy {
   constructor() {
     console.log("MainComponent - constructor()");
 
-    this.gameComponent = this.maisonChildComponent;
-
     // initialisation des params de la maison et des robots
     this.maisonDataFactoryService.setMaisonParams();
 
@@ -62,14 +62,68 @@ export class MainComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     console.log("MainComponent - ngAfterViewInit()");
-
-    this.gameComponent = this.maisonChildComponent;
   }
 
   ngOnDestroy(): void {
     console.log('MainComponent - ngOnDestroy()');
     this.robotDataFactoryService.clearAllRobotsList();
     console.log(`Nettoyage de la méthode Main - ${this.robotViewModelTab.length} robots`);
+  }
+
+  @HostListener('body:keydown', ['$event'])
+  keyDown(event: KeyboardEvent) {
+    if (event.code === 'ArrowUp') {
+      this.robotActionAspiromanService._playerMove.set("ArrowUp");
+      if (!this.animationFactoryService.isPlayerRunning) {
+        this.gameComponent.onPlayerAction('Player 1');
+      }
+      // this.robotActionAspiromanService.moveRobot('Player 1');
+    }
+    else if (event.code === 'ArrowRight') {
+      this.robotActionAspiromanService._playerMove.set("ArrowRight");
+      if (!this.animationFactoryService.isPlayerRunning) {
+        this.gameComponent.onPlayerAction('Player 1');
+      }
+      // this.robotActionAspiromanService.moveRobot('Player 1');
+    }
+    else if (event.code === 'ArrowDown') {
+      this.robotActionAspiromanService._playerMove.set("ArrowDown");
+      if (!this.animationFactoryService.isPlayerRunning) {
+        this.gameComponent.onPlayerAction('Player 1');
+      }
+      // this.robotActionAspiromanService.moveRobot('Player 1');
+    }
+    else if (event.code === 'ArrowLeft') {
+      // setTimeout(() => {
+      this.robotActionAspiromanService._playerMove.set("ArrowLeft");
+      if (!this.animationFactoryService.isPlayerRunning) {
+        this.gameComponent.onPlayerAction('Player 1');
+      }
+      // this.robotActionAspiromanService.moveRobot('Player 1');
+      // }, 300);
+    }
+    // else
+    else if (event.code === 'Enter' && !this.isRobotMapStarted) {
+      console.log("Enter start()");
+      setTimeout(() => {
+        this.start();
+        // } else if (event.code === 'Space' && !this.gameStarted && !this.gameOver) {
+        // this.gameStarted = true;
+        // this.gameLoop();
+      }, 1);
+    } else if (event.code === 'Enter' && this.isRobotMapStarted) {
+      setTimeout(() => {
+        console.log("Enter pause()");
+        this.pause();
+      }, 500);
+    }
+  }
+
+  @HostListener('body:keyup', ['$event'])
+  keyUp(event: KeyboardEvent) {
+    if (event.code === 'Enter') {
+      this.pause();
+    }
   }
 
   public pause(): void {

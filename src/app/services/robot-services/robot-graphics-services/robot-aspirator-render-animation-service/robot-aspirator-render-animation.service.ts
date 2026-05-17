@@ -41,7 +41,7 @@ export class RobotAspiratorRenderAnimationService extends RenderAnimationService
       this.ctx.save();
 
       // trame d'animation du robot adaptée à sa direction (nord, sud, est, ouest)
-      let robotImage: HTMLImageElement = this.getRobotCtxFrame(robot);
+      let robotImage: HTMLImageElement | undefined = this.getRobotCtxFrame(robot);
 
       //  Guard clause — on ne dessine pas si l'image n'est pas chargée
       if (!robotImage) {
@@ -77,9 +77,11 @@ export class RobotAspiratorRenderAnimationService extends RenderAnimationService
    * @param robot
    * @returns
    */
-  protected override getRobotCtxFrame(robot: RobotAspiratorModel): HTMLImageElement {
+  protected override getRobotCtxFrame(robot: RobotAspiratorModel): HTMLImageElement | undefined {
     console.log("RobotAspiratorRenderAnimationService - getRobotCtxFrame()");
     console.log("animationProgress = " + this.robotDataService.animationProgress());
+
+    if (robot.robotType !== "aspirator") return;
 
     const robotAnimationFrame = (Number(this.robotDataService.animationProgress().toPrecision(2)) * 100);
     if (!robotAnimationFrame || !robot.isRobotStarted) {

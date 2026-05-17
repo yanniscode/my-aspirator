@@ -19,7 +19,7 @@ export abstract class RenderAnimationService {
    * @param robot
    * @returns
    */
-  protected abstract getRobotCtxFrame(robot: RobotAspiratorModel): HTMLImageElement;
+  protected abstract getRobotCtxFrame(robot: RobotAspiratorModel): HTMLImageElement | undefined;
 
   /**
    * Dessine un label près du robot (ex: nom, niveau de batterie...)

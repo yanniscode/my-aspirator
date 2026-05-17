@@ -1,4 +1,4 @@
-import { inject, Injectable, WritableSignal } from '@angular/core';
+import { ElementRef, inject, Injectable, WritableSignal } from '@angular/core';
 import { PixelPosition } from '../../../../classes/models/pixel-position';
 import { AssetRobotService } from '../asset-robot-service/asset-robot.service';
 import { RenderAnimationService } from '../../../main-services/graphics-services/render-animation-service/render-animation.service';
@@ -23,51 +23,49 @@ export class RobotAspiromanRenderAnimationService extends RenderAnimationService
   protected readonly aspiromanSignals: Map<string, WritableSignal<AspiromanModel>>
     = this.robotAspiromanDataService.aspiromanSignals;
 
-  /**
-   *
-   * @param ctx
-   * @returns
-   */
-  public override drawObject(ctx: CanvasRenderingContext2D): CanvasRenderingContext2D {
-    console.log("RobotAspiromanRenderAnimationService - drawObject()");
-
+  public override drawObject(ctx: CanvasRenderingContext2D, mustMove?: boolean): CanvasRenderingContext2D {
     this.ctx = ctx;
 
     for (const [robotName, robotSignal] of this.aspiromanSignals) {
       const robot: AspiromanModel | undefined = robotSignal();
       if (!robot) continue;
 
-      // save() AVANT toute modification — isole complètement chaque robot
       this.ctx.save();
 
-      // trame d'animation du robot adaptée à sa direction (nord, sud, est, ouest)
-      let robotImage: HTMLImageElement = this.getRobotCtxFrame(robot);
+      let x: number;
+      let y: number;
 
-      //  Guard clause — on ne dessine pas si l'image n'est pas chargée
+      if (mustMove === true) {
+        // Ancienne branche joueur — conservée si jamais mustMove=true est encore utilisé
+        const pixelPosition: PixelPosition = this.robotAspiromanDataService
+          .updateCurrentCoordinates(robotName, this.robotDataService.animationPlayerProgress(), mustMove);
+        x = pixelPosition.x + (this.CELL_SIZE - robot.robotWidth) / 2;
+        y = pixelPosition.y + (this.CELL_SIZE - robot.robotWidth) / 2;
+
+      } else {
+        // ✅ CORRECTION : interpolation entre startCoordinate et targetCoordinate
+        // selon playerAnimationProgress (0 → 1), mis à jour par la boucle joueur.
+        const progress: number = this.robotDataService.animationPlayerProgress();
+
+        const interpX = robot.startCoordinate.x + (robot.targetCoordinate.x - robot.startCoordinate.x) * progress;
+        const interpY = robot.startCoordinate.y + (robot.targetCoordinate.y - robot.startCoordinate.y) * progress;
+
+        x = interpX + (this.CELL_SIZE - robot.robotWidth) / 2;
+        y = interpY + (this.CELL_SIZE - robot.robotWidth) / 2;
+      }
+
+      const robotImage: HTMLImageElement | undefined = this.getRobotCtxFrame(robot, mustMove);
       if (!robotImage) {
         console.warn('Image robot non chargée');
+        this.ctx.restore();
         return this.ctx;
       }
 
-      // mise à jour des coordonnées du robot dans l'espace (en pixels), pour la vue
-      const pixelPosition: PixelPosition = this.robotAspiromanDataService.updateCurrentCoordinates(robotName, this.robotDataService.animationProgress());
-      // recentrage du robot dans la cellule
-      const x = pixelPosition.x + (this.CELL_SIZE - robot.robotWidth) / 2;
-      const y = pixelPosition.y + (this.CELL_SIZE - robot.robotWidth) / 2;
-      // console.log("pixelPosition = " + x + " - " + y);
-
-      // Equivalent [style.width.px] / [style.height.px] → aspiroViewSize
-      this.ctx.drawImage(
-        robotImage,
-        x, y,
-        robot.robotWidth, robot.robotWidth
-      );
-
+      this.ctx.drawImage(robotImage, x, y, robot.robotWidth, robot.robotWidth);
       this.drawRobotLabels(robot, x, y);
-
-      // restore() APRÈS tout le rendu du robot
       this.ctx.restore();
     }
+
     return this.ctx;
   }
 
@@ -76,14 +74,19 @@ export class RobotAspiromanRenderAnimationService extends RenderAnimationService
    * @param robot
    * @returns
    */
-  protected override getRobotCtxFrame(robot: AspiromanModel): HTMLImageElement {
+  protected override getRobotCtxFrame(robot: AspiromanModel, mustMove?: boolean): HTMLImageElement | undefined {
     console.log("RobotAspiromanRenderAnimationService - getRobotCtxFrame()");
-    console.log("animationProgress = " + this.robotDataService.animationProgress());
+    console.log("animationPlayerProgress = " + this.robotDataService.animationProgress());
+
+    // if (robot.robotType !== "player") return;
+
     const robotAnimationFrame = (Number(this.robotDataService.animationProgress().toPrecision(2)) * 100);
+
+    // if (!robotAnimationFrame) {
+    // if (!robotAnimationFrame || !robot.isRobotStarted || mustMove) {
     if (!robotAnimationFrame || !robot.isRobotStarted) {
       return this.assetRobotService.getRobotImageByFrameAndDirection(robot.robotDirection, 1);
     }
-
     if (20 <= robotAnimationFrame && robotAnimationFrame < 40) {
       return this.assetRobotService.getRobotImageByFrameAndDirection(robot.robotDirection, 2);
     }

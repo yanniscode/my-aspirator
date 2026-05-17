@@ -266,6 +266,9 @@ export class RobotAspiratorDataService extends RobotDataService {
 
     const startCoordinate = { ...robot.startCoordinate };
     const targetCoordinate = { ...robot.targetCoordinate };
+
+    if (!robot.isRobotStarted) return new PixelPosition(startCoordinate.x, startCoordinate.y);
+
     // Interpolation linéaire (calcul de valeurs intermédiaires) entre startCoordinate et targetCoordinate
     const newXCoordinate = startCoordinate.x + (targetCoordinate.x - startCoordinate.x) * progress;
     const newYCoordinate = startCoordinate.y + (targetCoordinate.y - startCoordinate.y) * progress;

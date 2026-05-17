@@ -1,7 +1,6 @@
-import { Component, ViewEncapsulation, ChangeDetectionStrategy, inject, ViewChild, ElementRef, AfterViewInit, Signal } from '@angular/core';
+import { Component, ViewEncapsulation, ChangeDetectionStrategy, inject, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { TableModule } from "primeng/table";
 import { LoggerService } from '../../services/main-services/logger-service/logger.service';
-import { MaisonDataNettoyageService } from '../../services/maison-services/maison-data-services/maison-data-nettoyage-service/maison-data-nettoyage.service';
 import { AnimationFactoryService } from '../../services/main-services/graphics-services/animation-factory-service/animation-factory.service';
 import { MaisonDataFactoryService } from '../../services/maison-services/maison-data-factory-service/maison-data-factory.service';
 
@@ -36,6 +35,8 @@ export class GameComponent implements AfterViewInit {
 
   private readonly CELL_SIZE = 50;        // td-maison: width / height: 50px
 
+  private isGameStarted = false;
+
   constructor() {
     console.log("GameComponent - constructor()");
   }
@@ -46,15 +47,16 @@ export class GameComponent implements AfterViewInit {
   async ngAfterViewInit(): Promise<void> {
     console.log("GameComponent - ngAfterViewInit()");
 
-    await this.initialiseAfterView(this.gameCanvas);
+    await this.initialiseAfterView();
   }
 
-  public async initialiseAfterView(gameCanvas: ElementRef<HTMLCanvasElement>): Promise<void> {
+  public async initialiseAfterView(): Promise<void> {
     console.log("GameComponent - ngAfterViewInit()");
 
     const maison = this.maisonDataFactoryService.maisonSignal();
+
     // adaptation de la taille du canvas à la maison (représente tout l'environnement)
-    const canvas = gameCanvas.nativeElement;
+    const canvas = this.gameCanvas.nativeElement;
     canvas.width = maison.maison[0].length * this.CELL_SIZE;
     canvas.height = maison.maison.length * this.CELL_SIZE;
 
@@ -70,14 +72,22 @@ export class GameComponent implements AfterViewInit {
 
   public onStart() {
     console.log("GameComponent - onStart()");
-
+    this.isGameStarted = true;
     this.ctx = this.animationFactoryService.startAnimation(this.ctx);
   }
 
   public onPause(): void {
     console.log("GameComponent - onPause");
-
+    this.isGameStarted = false;
     this.animationFactoryService.onRobotsPause(this.ctx);
+  }
+
+  public onPlayerAction(playerName: string) {
+    if (this.isGameStarted) {
+      this.ctx = this.animationFactoryService.startAnimationForPlayers(this.ctx, playerName);
+    } else {
+      console.log("Partie en pause !");
+    }
   }
 
   private log(message: string): void {

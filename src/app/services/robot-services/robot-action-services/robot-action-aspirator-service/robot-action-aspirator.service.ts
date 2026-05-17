@@ -33,6 +33,7 @@ export class RobotActionAspiratorService extends RobotActionService {
   constructor() {
     console.log("RobotActionAspiratorService - constructor()");
     super();
+    this.serviceName = "RobotActionAspiratorService";
     this.PIXELS_PER_STEP = 50;
   }
 
@@ -126,7 +127,9 @@ export class RobotActionAspiratorService extends RobotActionService {
     );
   }
 
-  // MAJ des position visitée de la maison:
+  /**
+   * MAJ des positions visitées de la maison
+   */
   public override updateRobotsVisitedCells(): void {
     console.log("RobotActionAspiratorService - updateRobotsVisitedCells()");
 
@@ -168,7 +171,7 @@ export class RobotActionAspiratorService extends RobotActionService {
  * @param nextPosition
  * @returns
  */
-  protected override stopRobot(robotName: string): void {
+  public override stopRobot(robotName: string): void {
     console.log("RobotActionAspiratorService - stopRobot()");
 
     const robotSignal: WritableSignal<RobotAspiratorModel> | undefined = this.robotAspiratorSignals.get(robotName);

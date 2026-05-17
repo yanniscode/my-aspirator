@@ -52,7 +52,7 @@ export class RobotAspiromanDataService extends RobotDataService {
     let position = { ...basePosition };
     let startCoordinate = this.calculatePixelCoordinates(basePosition);
     let targetCoordinate = this.calculatePixelCoordinates(basePosition);
-    let batterie = 4.5;
+    let batterie = 44;
     let isRobotStarted = false;
     let isRobotReturningToBase = false;
     let robotWidth = 42;
@@ -155,7 +155,7 @@ export class RobotAspiromanDataService extends RobotDataService {
    * @param progress
    * @returns
    */
-  public override updateCurrentCoordinates(name: string, progress: number): PixelPosition {
+  public override updateCurrentCoordinates(name: string, progress: number, mustMove?: boolean): PixelPosition {
     console.log("RobotDataService - updateCurrentCoordinates()");
 
     let aspiromanSignal = this.aspiromanSignals.get(name) as Signal<AspiromanModel | undefined>;
@@ -169,16 +169,27 @@ export class RobotAspiromanDataService extends RobotDataService {
     const x = this.calculatePixelCoordinates(robot.position).x;
     const y = this.calculatePixelCoordinates(robot.position).y;
     if (!robot.isRobotStarted) return new PixelPosition(x, y);
-
-    this.moveRobotCoordinates(name, robot.lastPosition, robot.position);
+    let newXCoordinate;
+    let newYCoordinate;
 
     const startCoordinate = { ...robot.startCoordinate };
     const targetCoordinate = { ...robot.targetCoordinate };
-    // Interpolation linéaire (calcul de valeurs intermédiaires) entre startCoordinate et targetCoordinate
-    const newXCoordinate = startCoordinate.x + (targetCoordinate.x - startCoordinate.x) * progress;
-    const newYCoordinate = startCoordinate.y + (targetCoordinate.y - startCoordinate.y) * progress;
-    console.log("new Coordinate = " + newXCoordinate + " - " + newYCoordinate);
+    // TODO: revoir: bidouille
+    if (mustMove === false) {
+      // this.moveRobotCoordinates(name, robot.position, robot.position);
+      // TODO: important: targetcoordinate
+      newXCoordinate = startCoordinate.x;
+      newYCoordinate = startCoordinate.y;
+    }
+    else {
+      this.moveRobotCoordinates(name, robot.lastPosition, robot.position);
 
+      // const progress = this. animationProgress();
+      // Interpolation linéaire (calcul de valeurs intermédiaires) entre startCoordinate et targetCoordinate
+      newXCoordinate = startCoordinate.x + (targetCoordinate.x - startCoordinate.x) * progress;
+      newYCoordinate = startCoordinate.y + (targetCoordinate.y - startCoordinate.y) * progress;
+      console.log("new Coordinate = " + newXCoordinate + " - " + newYCoordinate);
+    }
     // Attention: inversion nécessaire des coordonnées pour l'affichage: col = x, row = y
     return new PixelPosition(newXCoordinate, newYCoordinate);
   }

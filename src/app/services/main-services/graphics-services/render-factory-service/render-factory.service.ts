@@ -11,10 +11,10 @@ export class RenderFactoryService {
 
     private maisonRenderAnimationService = inject(MaisonRenderAnimationService) as RenderAnimationService;
     private robotAspiratorRenderAnimationService = inject(RobotAspiratorRenderAnimationService) as RenderAnimationService;
-    private robotAspiromanRenderAnimationService = inject(RobotAspiromanRenderAnimationService) as RenderAnimationService;
 
     // Pattern factory: tableau de Render Animation Services de type spécifiques vers un type générique (chargement des services de rendu sur le Canvas)
-    private renderAnimationServicesTab: RenderAnimationService[] = [this.maisonRenderAnimationService, this.robotAspiratorRenderAnimationService, this.robotAspiromanRenderAnimationService];
+    private renderAnimationServicesTab: RenderAnimationService[] =
+        [this.maisonRenderAnimationService, this.robotAspiratorRenderAnimationService];
 
     /**
      * Liste de services de rendu visuel

@@ -9,6 +9,8 @@ import { Direction } from '../../../classes/utils/direction';
 })
 export abstract class RobotActionService {
 
+  public serviceName = "";
+
   protected loggerService: LoggerService = inject(LoggerService);
 
   /**
@@ -21,6 +23,13 @@ export abstract class RobotActionService {
    */
   public abstract updateRobotsVisitedCells(): void;
 
+  /**
+   * Orientation dans l'espace 2D (cardinalité)
+   *
+   * @param position
+   * @param nextPosition
+   * @returns
+   */
   protected getRobotDirection(position: GridPosition, nextPosition: GridPosition): string {
     // dx: 0, dy: -1  // Nord
     if (position.col - nextPosition.col === 0 && position.row - nextPosition.row === -1) {
@@ -63,7 +72,7 @@ export abstract class RobotActionService {
    * @param nextPosition
    * @returns
    */
-  protected abstract stopRobot(robotName: string, position: GridPosition, nextPosition: GridPosition): void;
+  public abstract stopRobot(robotName: string, position: GridPosition, nextPosition: GridPosition): void;
 
   /**
    * Conversion de l'index dans le tableau (GridPosition) en Coordonnée en Pixels (PixelPosition) pour l'affichage CSS

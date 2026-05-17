@@ -7,11 +7,15 @@ import { RenderFactoryService } from '../render-factory-service/render-factory.s
 import { ActionFactoryService } from '../action-factory-service/action-factory.service';
 import { AssetFactoryService } from '../asset-factory-service/asset-factory.service';
 import { RobotDataFactoryService } from '../../../robot-services/robot-data-factory-service/robot-data-factory.service';
+import { RobotActionAspiromanService } from '../../../robot-services/robot-action-services/robot-action-aspiroman-service/robot-action-aspiroman.service';
+import { RobotAspiromanRenderAnimationService } from '../../../robot-services/robot-graphics-services/robot-aspiroman-render-animation-service/robot-aspiroman-render-animation.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AnimationFactoryService {
+
+  // ─── Services injectés ──────────────────────────────────────────────────────
 
   private robotDataFactoryService = inject(RobotDataFactoryService);
   public robotSignals: Map<string, Signal<RobotModel>> = this.robotDataFactoryService.robotSignals;
@@ -22,186 +26,275 @@ export class AnimationFactoryService {
   private actionFactoryService = inject(ActionFactoryService);
   private actionServicesTab: RobotActionService[] = this.actionFactoryService.getActionServicesTab();
 
+  private robotActionAspiromanService = inject(RobotActionAspiromanService);
+
   private renderFactoryService = inject(RenderFactoryService);
   private renderAnimationServicesTab: RenderAnimationService[] = this.renderFactoryService.getRenderAnimationServicesTab();
 
+  private robotAspiromanRenderAnimationService = inject(RobotAspiromanRenderAnimationService);
+
+  // ─── Canvas ─────────────────────────────────────────────────────────────────
+
   protected ctx!: CanvasRenderingContext2D;
 
-  private readonly ROW_COLOR = 'rgb(0, 140, 133)'; // tr-maison: background
-
-  /* Variables pour la Vue: */
-
-  // Variable vérifiant si l'animation est en cours
-  protected isRunning = false;
-
-  // Animation des robots: id de la trame en cours
-  protected animationFrameId?: number;
-
+  private readonly ROW_COLOR = 'rgb(0, 140, 133)';
   private readonly WIDTH = 500;
   private readonly HEIGHT = 400;
 
-  // Configuration de l'animation
-  protected readonly STEP_DURATION = 600; // Durée d'un déplacement complet (ms)
+  // ─── Configuration ──────────────────────────────────────────────────────────
+
+  /** Durée d'un déplacement complet en ms */
+  protected readonly STEP_DURATION = 600;
+
+  // ─── État boucle bots (maîtresse du canvas) ──────────────────────────────────
+
+  protected isRunning = false;
+  private botsAnimationFrameId?: number;
+  private lastBotsStepTime = 0;
+  private botsProgress = 0;
+
+  // ─── État boucle joueur (modèle uniquement, pas de rendu) ────────────────────
+  //
+  // La boucle joueur NE DESSINE PAS. Elle met uniquement à jour
+  // animationPlayerProgress (0→1) sur la durée d'un STEP_DURATION.
+  // La boucle bots lit ce signal à chaque frame et dessine le joueur.
+  // Cela garantit qu'il n'est dessiné qu'une seule fois par frame,
+  // quelle que soit l'activité de la boucle joueur.
+
+  public isPlayerRunning = false;
+  private playerAnimationFrameId?: number;
+  private lastPlayerStepTime = 0;
+
+  // ────────────────────────────────────────────────────────────────────────────
+  // Initialisation canvas
+  // ────────────────────────────────────────────────────────────────────────────
 
   /**
-* Fix Firefox — le contexte canvas reste en état "lazy"
-* jusqu'au premier appel de dessin synchrone.
-* On dessine le fond de la maison pour activer le contexte.
-*/
+   * Fix Firefox — le contexte canvas reste en état "lazy"
+   * jusqu'au premier appel de dessin synchrone.
+   */
   public initCanvasContext(canvas: HTMLCanvasElement): CanvasRenderingContext2D {
-    console.log("AnimationFactoryService - initCanvasContext()");
-
+    console.log('AnimationFactoryService - initCanvasContext()');
     this.ctx = canvas.getContext('2d')!;
     this.ctx.fillStyle = this.ROW_COLOR;
     this.ctx.fillRect(0, 0, canvas.width, canvas.height);
-
     return this.ctx;
   }
 
-  /**
-   * Chargement des images pour le canvas
-   */
-  public async loadCanvasImages(): Promise<void> {
-    console.log("AnimationFactoryService - loadCanvasImages()");
+  // ────────────────────────────────────────────────────────────────────────────
+  // Chargement des assets
+  // ────────────────────────────────────────────────────────────────────────────
 
-    for (let i = 0; i < this.assetServicesTab.length; i++) {
-      await this.assetServicesTab[i].loadAssets();
+  public async loadCanvasImages(): Promise<void> {
+    console.log('AnimationFactoryService - loadCanvasImages()');
+    for (const assetService of this.assetServicesTab) {
+      await assetService.loadAssets();
     }
   }
 
-  /**
-   * Méthode principale de déclenchement de l'animation de la Map de robots
-   *
-   * @returns void
-   */
+  // ────────────────────────────────────────────────────────────────────────────
+  // Point d'entrée principal
+  // ────────────────────────────────────────────────────────────────────────────
+
   public startAnimation(ctx: CanvasRenderingContext2D): CanvasRenderingContext2D {
-    console.log("RobotAspiromanAnimationService - startAnimation()");
+    console.log('AnimationFactoryService - startAnimation()');
+    this.ctx = ctx;
+    this.ctx = this.startAnimationForBots();
+    return this.ctx;
+  }
+
+  // ────────────────────────────────────────────────────────────────────────────
+  // Boucle bots — maîtresse du canvas
+  // ────────────────────────────────────────────────────────────────────────────
+
+  public startAnimationForBots(): CanvasRenderingContext2D {
+    console.log('AnimationFactoryService - startAnimationForBots()');
+
+    if (this.robotSignals.size <= 0) return this.ctx;
+    if (this.isRunning) return this.ctx;
+
+    this.isRunning = true;
+    this.lastBotsStepTime = performance.now();
+    this.botsProgress = 0;
+
+    this.robotDataFactoryService.animationProgress.set(this.botsProgress);
+    this.calculateAndUpdateBots();
+
+    const animate = (currentTime: number) => {
+      const deltaTime = currentTime - this.lastBotsStepTime;
+      const sequenceEnded = deltaTime >= this.STEP_DURATION;
+
+      // Pause demandée depuis l'UI : on attend la fin du step en cours
+      if (!this.isRunning && sequenceEnded) {
+        console.log('AnimationFactoryService - bots : pause, fin de step');
+        this.stopBotsAnimation();
+        return;
+      }
+
+      if (sequenceEnded) {
+        if (!this.robotDataFactoryService.hasActiveRobots()) {
+          console.log('AnimationFactoryService - bots : plus de robots actifs, arrêt');
+          this.stopBotsAnimation();
+          return;
+        }
+        // Nouvelle séquence
+        this.lastBotsStepTime = currentTime;
+        this.botsProgress = 0;
+        this.calculateAndUpdateBots();
+      } else {
+        this.botsProgress = deltaTime / this.STEP_DURATION;
+        this.robotDataFactoryService.animationProgress.set(this.botsProgress);
+      }
+
+      // ── Rendu unique par frame ──────────────────────────────────────────────
+      // 1. Tous les bots IA
+      this.renderAnimationServicesTab.forEach(service => {
+        this.ctx = service.drawObject(this.ctx);
+      });
+
+      // 2. Le joueur — TOUJOURS dessiné ici, jamais ailleurs.
+      //    robotAspiromanRenderAnimationService lit animationPlayerProgress
+      //    (mis à jour par la boucle joueur) pour interpoler la position.
+      this.ctx = this.robotAspiromanRenderAnimationService.drawObject(this.ctx, false);
+      // ───────────────────────────────────────────────────────────────────────
+
+      this.botsAnimationFrameId = requestAnimationFrame(animate);
+    };
+
+    this.botsAnimationFrameId = requestAnimationFrame(animate);
+    return this.ctx;
+  }
+
+  // ────────────────────────────────────────────────────────────────────────────
+  // Boucle joueur — modèle uniquement, AUCUN dessin
+  // ────────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Déclenche un déplacement du robot joueur.
+   *
+   * Cette boucle met uniquement à jour animationPlayerProgress (0 → 1)
+   * pendant STEP_DURATION ms, puis s'arrête.
+   * C'est la boucle bots qui lit cette valeur et dessine le joueur.
+   * Il ne peut donc jamais être rendu deux fois par frame.
+   */
+  public startAnimationForPlayers(
+    ctx: CanvasRenderingContext2D,
+    playerName: string
+  ): CanvasRenderingContext2D {
+    console.log('AnimationFactoryService - startAnimationForPlayers()');
     this.ctx = ctx;
 
     if (this.robotSignals.size <= 0) return this.ctx;
 
-    // on ne démarre ici que si l'animation n'est pas encore activée
-    if (this.isRunning) return this.ctx;
-    this.isRunning = true;
+    // Mise à jour du modèle (déplacement + cellules visitées)
+    this.robotActionAspiromanService.moveRobot(playerName);
+    this.robotActionAspiromanService.updateRobotsVisitedCells();
 
-    let lastStepTime = performance.now();
-    let progress = 0;
+    // Guard : un step joueur est déjà en cours, on ignore l'input
+    if (this.isPlayerRunning) return this.ctx;
+    this.isPlayerRunning = true;
 
-    console.log("animationProgress = " + this.robotDataFactoryService.animationProgress());
-    console.log("progress = " + progress);
+    this.lastPlayerStepTime = performance.now();
 
-    this.robotDataFactoryService.animationProgress.set(progress);
+    // Réinitialise la progression du joueur à 0 pour ce nouveau step
+    this.robotDataFactoryService.animationPlayerProgress.set(0);
 
-    // boucle générale de l'animation
     const animate = (currentTime: number) => {
+      const deltaTime = currentTime - this.lastPlayerStepTime;
 
-      const deltaTime = currentTime - lastStepTime;
-
-      const sequenceEnded = deltaTime >= this.STEP_DURATION;
-
-      // on termine la séquence actuelle avant de mettre en pause l'animation
-      if (!this.isRunning && sequenceEnded) {
-        console.log("pauseAllAnimation 1");
-        this.pauseAllAnimation();
-        return this.ctx;
-      }
-      // Nouvelle direction selon la durée de STEP_DURATION
-      else if (sequenceEnded) {
-        // s'il n'y a plus de robot actif à la fin de la séquence d'animation, on stoppe directement l'animation
-        if (!this.robotDataFactoryService.hasActiveRobots()) {
-          console.log("pauseAllAnimation 2");
-
-          this.pauseAllAnimation();
-          return this.ctx;
+      if (deltaTime >= this.STEP_DURATION) {
+        // Step terminé : on fixe la progression à 1 (position finale exacte)
+        this.robotDataFactoryService.animationPlayerProgress.set(1);
+        // Si la boucle bots est active, elle dessine cette dernière frame.
+        // Sinon on la dessine ici avant de s'arrêter.
+        if (!this.isRunning) {
+          this.drawPlayerFrame();
         }
-
-        // 1. Reset du temps
-        lastStepTime = currentTime;
-
-        // 2. Calcul des nouvelles directions (qui lit progress = 0)
-        this.actionServicesTab.forEach(actionService => {
-          actionService.calculateNewDirectionsForAllRobots();
-          actionService.updateRobotsVisitedCells();
-        });
-
-      } else {
-        // En cours d'animation
-        progress = deltaTime / this.STEP_DURATION;
-        // Mettre à jour le signal de progression
-        this.robotDataFactoryService.animationProgress.set(progress);
+        this.stopPlayerAnimation();
+        return;
       }
 
-      // TODO: garder ici ??
-      // Efface tout
-      // this.ctx.clearRect(0, 0, this.WIDTH, this.HEIGHT);
+      // Met à jour la progression (0 → 1)
+      this.robotDataFactoryService.animationPlayerProgress.set(
+        deltaTime / this.STEP_DURATION
+      );
 
-      // 3. Mise à jour de la position du robot et de la maison (vue)
-      this.renderAnimationServicesTab.forEach(robotRenderAnimationService => {
-        this.ctx = robotRenderAnimationService.drawObject(this.ctx);
-      });
+      // Si la boucle bots est inactive (pas de robots IA), on dessine
+      // le joueur nous-mêmes — sinon la boucle bots s'en charge.
+      if (!this.isRunning) {
+        this.drawPlayerFrame();
+      }
 
-      this.animationFrameId = requestAnimationFrame(animate);
-
-      return this.ctx;
+      this.playerAnimationFrameId = requestAnimationFrame(animate);
     };
 
-    this.actionServicesTab.forEach(actionService => {
-      actionService.calculateNewDirectionsForAllRobots();
-      actionService.updateRobotsVisitedCells();
-    });
-
-    // TODO: garder ici ??
-    // Efface tout
-    // this.ctx.clearRect(0, 0, this.WIDTH, this.HEIGHT);
-    // Mise à jour de la position du robot et de la maison (vue)
-    this.renderAnimationServicesTab.forEach(renderAnimationService => {
-      this.ctx = renderAnimationService.drawObject(this.ctx);
-    });
-    this.animationFrameId = requestAnimationFrame(animate);
-
+    this.playerAnimationFrameId = requestAnimationFrame(animate);
     return this.ctx;
   }
 
-  /**
- * Affichage des images sur le canvas
- */
+  // ────────────────────────────────────────────────────────────────────────────
+  // Rendu complet (bots + joueur) — appelable depuis l'extérieur si besoin
+  // ────────────────────────────────────────────────────────────────────────────
+
   public renderAnimation(ctx: CanvasRenderingContext2D): CanvasRenderingContext2D {
-    // console.log("RenderFactoryService - renderAnimation()");
     this.ctx = ctx;
-    // Efface tout
     this.ctx.clearRect(0, 0, this.WIDTH, this.HEIGHT);
-    // Dessine tout
-    this.renderAnimationServicesTab.forEach(renderAnimationService => {
-      this.ctx = renderAnimationService.drawObject(this.ctx);
+
+    this.renderAnimationServicesTab.forEach(service => {
+      this.ctx = service.drawObject(this.ctx);
     });
+
+    // Le joueur est toujours dessiné en dernier (par-dessus les bots)
+    this.ctx = this.robotAspiromanRenderAnimationService.drawObject(this.ctx, false);
+
     return this.ctx;
   }
 
-  /**
-   * Méthode liée à la mise en pause au clic de l'animation
-   */
-  public onRobotsPause(ctx: CanvasRenderingContext2D): void {
-    console.log("RobotAspiromanAnimationService - onRobotsPause()");
-    this.ctx = ctx;
+  // ────────────────────────────────────────────────────────────────────────────
+  // Pause depuis l'UI
+  // ────────────────────────────────────────────────────────────────────────────
 
+  public onRobotsPause(ctx: CanvasRenderingContext2D): void {
+    console.log('AnimationFactoryService - onRobotsPause()');
+    this.ctx = ctx;
+    // La boucle bots s'arrêtera proprement à la fin du step en cours
     this.isRunning = false;
+    // La boucle joueur peut finir son step ; elle s'arrêtera d'elle-même
     console.log('Service de robots mis en pause');
   }
 
-  /**
-   * Mise en pause automatique (sans clic) de l'animation (par exemple: en fin de parcours pour tous les robots, s'ils sont inactifs)
-   */
-  private pauseAllAnimation(): void {
-    console.log("RobotAspiromanAnimationService - pauseAllAnimation()");
+  // ────────────────────────────────────────────────────────────────────────────
+  // Utilitaires privés
+  // ────────────────────────────────────────────────────────────────────────────
 
-    console.log('Animation stopped');
-    // important pour stopper l'animation quand plus de robot actif:
+  private calculateAndUpdateBots(): void {
+    this.actionServicesTab.forEach(actionService => {
+      if (actionService.serviceName === 'RobotActionAspiratorService') {
+        actionService.calculateNewDirectionsForAllRobots();
+        actionService.updateRobotsVisitedCells();
+      }
+    });
+  }
+
+  private drawPlayerFrame(): void {
+    this.ctx = this.robotAspiromanRenderAnimationService.drawObject(this.ctx, false);
+  }
+
+  private stopBotsAnimation(): void {
+    console.log('AnimationFactoryService - stopBotsAnimation()');
     this.isRunning = false;
-
-    if (this.animationFrameId !== undefined) {
-      cancelAnimationFrame(this.animationFrameId);
-      this.animationFrameId = undefined;
+    if (this.botsAnimationFrameId !== undefined) {
+      cancelAnimationFrame(this.botsAnimationFrameId);
+      this.botsAnimationFrameId = undefined;
     }
-    // On ne supprime pas la map de signaux pour une simple mise en pause
+  }
+
+  private stopPlayerAnimation(): void {
+    console.log('AnimationFactoryService - stopPlayerAnimation()');
+    this.isPlayerRunning = false;
+    if (this.playerAnimationFrameId !== undefined) {
+      cancelAnimationFrame(this.playerAnimationFrameId);
+      this.playerAnimationFrameId = undefined;
+    }
   }
 }

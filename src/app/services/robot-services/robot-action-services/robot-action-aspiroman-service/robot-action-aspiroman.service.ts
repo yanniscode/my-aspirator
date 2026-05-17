@@ -1,4 +1,4 @@
-import { computed, inject, Injectable, Signal, WritableSignal } from '@angular/core';
+import { computed, inject, Injectable, OnInit, signal, Signal, WritableSignal } from '@angular/core';
 import { CellElement } from '../../../../classes/models/cellElement';
 import { GridPosition } from '../../../../classes/models/grid-position';
 import { PixelPosition } from '../../../../classes/models/pixel-position';
@@ -12,7 +12,7 @@ import { RobotAspiromanDataService } from '../../robot-data-services/robot-aspir
 @Injectable({
   providedIn: 'root'
 })
-export class RobotActionAspiromanService extends RobotActionService {
+export abstract class RobotActionAspiromanService extends RobotActionService {
 
   protected algoNettoyageService = inject(AlgoNettoyageService);
 
@@ -27,96 +27,107 @@ export class RobotActionAspiromanService extends RobotActionService {
     this.maisonDataNettoyageService.maisonSignal()
   );
 
+  private readonly CELL_SIZE = 50;        // td-maison: width / height: 50px
+
   // Configuration de l'animation
   private PIXELS_PER_STEP: number = 0; // Pixels à parcourir dans un intervale donné
+
+  public _playerMove: WritableSignal<string> = signal("");
+  public playerMove: Signal<string> = this._playerMove.asReadonly();
 
   constructor() {
     console.log("RobotActionAspiromanService - constructor()");
     super();
+    this.serviceName = "RobotActionAspiromanService";
     this.PIXELS_PER_STEP = 50;
   }
 
-  /**
-   * Calcule de nouvelles directions pour la Map de robots
-   */
   public override calculateNewDirectionsForAllRobots(): void {
     console.log("RobotActionAspiromanService - calculateNewDirectionsForAllRobots()");
-
-    if (this.aspiromanSignals.size <= 0) return;
-
-    // Parcourt tous les robots
-    this.aspiromanSignals.forEach((robotSignal: WritableSignal<AspiromanModel>, robotName) => {
-
-      const robot = robotSignal();
-      if (!robot) return;
-      console.log(robot);
-
-      let nextPosition: GridPosition = robot.position;
-      if (!nextPosition) return;
-
-      if (robot.batterie <= 0) {
-        if (robot!.position.col === robot!.basePosition.col && robot!.position.row === robot!.basePosition.row
-        ) {
-          console.log(`### Le robot est à sa base et ne peut démarrer - Batterie: ${robot.batterie}%`);
-        }
-        else {
-          console.log(`### Le robot est à l'arrêt en cours de parcours et ne peut redémarrer - Batterie: ${robot.batterie}%`);
-        }
-
-        this.stopRobot(robotName);
-        return;
-      }
-      else if (robot.batterie > 0) {
-
-        if (robot.isRobotReturningToBase) {
-
-          if (robot.position.col === robot.basePosition.col && robot.position.row === robot.basePosition.row) {
-            this.stopRobot(robotName);
-            console.log("Arrêt effectué - retour à la base accomplit !");
-            return;
-          }
-
-          this.activateReturnToBase(robot);
-          return;
-        }
-        else if (this.maisonDataNettoyageService.toutEstVisite()) {
-
-          console.log(`### updateAllRobots() - Maison entièrement nettoyée ou bien: limite de batterie atteinte : le robot doit rentrer à la base - Batterie: ${robot.batterie}%`);
-
-          this.activateReturnToBase(robot);
-          return;
-
-        } else { // si la maison n'est pas totalement nettoyée
-
-          // Dans cette version de l'algo de nettoyage: on prend la première position du chemin à chaque tour de boucle
-          // (permet de vérifier le chemin à chaque pas, si plusieurs robots sont présents)
-          nextPosition = this.nettoyer(robot);
-
-          const batteryLimitExceeded: boolean = this.robotDoitRentrerALaBase(
-            robot.batterie,
-            nextPosition,
-            robot.basePosition,
-            robot.consommationParMouvement
-          );
-          if (batteryLimitExceeded) {
-            console.log("batteryLimitExceeded !");
-            console.log(`### Limite de batterie dépassée pour le Robot ${robot.robotName} : row = ${robot.position.row}, col = ${robot.position.col} - Batterie: ${robot.batterie}%`);
-            this.activateReturnToBase(robot);
-            return;
-          }
-
-          console.log(`### Nouvelle position de nettoyage trouvée pour le Robot ${robot.robotName} : row = ${nextPosition.row}, col = ${nextPosition.col} - Batterie: ${robot.batterie}%`);
-          // MAJ du robot: déplacement normal
-          this.moveRobot(robotName, nextPosition);
-        }
-      }
-    });
+    this.moveRobot('Player 1');
   }
 
+  // /**
+  //  * Calcule de nouvelles directions pour la Map de robots
+  //  */
+  // public override calculateNewDirectionsForAllRobots(): void {
+  //   console.log("RobotActionAspiromanService - calculateNewDirectionsForAllRobots()");
+
+  //   if (this.aspiromanSignals.size <= 0) return;
+
+  //   // Parcourt tous les robots
+  //   this.aspiromanSignals.forEach((robotSignal: WritableSignal<AspiromanModel>, robotName) => {
+
+  //     const robot = robotSignal();
+  //     if (!robot) return;
+  //     console.log(robot);
+
+  //     let nextPosition: GridPosition = robot.position;
+  //     if (!nextPosition) return;
+
+  //     if (robot.batterie <= 0) {
+  //       if (robot!.position.col === robot!.basePosition.col && robot!.position.row === robot!.basePosition.row
+  //       ) {
+  //         console.log(`### Le robot est à sa base et ne peut démarrer - Batterie: ${robot.batterie}%`);
+  //       }
+  //       else {
+  //         console.log(`### Le robot est à l'arrêt en cours de parcours et ne peut redémarrer - Batterie: ${robot.batterie}%`);
+  //       }
+
+  //       this.stopRobot(robotName);
+  //       return;
+  //     }
+  //     else if (robot.batterie > 0) {
+
+  //       if (robot.isRobotReturningToBase) {
+
+  //         if (robot.position.col === robot.basePosition.col && robot.position.row === robot.basePosition.row) {
+  //           this.stopRobot(robotName);
+  //           console.log("Arrêt effectué - retour à la base accomplit !");
+  //           return;
+  //         }
+
+  //         // this.activateReturnToBase(robot);
+  //         return;
+  //       }
+  //       else if (this.maisonDataNettoyageService.toutEstVisite()) {
+
+  //         console.log(`### updateAllRobots() - Maison entièrement nettoyée ou bien: limite de batterie atteinte : le robot doit rentrer à la base - Batterie: ${robot.batterie}%`);
+
+  //         // this.activateReturnToBase(robot);
+  //         return;
+
+  //       } else { // si la maison n'est pas totalement nettoyée
+
+  //         // Dans cette version de l'algo de nettoyage: on prend la première position du chemin à chaque tour de boucle
+  //         // (permet de vérifier le chemin à chaque pas, si plusieurs robots sont présents)
+  //         nextPosition = this.nettoyer(robot);
+
+  //         const batteryLimitExceeded: boolean = this.robotDoitRentrerALaBase(
+  //           robot.batterie,
+  //           nextPosition,
+  //           robot.basePosition,
+  //           robot.consommationParMouvement
+  //         );
+  //         if (batteryLimitExceeded) {
+  //           console.log("batteryLimitExceeded !");
+  //           console.log(`### Limite de batterie dépassée pour le Robot ${robot.robotName} : row = ${robot.position.row}, col = ${robot.position.col} - Batterie: ${robot.batterie}%`);
+  //           // this.activateReturnToBase(robot);
+  //           return;
+  //         }
+
+  //         console.log(`### Nouvelle position de nettoyage trouvée pour le Robot ${robot.robotName} : row = ${nextPosition.row}, col = ${nextPosition.col} - Batterie: ${robot.batterie}%`);
+  //         // MAJ du robot: déplacement normal
+  //         // this.moveRobot(robotName, nextPosition);
+  //       }
+  //     }
+  //   });
+  // }
+
   /**
-  * Déplace manuellement un robot à une position
-  */
-  protected override moveRobot(robotName: string, nextPosition: GridPosition): void {
+   * Déplace manuellement un robot à une position
+   */
+  public override moveRobot(robotName: string): void {
     console.log("RobotActionAspiromanService - moveRobot()");
 
     const robotSignal: WritableSignal<AspiromanModel> | undefined = this.aspiromanSignals.get(robotName);
@@ -125,16 +136,55 @@ export class RobotActionAspiromanService extends RobotActionService {
     const robot = robotSignal();
     if (!robot) return;
 
+    const mouvement = this._playerMove();
+    console.log("mouvement = " + mouvement);
+
+    const nextPosition = new GridPosition();
+    nextPosition.row = robot.position.row;
+    nextPosition.col = robot.position.col;
+
+    if (mouvement === "ArrowUp") { nextPosition.row -= 1; }
+    else if (mouvement === "ArrowRight") { nextPosition.col += 1; }
+    else if (mouvement === "ArrowDown") { nextPosition.row += 1; }
+    else if (mouvement === "ArrowLeft") { nextPosition.col -= 1; }
+
+    this._playerMove.set("");
+
+    // ── Coordonnées pixel ────────────────────────────────────────────────────
+    // startCoordinate  = là où le robot se trouve visuellement EN CE MOMENT.
+    //   On repart de targetCoordinate (la destination du step précédent),
+    //   qui correspond exactement à la position affichée à progress = 1.
+    //   Si c'est le tout premier mouvement, targetCoordinate vaut (0,0) :
+    //   on l'initialise alors depuis la position grille actuelle.
+    const isFirstMove =
+      robot.targetCoordinate.x === 0 && robot.targetCoordinate.y === 0;
+
+    const startX = isFirstMove
+      ? robot.position.col * this.CELL_SIZE
+      : robot.targetCoordinate.x;
+    const startY = isFirstMove
+      ? robot.position.row * this.CELL_SIZE
+      : robot.targetCoordinate.y;
+
+    // targetCoordinate = la destination en pixels du nouveau step
+    const targetX = nextPosition.col * this.CELL_SIZE;
+    const targetY = nextPosition.row * this.CELL_SIZE;
+    // ─────────────────────────────────────────────────────────────────────────
+
     robotSignal.update(robot => ({
       ...robot,
       isRobotStarted: true,
-      isRobotReturningToBase: false,                                        // le robot ne rentre pas à la base
+      isRobotReturningToBase: false,
       robotDirection: this.getRobotDirection(robot.position, nextPosition),
-      lastPosition: { ...robot.position },                                  // la précédente position est modifiée avec l'actuelle
-      position: { ...nextPosition },                                        // la nouvelle position prend sa valeur suivante
-      batterie: robot.batterie - robot.consommationParMouvement
+      lastPosition: { ...robot.position },
+      position: { ...nextPosition },
+      batterie: robot.batterie - robot.consommationParMouvement,
+      // ✅ coordonnées pixel pour l'interpolation dans drawObject
+      startCoordinate: { x: startX, y: startY },
+      targetCoordinate: { x: targetX, y: targetY },
     }));
-    console.log(`### ${robotName}: tableau[${nextPosition.col},${nextPosition.row}]- batterie(${robot.batterie})`);
+
+    console.log(`### ${robotName}: moveRobot nextPosition[${nextPosition.col},${nextPosition.row}] - batterie(${robot.batterie})`);
   }
 
   /**
@@ -145,7 +195,7 @@ export class RobotActionAspiromanService extends RobotActionService {
  * @param nextPosition
  * @returns
  */
-  protected override stopRobot(robotName: string): void {
+  public override stopRobot(robotName: string): void {
     console.log("RobotActionAspiromanService - stopRobot()");
 
     const robotSignal: WritableSignal<AspiromanModel> | undefined = this.aspiromanSignals.get(robotName);
@@ -159,185 +209,185 @@ export class RobotActionAspiromanService extends RobotActionService {
 
   /** Méthodes propres au robot Aspirateur: */
 
-  /**
-   * Fonction principale pour nettoyer la maison
-   *
-   * @param robotModelInput
-   * @returns
-   */
-  private nettoyer(robotModelInput: AspiromanModel): GridPosition {
-    console.log("RobotActionAspiromanService - nettoyer()");
+  // /**
+  //  * Fonction principale pour nettoyer la maison
+  //  *
+  //  * @param robotModelInput
+  //  * @returns
+  //  */
+  // private nettoyer(robotModelInput: AspiromanModel): GridPosition {
+  //   console.log("RobotActionAspiromanService - nettoyer()");
 
-    const maisonModel: MaisonModel = this.maisonSignal();
-    if (!maisonModel) return new GridPosition();
+  //   const maisonModel: MaisonModel = this.maisonSignal();
+  //   if (!maisonModel) return new GridPosition();
 
-    // Dé-réserver la position actuelle:
-    this.maisonDataNettoyageService.updateReservedCell(robotModelInput.position, false);
+  //   // Dé-réserver la position actuelle:
+  //   this.maisonDataNettoyageService.updateReservedCell(robotModelInput.position, false);
 
-    // Chercher la prochaine case non visitée
-    let prochaineCaseNonVisitee: CellElement | null = this.algoNettoyageService.trouverProchaineDestination(maisonModel.maison, robotModelInput.position);
-    console.log(prochaineCaseNonVisitee);
+  //   // Chercher la prochaine case non visitée
+  //   let prochaineCaseNonVisitee: CellElement | null = this.algoNettoyageService.trouverProchaineDestination(maisonModel.maison, robotModelInput.position);
+  //   console.log(prochaineCaseNonVisitee);
 
-    if (!prochaineCaseNonVisitee) {
-      console.log("La maison est entièrement nettoyée !");
+  //   if (!prochaineCaseNonVisitee) {
+  //     console.log("La maison est entièrement nettoyée !");
 
-      let positionRetourALaBase: GridPosition = this.retournerALaBase(robotModelInput);
-      console.log("positionRetourALaBase :" + positionRetourALaBase);
+  //     let positionRetourALaBase: GridPosition = this.retournerALaBase(robotModelInput);
+  //     console.log("positionRetourALaBase :" + positionRetourALaBase);
 
-      if (!positionRetourALaBase) {
-        console.log("Impossible de trouver un chemin vers la destination");
-        return robotModelInput.position;
-      }
+  //     if (!positionRetourALaBase) {
+  //       console.log("Impossible de trouver un chemin vers la destination");
+  //       return robotModelInput.position;
+  //     }
 
-      return positionRetourALaBase;
-    }
+  //     return positionRetourALaBase;
+  //   }
 
-    // Utiliser un algorithme de recherche de chemin optimal pour rechercher le pas suivant du robot
-    // on récupère la position 0 du chemin vers une position non nettoyée et (de préférence) non réservée avant
-    let nextPositionNettoyage: GridPosition = this.algoNettoyageService.trouverPositionSuivante(
-      maisonModel.maison, robotModelInput.position, prochaineCaseNonVisitee.position
-    );
+  //   // Utiliser un algorithme de recherche de chemin optimal pour rechercher le pas suivant du robot
+  //   // on récupère la position 0 du chemin vers une position non nettoyée et (de préférence) non réservée avant
+  //   let nextPositionNettoyage: GridPosition = this.algoNettoyageService.trouverPositionSuivante(
+  //     maisonModel.maison, robotModelInput.position, prochaineCaseNonVisitee.position
+  //   );
 
-    console.log("nextPositionNettoyage :" + nextPositionNettoyage);
-    if (!nextPositionNettoyage) {
-      console.log("Impossible de trouver un chemin vers la destination");
-      return robotModelInput.position;
-    }
+  //   console.log("nextPositionNettoyage :" + nextPositionNettoyage);
+  //   if (!nextPositionNettoyage) {
+  //     console.log("Impossible de trouver un chemin vers la destination");
+  //     return robotModelInput.position;
+  //   }
 
-    // on recherche la cellule correspondant à la position suivante dans la maison pour vérifier son status réservé ou non
-    const cellulesVoisines = this.algoNettoyageService.obtenirCellulesAdjacentes(maisonModel.maison, nextPositionNettoyage);
-    let nextCellNettoyage: CellElement = new CellElement();
-    for (const celluleVoisine of cellulesVoisines) {
-      if (celluleVoisine.position.col === nextPositionNettoyage.col && celluleVoisine.position.row === nextPositionNettoyage.row)
-        // copie par référence:
-        nextCellNettoyage = celluleVoisine;
-    }
-    if (!nextCellNettoyage.reserved) {
-      // Réserver la position non-visitée la plus proche, si elle est accessible
-      this.maisonDataNettoyageService.updateReservedCell(nextPositionNettoyage, true);
-    }
+  //   // on recherche la cellule correspondant à la position suivante dans la maison pour vérifier son status réservé ou non
+  //   const cellulesVoisines = this.algoNettoyageService.obtenirCellulesAdjacentes(maisonModel.maison, nextPositionNettoyage);
+  //   let nextCellNettoyage: CellElement = new CellElement();
+  //   for (const celluleVoisine of cellulesVoisines) {
+  //     if (celluleVoisine.position.col === nextPositionNettoyage.col && celluleVoisine.position.row === nextPositionNettoyage.row)
+  //       // copie par référence:
+  //       nextCellNettoyage = celluleVoisine;
+  //   }
+  //   if (!nextCellNettoyage.reserved) {
+  //     // Réserver la position non-visitée la plus proche, si elle est accessible
+  //     this.maisonDataNettoyageService.updateReservedCell(nextPositionNettoyage, true);
+  //   }
 
-    return nextPositionNettoyage;
-  }
+  //   return nextPositionNettoyage;
+  // }
 
-  /**
-* Activation du retour à la base
-*
-* @param robot
-* @returns
-*/
-  private activateReturnToBase(robot: AspiromanModel): void {
-    console.log("RobotActionAspiromanService - activateReturnToBase()");
+  //   /**
+  // * Activation du retour à la base
+  // *
+  // * @param robot
+  // * @returns
+  // */
+  //   private activateReturnToBase(robot: AspiromanModel): void {
+  //     console.log("RobotActionAspiromanService - activateReturnToBase()");
 
-    const nextPosition = this.retournerALaBase(robot);
-    if (!nextPosition) {
-      this.stopRobot(robot.robotName);
-      return;
-    }
+  //     const nextPosition = this.retournerALaBase(robot);
+  //     if (!nextPosition) {
+  //       this.stopRobot(robot.robotName);
+  //       return;
+  //     }
 
-    // MAJ du robot: retour à la base
-    this.moveRobotReturningToBase(robot.robotName, robot.position, nextPosition);
+  //     // MAJ du robot: retour à la base
+  //     this.moveRobotReturningToBase(robot.robotName, robot.position, nextPosition);
 
-    console.log(`### Nouvelle position de retour à la base trouvée pour le Robot ${robot.robotName} : row = ${nextPosition.col}, col = ${nextPosition.row} - Batterie: ${robot.batterie}%`);
-  }
+  //     console.log(`### Nouvelle position de retour à la base trouvée pour le Robot ${robot.robotName} : row = ${nextPosition.col}, col = ${nextPosition.row} - Batterie: ${robot.batterie}%`);
+  //   }
 
-  /**
-   * Retourner à la base de charge
-   *
-   * @param robotModelInput
-   * @returns
-   */
-  private retournerALaBase(robotModelInput: AspiromanModel): GridPosition {
-    console.log("RobotActionAspiromanServices - retournerALaBase()");
-    console.log("Retour à la base de charge");
+  // /**
+  //  * Retourner à la base de charge
+  //  *
+  //  * @param robotModelInput
+  //  * @returns
+  //  */
+  // private retournerALaBase(robotModelInput: AspiromanModel): GridPosition {
+  //   console.log("RobotActionAspiromanServices - retournerALaBase()");
+  //   console.log("Retour à la base de charge");
 
-    const maisonModel: MaisonModel = this.maisonSignal();
-    if (!maisonModel) return new GridPosition();
+  //   const maisonModel: MaisonModel = this.maisonSignal();
+  //   if (!maisonModel) return new GridPosition();
 
-    // Trouver le chemin vers la base
-    const positionRetourALaBase: GridPosition = this.algoNettoyageService.trouverPositionSuivante(maisonModel.maison, robotModelInput.position, robotModelInput.basePosition);
-    console.log("nextPosition :" + positionRetourALaBase);
+  //   // Trouver le chemin vers la base
+  //   const positionRetourALaBase: GridPosition = this.algoNettoyageService.trouverPositionSuivante(maisonModel.maison, robotModelInput.position, robotModelInput.basePosition);
+  //   console.log("nextPosition :" + positionRetourALaBase);
 
-    if (!positionRetourALaBase) {
-      console.log("Impossible de trouver un chemin vers la base de charge!");
-      return robotModelInput.position;
-    }
+  //   if (!positionRetourALaBase) {
+  //     console.log("Impossible de trouver un chemin vers la base de charge!");
+  //     return robotModelInput.position;
+  //   }
 
-    return positionRetourALaBase;
-  }
+  //   return positionRetourALaBase;
+  // }
 
-  /**
-   * Déplacement du robot vers sa base de charge
-   *
-   * @param robotName
-   * @param position
-   * @param nextPosition
-   * @returns
-   */
-  private moveRobotReturningToBase(robotName: string, position: GridPosition, nextPosition: GridPosition): void {
-    console.log("RobotActionAspiromanService - moveRobotReturningToBase()");
+  // /**
+  //  * Déplacement du robot vers sa base de charge
+  //  *
+  //  * @param robotName
+  //  * @param position
+  //  * @param nextPosition
+  //  * @returns
+  //  */
+  // private moveRobotReturningToBase(robotName: string, position: GridPosition, nextPosition: GridPosition): void {
+  //   console.log("RobotActionAspiromanService - moveRobotReturningToBase()");
 
-    const robotSignal: WritableSignal<AspiromanModel> | undefined = this.aspiromanSignals.get(robotName);
-    if (!robotSignal) return;
+  //   const robotSignal: WritableSignal<AspiromanModel> | undefined = this.aspiromanSignals.get(robotName);
+  //   if (!robotSignal) return;
 
-    const robot = robotSignal();
+  //   const robot = robotSignal();
 
-    const newStartCoordinate: PixelPosition = this.robotAspiromanDataService.calculatePixelCoordinates(position);
-    const newTargetCoordinate: PixelPosition = this.robotAspiromanDataService.calculatePixelCoordinates(nextPosition);
+  //   const newStartCoordinate: PixelPosition = this.robotAspiromanDataService.calculatePixelCoordinates(position);
+  //   const newTargetCoordinate: PixelPosition = this.robotAspiromanDataService.calculatePixelCoordinates(nextPosition);
 
-    if (newStartCoordinate.x !== newTargetCoordinate.x || newStartCoordinate.y !== newTargetCoordinate.y) {
-      robotSignal.update(robot => ({
-        ...robot,
-        isRobotStarted: true,
-        isRobotReturningToBase: true,
-        robotDirection: this.getRobotDirection(robot.position, nextPosition),
-        lastPosition: { ...robot.position },  // la précédente position est modifiée avec l'actuelle
-        position: { ...nextPosition },        // la nouvelle position prend sa valeur suivante
-        batterie: robot.batterie - robot.consommationParMouvement
-      }));
-      console.log(`### ${robotName}: tableau [${nextPosition.col},${nextPosition.row}] → pixels (${newTargetCoordinate.x}, ${newTargetCoordinate.y}) - batterie (${robot.batterie})`);
-    } else {
-      this.stopRobot(robotName);
-    }
-  }
+  //   if (newStartCoordinate.x !== newTargetCoordinate.x || newStartCoordinate.y !== newTargetCoordinate.y) {
+  //     robotSignal.update(robot => ({
+  //       ...robot,
+  //       isRobotStarted: true,
+  //       isRobotReturningToBase: true,
+  //       robotDirection: this.getRobotDirection(robot.position, nextPosition),
+  //       lastPosition: { ...robot.position },  // la précédente position est modifiée avec l'actuelle
+  //       position: { ...nextPosition },        // la nouvelle position prend sa valeur suivante
+  //       batterie: robot.batterie - robot.consommationParMouvement
+  //     }));
+  //     console.log(`### ${robotName}: tableau [${nextPosition.col},${nextPosition.row}] → pixels (${newTargetCoordinate.x}, ${newTargetCoordinate.y}) - batterie (${robot.batterie})`);
+  //   } else {
+  //     this.stopRobot(robotName);
+  //   }
+  // }
 
-  /**
-   * Déterminer si le robot doit rentrer ou non à sa base de charge
-   *
-   * @param batterie
-   * @param position
-   * @param basePosition
-   * @param consommationParMouvement
-   * @returns
-   */
-  private robotDoitRentrerALaBase(batterie: number, position: GridPosition, basePosition: GridPosition, consommationParMouvement: number): boolean {
-    console.log("RobotActionAspiromanService - robotDoitRentrerALaBase()");
+  // /**
+  //  * Déterminer si le robot doit rentrer ou non à sa base de charge
+  //  *
+  //  * @param batterie
+  //  * @param position
+  //  * @param basePosition
+  //  * @param consommationParMouvement
+  //  * @returns
+  //  */
+  // private robotDoitRentrerALaBase(batterie: number, position: GridPosition, basePosition: GridPosition, consommationParMouvement: number): boolean {
+  //   console.log("RobotActionAspiromanService - robotDoitRentrerALaBase()");
 
-    return (position && batterie <= this.energieNecessairePourRetour(position, basePosition, consommationParMouvement)) ?
-      true : false;
-  }
+  //   return (position && batterie <= this.energieNecessairePourRetour(position, basePosition, consommationParMouvement)) ?
+  //     true : false;
+  // }
 
-  /**
-   * Estimer l'énergie nécessaire au robot pour retourner à la base
-   *
-   * @param position
-   * @param basePosition
-   * @param consommationParMouvement
-   * @returns
-   */
-  private energieNecessairePourRetour(position: GridPosition, basePosition: GridPosition, consommationParMouvement: number): number {
-    // console.log("RobotActionAspiromanService - energieNecessairePourRetour()");
+  // /**
+  //  * Estimer l'énergie nécessaire au robot pour retourner à la base
+  //  *
+  //  * @param position
+  //  * @param basePosition
+  //  * @param consommationParMouvement
+  //  * @returns
+  //  */
+  // private energieNecessairePourRetour(position: GridPosition, basePosition: GridPosition, consommationParMouvement: number): number {
+  //   // console.log("RobotActionAspiromanService - energieNecessairePourRetour()");
 
-    const maisonModel: MaisonModel = this.maisonSignal();
-    if (!maisonModel) return -1;
+  //   const maisonModel: MaisonModel = this.maisonSignal();
+  //   if (!maisonModel) return -1;
 
-    // Estimer la distance jusqu'à la base (la distance de Manhattan ne suffit pas car elle ne tient pas compte des obstacles)
-    const distance = this.algoNettoyageService.distanceDeLaBase(maisonModel.maison, position, basePosition);
-    console.log("distance minimale de la base = " + distance);
+  //   // Estimer la distance jusqu'à la base (la distance de Manhattan ne suffit pas car elle ne tient pas compte des obstacles)
+  //   const distance = this.algoNettoyageService.distanceDeLaBase(maisonModel.maison, position, basePosition);
+  //   console.log("distance minimale de la base = " + distance);
 
-    // Ajouter une marge de sécurité si on veut:
-    return (distance * consommationParMouvement) * 1;
-  }
+  //   // Ajouter une marge de sécurité si on veut:
+  //   return (distance * consommationParMouvement) * 1;
+  // }
 
   /**
    * Conversion de l'index dans le tableau (GridPosition) en Coordonnée en Pixels (PixelPosition) pour l'affichage CSS
@@ -355,7 +405,7 @@ export class RobotActionAspiromanService extends RobotActionService {
   }
 
   /**
-   * MAJ des position visitée de la maison
+   * MAJ des positions visitées de la maison
    */
   public override updateRobotsVisitedCells(): void {
     console.log("RobotActionAspiromanService - updateRobotsVisitedCells()");

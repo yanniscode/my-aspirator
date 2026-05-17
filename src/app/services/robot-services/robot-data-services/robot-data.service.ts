@@ -21,6 +21,9 @@ export abstract class RobotDataService {
   protected readonly _animationProgress: WritableSignal<number> = signal(0);
   public animationProgress: WritableSignal<number> = this._animationProgress;
 
+  protected readonly _animationPlayerProgress: WritableSignal<number> = signal(0);
+  public animationPlayerProgress: WritableSignal<number> = this._animationPlayerProgress;
+
   constructor() {
     this.PIXELS_PER_STEP = 50;
   }
@@ -42,8 +45,8 @@ export abstract class RobotDataService {
 
   /**
    * Méthode générale pour instancier la liste de signaux de robots avec leurs données selon le type spécifié dans la classe qui en hérite
-   * 
-   * @param robotAspiratorModelTab 
+   *
+   * @param robotAspiratorModelTab
    */
   public abstract setRobotSignalsList(robotAspiratorModelTab: RobotModel[]): void;
 
@@ -54,8 +57,8 @@ export abstract class RobotDataService {
 
   /**
    * enregistre un robot dans la Map de signaux selon le type spécifié dans la classe qui en hérite
-   * 
-   * @param robotModel 
+   *
+   * @param robotModel
    */
   protected abstract registerRobotInList(robotModel: RobotModel): void;
 
