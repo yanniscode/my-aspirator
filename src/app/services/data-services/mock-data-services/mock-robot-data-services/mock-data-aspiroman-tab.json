@@ -1,0 +1,64 @@
+[
+    {
+        "robotName": "Player 1",
+        "robotType": "player",
+        "robotDirection": "EAST",
+        "lastPosition": {
+            "row": 3,
+            "col": 3
+        },
+        "position": {
+            "row": 3,
+            "col": 3
+        },
+        "startCoordinate": {
+            "x": 150,
+            "y": 150
+        },
+        "targetCoordinate": {
+            "x": 150,
+            "y": 150
+        },
+        "isRobotStarted": false,
+        "robotWidth": 42,
+        "labelColor": "",
+        "basePosition": {
+            "row": 3,
+            "col": 3
+        },
+        "batterie": 45,
+        "consommationParMouvement": 0.5,
+        "isRobotReturningToBase": false
+    },
+    {
+        "robotName": "Player 2",
+        "robotType": "player",
+        "robotDirection": "WEST",
+        "lastPosition": {
+            "row": 5,
+            "col": 6
+        },
+        "position": {
+            "row": 5,
+            "col": 6
+        },
+        "startCoordinate": {
+            "x": 300,
+            "y": 250
+        },
+        "targetCoordinate": {
+            "x": 300,
+            "y": 250
+        },
+        "isRobotStarted": false,
+        "robotWidth": 42,
+        "labelColor": "",
+        "basePosition": {
+            "row": 5,
+            "col": 6
+        },
+        "batterie": 45,
+        "consommationParMouvement": 0.5,
+        "isRobotReturningToBase": false
+    }
+]

@@ -3,10 +3,10 @@ import { GridPosition } from "../grid-position";
 
 
 export class MaisonModel {
-    public maison;
+    public maison: CellElement[][];
     public largeurMaison;
     public hauteurMaison;
-    public obstacles;
+    public obstacles: GridPosition[];
     public isNettoyageComplete;
 
     constructor() {

@@ -28,6 +28,6 @@ export class RobotModel {
         this.targetCoordinate = new PixelPosition();
         this.isRobotStarted = false;
         this.robotWidth = 0;
-        this.labelColor = '';
+        this.labelColor = "";
     }
 }

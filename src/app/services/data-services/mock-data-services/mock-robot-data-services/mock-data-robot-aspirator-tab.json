@@ -1,0 +1,126 @@
+[
+    {
+        "robotName": "Aspiroman 1",
+        "robotType": "aspirator",
+        "robotDirection": "EAST",
+        "lastPosition": {
+            "row": 0,
+            "col": 0
+        },
+        "position": {
+            "row": 0,
+            "col": 0
+        },
+        "startCoordinate": {
+            "x": 0,
+            "y": 0
+        },
+        "targetCoordinate": {
+            "x": 0,
+            "y": 0
+        },
+        "isRobotStarted": false,
+        "robotWidth": 42,
+        "labelColor": "",
+        "basePosition": {
+            "row": 0,
+            "col": 0
+        },
+        "batterie": 6,
+        "consommationParMouvement": 0.5,
+        "isRobotReturningToBase": false
+    },
+    {
+        "robotName": "Aspiroman 2",
+        "robotType": "aspirator",
+        "robotDirection": "WEST",
+        "lastPosition": {
+            "row": 0,
+            "col": 9
+        },
+        "position": {
+            "row": 0,
+            "col": 9
+        },
+        "startCoordinate": {
+            "x": 450,
+            "y": 0
+        },
+        "targetCoordinate": {
+            "x": 450,
+            "y": 0
+        },
+        "isRobotStarted": false,
+        "robotWidth": 0,
+        "labelColor": "",
+        "basePosition": {
+            "row": 0,
+            "col": 9
+        },
+        "batterie": 20,
+        "consommationParMouvement": 0.5,
+        "isRobotReturningToBase": false
+    },
+    {
+        "robotName": "Aspiroman 3",
+        "robotType": "aspirator",
+        "robotDirection": "WEST",
+        "lastPosition": {
+            "row": 7,
+            "col": 9
+        },
+        "position": {
+            "row": 7,
+            "col": 9
+        },
+        "startCoordinate": {
+            "x": 450,
+            "y": 350
+        },
+        "targetCoordinate": {
+            "x": 450,
+            "y": 350
+        },
+        "isRobotStarted": false,
+        "robotWidth": 0,
+        "labelColor": "",
+        "basePosition": {
+            "row": 450,
+            "col": 350
+        },
+        "batterie": 30,
+        "consommationParMouvement": 0.5,
+        "isRobotReturningToBase": false
+    },
+    {
+        "robotName": "Aspiroman 4",
+        "robotType": "aspirator",
+        "robotDirection": "EAST",
+        "lastPosition": {
+            "row": 7,
+            "col": 0
+        },
+        "position": {
+            "row": 7,
+            "col": 0
+        },
+        "startCoordinate": {
+            "x": 0,
+            "y": 350
+        },
+        "targetCoordinate": {
+            "x": 0,
+            "y": 350
+        },
+        "isRobotStarted": false,
+        "robotWidth": 0,
+        "labelColor": "",
+        "basePosition": {
+            "row": 7,
+            "col": 0
+        },
+        "batterie": 40,
+        "consommationParMouvement": 0.5,
+        "isRobotReturningToBase": false
+    }
+]

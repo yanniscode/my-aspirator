@@ -1,0 +1,31 @@
+{
+    "robotName": "",
+    "robotType": "",
+    "robotDirection": "",
+    "lastPosition": {
+        "row": 0,
+        "col": 0
+    },
+    "position": {
+        "row": 0,
+        "col": 0
+    },
+    "startCoordinate": {
+        "x": 0,
+        "y": 0
+    },
+    "targetCoordinate": {
+        "x": 0,
+        "y": 0
+    },
+    "isRobotStarted": false,
+    "robotWidth": 0,
+    "labelColor": "",
+    "basePosition": {
+        "row": 0,
+        "col": 0
+    },
+    "batterie": -1,
+    "consommationParMouvement": 0.5,
+    "isRobotReturningToBase": false
+}

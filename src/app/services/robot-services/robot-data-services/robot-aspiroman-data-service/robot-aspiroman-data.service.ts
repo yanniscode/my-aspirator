@@ -45,72 +45,78 @@ export class RobotAspiromanDataService extends RobotDataService {
     console.log("RobotAspiromanDataService - createRobotsParams()");
 
     // 1 - Récupération des datas des robots
+    // TODO: récupérer des fichiers JSON
 
     // robot 1 test
     let robotName = "Player 1";
     let robotType = "player";
-    let basePosition = new GridPosition(3, 3);
     // au départ, le robot est à la base:
     let robotDirection = Direction.EAST;
-    let lastPosition = { ...basePosition };
-    let position = { ...basePosition };
-    let startCoordinate = this.calculatePixelCoordinates(basePosition);
-    let targetCoordinate = this.calculatePixelCoordinates(basePosition);
-    let batterie = 45;
+    let lastPosition = new GridPosition(3, 3);
+    let position = { ...lastPosition };
+    let startCoordinate = this.calculatePixelCoordinates(lastPosition);
+    let targetCoordinate = this.calculatePixelCoordinates(lastPosition);
     let isRobotStarted = false;
-    let isRobotReturningToBase = false;
     let robotWidth = 42;
+    // TODO: labelColor a ajouter EN DUR au model:
     let labelColor = this.assetRobotService.getRandomRobotLabelColor();
+    let basePosition = new GridPosition(3, 3);
+    let batterie = 45;
+    let consommationParMouvement = 0.5;
+    let isRobotReturningToBase = false;
 
     // 2 - Instanciation du robot joueur 1:
     let robotPlayer1Model = new AspiromanModel();
     robotPlayer1Model.robotName = robotName;
     robotPlayer1Model.robotType = robotType;
-    robotPlayer1Model.basePosition = { ...basePosition };
     robotPlayer1Model.robotDirection = robotDirection;
     robotPlayer1Model.lastPosition = { ...lastPosition };
     robotPlayer1Model.position = { ...position };
     robotPlayer1Model.startCoordinate = { ...startCoordinate };
     robotPlayer1Model.targetCoordinate = { ...targetCoordinate };
-    robotPlayer1Model.batterie = batterie;
     robotPlayer1Model.isRobotStarted = isRobotStarted;
-    robotPlayer1Model.isRobotReturningToBase = isRobotReturningToBase;
     robotPlayer1Model.robotWidth = robotWidth;
     robotPlayer1Model.labelColor = labelColor;
+    robotPlayer1Model.basePosition = { ...basePosition };
+    robotPlayer1Model.batterie = batterie;
+    robotPlayer1Model.consommationParMouvement = consommationParMouvement;
+    robotPlayer1Model.isRobotReturningToBase = isRobotReturningToBase;
 
     console.log(robotPlayer1Model);
 
     // robot 2 test
     robotName = "Player 2";
     robotType = "player";
-    basePosition = new GridPosition(5, 6);
     // au départ, le robot est à la base:
     robotDirection = Direction.WEST;
-    lastPosition = { ...basePosition };
-    position = { ...basePosition };
-    startCoordinate = this.calculatePixelCoordinates(basePosition);
-    targetCoordinate = this.calculatePixelCoordinates(basePosition);
-    batterie = 45;
+    lastPosition = new GridPosition(5, 6);
+    position = { ...lastPosition };
+    startCoordinate = this.calculatePixelCoordinates(lastPosition);
+    targetCoordinate = this.calculatePixelCoordinates(lastPosition);
     isRobotStarted = false;
-    isRobotReturningToBase = false;
     robotWidth = 42;
     labelColor = this.assetRobotService.getRandomRobotLabelColor();
+    basePosition = new GridPosition(5, 6);
+    batterie = 45;
+    consommationParMouvement = 0.5;
+    isRobotReturningToBase = false;
 
     // 2 - Instanciation du robot joueur 2:
     let robotPlayer2Model = new AspiromanModel();
     robotPlayer2Model.robotName = robotName;
     robotPlayer2Model.robotType = robotType;
-    robotPlayer2Model.basePosition = { ...basePosition };
     robotPlayer2Model.robotDirection = robotDirection;
     robotPlayer2Model.lastPosition = { ...lastPosition };
     robotPlayer2Model.position = { ...position };
     robotPlayer2Model.startCoordinate = { ...startCoordinate };
     robotPlayer2Model.targetCoordinate = { ...targetCoordinate };
-    robotPlayer2Model.batterie = batterie;
     robotPlayer2Model.isRobotStarted = isRobotStarted;
-    robotPlayer2Model.isRobotReturningToBase = isRobotReturningToBase;
     robotPlayer2Model.robotWidth = robotWidth;
     robotPlayer2Model.labelColor = labelColor;
+    robotPlayer2Model.basePosition = { ...basePosition };
+    robotPlayer2Model.batterie = batterie;
+    robotPlayer2Model.consommationParMouvement = consommationParMouvement;
+    robotPlayer2Model.isRobotReturningToBase = isRobotReturningToBase;
 
     // pour test de 1 ou plusieurs robots
     const robotModelTab: AspiromanModel[] = [{ ...robotPlayer1Model }, { ...robotPlayer2Model }];

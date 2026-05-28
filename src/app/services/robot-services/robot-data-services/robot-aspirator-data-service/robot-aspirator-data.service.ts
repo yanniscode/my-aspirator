@@ -46,130 +46,139 @@ export class RobotAspiratorDataService extends RobotDataService {
     // robot1 test
     let robotName = "Aspiroman 1";
     let robotType = "aspirator";
-    let basePosition = new GridPosition(0, 0);
     // au départ, le robot est à la base:
     let robotDirection = Direction.EAST;
-    let lastPosition = { ...basePosition };
-    let position = { ...basePosition };
-    let startCoordinate = this.calculatePixelCoordinates(basePosition);
-    let targetCoordinate = this.calculatePixelCoordinates(basePosition);
-    let batterie = 6;
+    let lastPosition = new GridPosition(0, 0);
+    let position = { ...lastPosition };
+    let startCoordinate = this.calculatePixelCoordinates(lastPosition);
+    let targetCoordinate = this.calculatePixelCoordinates(lastPosition);
     let isRobotStarted = false;
-    let isRobotReturningToBase = false;
     let robotWidth = 42;
+    // TODO: labelColor a ajouter EN DUR au model:
     let labelColor = this.assetRobotService.getRandomRobotLabelColor();
+    let basePosition = new GridPosition(0, 0);
+    let batterie = 6;
+    let consommationParMouvement = 0.5;
+    let isRobotReturningToBase = false;
 
     // 2 - Instanciation d'un robot:
     let robot1Model = new RobotAspiratorModel();
     robot1Model.robotName = robotName;
     robot1Model.robotType = robotType;
-    robot1Model.basePosition = { ...basePosition };
     robot1Model.robotDirection = robotDirection;
     robot1Model.lastPosition = { ...lastPosition };
     robot1Model.position = { ...position };
     robot1Model.startCoordinate = { ...startCoordinate };
     robot1Model.targetCoordinate = { ...targetCoordinate };
-    robot1Model.batterie = batterie;
     robot1Model.isRobotStarted = isRobotStarted;
-    robot1Model.isRobotReturningToBase = isRobotReturningToBase;
     robot1Model.robotWidth = robotWidth;
     robot1Model.labelColor = labelColor;
+    robot1Model.basePosition = { ...basePosition };
+    robot1Model.batterie = batterie;
+    robot1Model.consommationParMouvement = consommationParMouvement;
+    robot1Model.isRobotReturningToBase = isRobotReturningToBase;
 
     console.log(robot1Model);
 
     // robot2 test
     robotName = "Aspiroman 2";
     robotType = "aspirator";
-    basePosition = new GridPosition(0, 9);
     robotDirection = Direction.WEST;
-    lastPosition = { ...basePosition };
-    position = { ...basePosition };
-    startCoordinate = this.calculatePixelCoordinates(basePosition);
-    targetCoordinate = this.calculatePixelCoordinates(basePosition);
-    batterie = 20;
+    lastPosition = new GridPosition(0, 9);
+    position = { ...lastPosition };
+    startCoordinate = this.calculatePixelCoordinates(lastPosition);
+    targetCoordinate = this.calculatePixelCoordinates(lastPosition);
     isRobotStarted = false;
-    isRobotReturningToBase = false;
     robotWidth = 42;
     labelColor = this.assetRobotService.getRandomRobotLabelColor();
+    basePosition = new GridPosition(0, 9);
+    batterie = 20;
+    consommationParMouvement = 0.5;
+    isRobotReturningToBase = false;
 
     let robot2Model = new RobotAspiratorModel();
     robot2Model.robotName = robotName;
     robot2Model.robotType = robotType;
-    robot2Model.basePosition = { ...basePosition };
     robot2Model.robotDirection = robotDirection;
     robot2Model.lastPosition = { ...lastPosition };
     robot2Model.position = { ...position };
     robot2Model.startCoordinate = { ...startCoordinate };
     robot2Model.targetCoordinate = { ...targetCoordinate };
-    robot2Model.batterie = batterie;
     robot2Model.isRobotStarted = isRobotStarted;
-    robot2Model.isRobotReturningToBase = isRobotReturningToBase;
-    robot2Model.labelColor = labelColor;
     robot2Model.robotWidth = robotWidth;
+    robot2Model.labelColor = labelColor;
+    robot2Model.basePosition = { ...basePosition };
+    robot2Model.batterie = batterie;
+    robot2Model.consommationParMouvement = consommationParMouvement;
+    robot2Model.isRobotReturningToBase = isRobotReturningToBase;
 
     console.log(robot2Model);
 
     // robot3 test
     robotName = "Aspiroman 3";
     robotType = "aspirator";
-    basePosition = new GridPosition(7, 9);
     robotDirection = Direction.WEST;
-    lastPosition = { ...basePosition };
-    position = { ...basePosition };
-    startCoordinate = this.calculatePixelCoordinates(basePosition);
-    targetCoordinate = this.calculatePixelCoordinates(basePosition);
-    batterie = 30;
+    lastPosition = new GridPosition(7, 9);
+    position = { ...lastPosition };
+    startCoordinate = this.calculatePixelCoordinates(lastPosition);
+    targetCoordinate = this.calculatePixelCoordinates(lastPosition);
     isRobotStarted = false;
-    isRobotReturningToBase = false;
     robotWidth = 42;
     labelColor = this.assetRobotService.getRandomRobotLabelColor();
+    basePosition = new GridPosition(7, 9);
+    batterie = 30;
+    consommationParMouvement = 0.5;
+    isRobotReturningToBase = false;
 
     let robot3Model = new RobotAspiratorModel();
     robot3Model.robotName = robotName;
     robot3Model.robotType = robotType;
-    robot3Model.basePosition = { ...basePosition };
-    robot3Model.robotDirection = robotDirection;
     robot3Model.lastPosition = { ...lastPosition };
+    robot3Model.robotDirection = robotDirection;
     robot3Model.position = { ...position };
     robot3Model.startCoordinate = { ...startCoordinate };
     robot3Model.targetCoordinate = { ...targetCoordinate };
-    robot3Model.batterie = batterie;
     robot3Model.isRobotStarted = isRobotStarted;
-    robot3Model.isRobotReturningToBase = isRobotReturningToBase;
     robot3Model.robotWidth = robotWidth;
     robot3Model.labelColor = labelColor;
+    robot3Model.basePosition = { ...basePosition };
+    robot3Model.batterie = batterie;
+    robot3Model.consommationParMouvement = consommationParMouvement;
+    robot3Model.isRobotReturningToBase = isRobotReturningToBase;
 
     console.log(robot3Model);
 
     // robot4 test
     robotName = "Aspiroman 4";
     robotType = "aspirator";
-    basePosition = new GridPosition(7, 0);
     robotDirection = Direction.EAST;
-    lastPosition = { ...basePosition };
-    position = { ...basePosition };
-    startCoordinate = this.calculatePixelCoordinates(basePosition);
-    targetCoordinate = this.calculatePixelCoordinates(basePosition);
-    batterie = 40;
+    lastPosition = new GridPosition(7, 0);
+    position = { ...lastPosition };
+    startCoordinate = this.calculatePixelCoordinates(lastPosition);
+    targetCoordinate = this.calculatePixelCoordinates(lastPosition);
     isRobotStarted = false;
-    isRobotReturningToBase = false;
     robotWidth = 42;
     labelColor = this.assetRobotService.getRandomRobotLabelColor();
+    basePosition = new GridPosition(7, 0);
+    batterie = 40;
+    consommationParMouvement = 0.5;
+    isRobotReturningToBase = false;
 
     let robot4Model = new RobotAspiratorModel();
     robot4Model.robotName = robotName;
     robot4Model.robotType = robotType;
-    robot4Model.basePosition = { ...basePosition };
-    robot4Model.robotDirection = robotDirection;
     robot4Model.lastPosition = { ...lastPosition };
+    robot4Model.robotDirection = robotDirection;
     robot4Model.position = { ...position };
     robot4Model.startCoordinate = { ...startCoordinate };
     robot4Model.targetCoordinate = { ...targetCoordinate };
-    robot4Model.batterie = batterie;
     robot4Model.isRobotStarted = isRobotStarted;
-    robot4Model.isRobotReturningToBase = isRobotReturningToBase;
     robot4Model.robotWidth = robotWidth;
     robot4Model.labelColor = labelColor;
+    robot4Model.basePosition = { ...basePosition };
+    robot4Model.batterie = batterie;
+    robot4Model.consommationParMouvement = consommationParMouvement;
+    robot4Model.isRobotReturningToBase = isRobotReturningToBase;
 
     console.log(robot4Model);
 

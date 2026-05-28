@@ -1,0 +1,35 @@
+{
+    "maison": [
+        [
+            {
+                "position": {
+                    "row": -1,
+                    "col": -1
+                },
+                "type": "O",
+                "visited": false,
+                "reserved": false
+            }
+        ],
+        [
+            {
+                "position": {
+                    "row": -1,
+                    "col": -1
+                },
+                "type": "O",
+                "visited": false,
+                "reserved": false
+            }
+        ]
+    ],
+    "largeurMaison": 0,
+    "hauteurMaison": 0,
+    "obstacles": [
+        {
+            "row": -1,
+            "col": -1
+        }
+    ],
+    "isNettoyageComplete": false
+}
