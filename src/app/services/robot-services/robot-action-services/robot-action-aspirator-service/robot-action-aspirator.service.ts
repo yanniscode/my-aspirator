@@ -15,7 +15,6 @@ import { RobotAspiratorDataService } from '../../robot-data-services/robot-aspir
 export class RobotActionAspiratorService extends RobotActionService {
 
   private algoNettoyageService = inject(AlgoNettoyageService);
-
   private robotAspiratorDataService = inject(RobotAspiratorDataService);
   private maisonDataNettoyageService = inject(MaisonDataNettoyageService);
 
@@ -151,6 +150,10 @@ export class RobotActionAspiratorService extends RobotActionService {
     const robot = robotSignal();
     if (!robot) return;
 
+    // targetCoordinate = la destination en pixels de la nouvelle séquence de déplacement du robot (nouveau step)
+    const targetX = robot.targetCoordinate.x;
+    const targetY = robot.targetCoordinate.y;
+
     robotSignal.update(robot => ({
       ...robot,
       isRobotStarted: true,
@@ -158,9 +161,46 @@ export class RobotActionAspiratorService extends RobotActionService {
       robotDirection: this.getRobotDirectionByPosition(robot.position, nextPosition),
       lastPosition: { ...robot.position },  // la précédente position est modifiée avec l'actuelle
       position: { ...nextPosition },        // la nouvelle position prend sa valeur suivante
-      batterie: robot.batterie - robot.consommationParMouvement
+      batterie: robot.batterie - robot.consommationParMouvement,
+      // Coordonnées en pixel pour l'interpolation dans drawObject:
+      // Attention: ici seule startCoordinate est mise à jour car en cas de mise en pause,
+      // on peut avoir des bugs d'affichage au nouveau départ des bots
+      // la première trame serait positionnée sur la case précédente sans setter startCoordinate sur robot.targetCoordinate ici:
+      startCoordinate: { x: targetX, y: targetY },
     }));
+
     console.log(`### ${robotName}: tableau[${nextPosition.col},${nextPosition.row}]- batterie(${robot.batterie})`);
+  }
+
+  private moveRobotReturningToBase(robotName: string, position: GridPosition, nextPosition: GridPosition): void {
+    console.log("RobotActionAspiratorService - moveRobotReturningToBase()");
+
+    const robotSignal: WritableSignal<RobotAspiratorModel> | undefined = this.robotAspiratorSignals.get(robotName);
+    if (!robotSignal) return;
+
+    const robot = robotSignal();
+
+    const newStartCoordinate: PixelPosition = this.calculatePixelCoordinates(position);
+    const newTargetCoordinate: PixelPosition = this.calculatePixelCoordinates(nextPosition);
+
+    if (newStartCoordinate.x !== newTargetCoordinate.x || newStartCoordinate.y !== newTargetCoordinate.y) {
+      const targetX = robot.targetCoordinate.x;
+      const targetY = robot.targetCoordinate.y;
+
+      robotSignal.update(robot => ({
+        ...robot,
+        isRobotStarted: true,
+        isRobotReturningToBase: true,
+        robotDirection: this.getRobotDirectionByPosition(robot.position, nextPosition),
+        lastPosition: { ...robot.position }, // la précédente position est modifiée avec l'actuelle
+        position: { ...nextPosition },        // la nouvelle position prend sa valeur suivante
+        batterie: robot.batterie - robot.consommationParMouvement,
+        startCoordinate: { x: targetX, y: targetY },
+      }));
+      console.log(`### ${robotName}: tableau [${nextPosition.col},${nextPosition.row}] → pixels (${newTargetCoordinate.x}, ${newTargetCoordinate.y}) - batterie (${robot.batterie})`);
+    } else {
+      this.stopRobot(robotName);
+    }
   }
 
   /**
@@ -274,33 +314,6 @@ export class RobotActionAspiratorService extends RobotActionService {
     }
 
     return positionRetourALaBase;
-  }
-
-  private moveRobotReturningToBase(robotName: string, position: GridPosition, nextPosition: GridPosition): void {
-    console.log("RobotActionAspiratorService - moveRobotReturningToBase()");
-
-    const robotSignal: WritableSignal<RobotAspiratorModel> | undefined = this.robotAspiratorSignals.get(robotName);
-    if (!robotSignal) return;
-
-    const robot = robotSignal();
-
-    const newStartCoordinate: PixelPosition = this.calculatePixelCoordinates(position);
-    const newTargetCoordinate: PixelPosition = this.calculatePixelCoordinates(nextPosition);
-
-    if (newStartCoordinate.x !== newTargetCoordinate.x || newStartCoordinate.y !== newTargetCoordinate.y) {
-      robotSignal.update(robot => ({
-        ...robot,
-        isRobotStarted: true,
-        isRobotReturningToBase: true,
-        robotDirection: this.getRobotDirectionByPosition(robot.position, nextPosition),
-        lastPosition: { ...robot.position }, // la précédente position est modifiée avec l'actuelle
-        position: { ...nextPosition },        // la nouvelle position prend sa valeur suivante
-        batterie: robot.batterie - robot.consommationParMouvement
-      }));
-      console.log(`### ${robotName}: tableau [${nextPosition.col},${nextPosition.row}] → pixels (${newTargetCoordinate.x}, ${newTargetCoordinate.y}) - batterie (${robot.batterie})`);
-    } else {
-      this.stopRobot(robotName);
-    }
   }
 
   private robotDoitRentrerALaBase(batterie: number, position: GridPosition, basePosition: GridPosition, consommationParMouvement: number): boolean {

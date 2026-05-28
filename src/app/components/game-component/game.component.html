@@ -1,3 +1,44 @@
 <div class="game">
   <canvas #gameCanvas class="table-game"></canvas>
 </div>
+
+<div class="buttons">
+  <form (ngSubmit)="start()" #maisonForm="ngForm">
+    <div class="start-button">
+      <button type="submit">Start</button>
+    </div>
+  </form>
+  <form (ngSubmit)="pause()" #maisonForm="ngForm">
+    <div class="pause-button">
+      <button type="submit">Pause</button>
+    </div>
+  </form>
+</div>
+
+<div class="infos-container">
+  <h2>Main Test Signaux avec {{ robotsList().length }} robots</h2>
+
+  <!-- Note: accès uniquement aux infos génériques des robots (ex: pas le niveau de batterie, spécifique au robot de type spirateur et robot Joueur dans notre cas) -->
+  <div class="robot-liste-infos">
+    @for (robot of robotViewModelTab; track robot) {
+    <div class="robot-card">
+      @if (robotDataFactoryService.getRobotSignal(robot.robotName)(); as robot) {
+      <h3>🤖 {{ robot.robotName }}</h3>
+      <div class="robot-info">
+        <!-- <p>🔋 Batterie: {{ robot.batterie }}%</p> -->
+        <p>📍 Last Position: ({{ robot.lastPosition.col }}, {{ robot.lastPosition.row }})
+        <p>📍 Position: ({{ robot.position.col }}, {{ robot.position.row }})
+        </p>
+        <p>📍 StartCoordinate: ({{ robot.startCoordinate.x }}, {{ robot.startCoordinate.y }})
+        <p>📍 TargetCoordinate: ({{ robot.targetCoordinate.x }}, {{ robot.targetCoordinate.y }})
+        </p>
+        <!-- <p>⚡ Status: {{ robot.batterie > 0 ? 'Actif' : 'Inactif' }}</p> -->
+      </div>
+      } @else {
+      <p>⚠️ Robot {{ robot }} non trouvé</p>
+      }
+    </div>
+    }
+  </div>
+
+</div>

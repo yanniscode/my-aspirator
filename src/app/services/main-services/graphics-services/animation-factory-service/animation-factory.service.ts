@@ -1,14 +1,14 @@
-import { inject, Injectable, Signal } from '@angular/core';
+import { inject, Injectable, signal, Signal, WritableSignal } from '@angular/core';
 import { AssetService } from '../asset-service/asset.service';
 import { RobotModel } from '../../../../classes/models/robot-model/robot-model';
+
 import { RenderAnimationService } from '../render-animation-service/render-animation.service';
+import { RobotAspiromanRenderAnimationService } from '../../../robot-services/robot-graphics-services/robot-aspiroman-render-animation-service/robot-aspiroman-render-animation.service';
 import { RobotActionService } from '../../../robot-services/robot-action-services/robot-action.service';
 import { RenderFactoryService } from '../render-factory-service/render-factory.service';
 import { ActionFactoryService } from '../action-factory-service/action-factory.service';
 import { AssetFactoryService } from '../asset-factory-service/asset-factory.service';
 import { RobotDataFactoryService } from '../../../robot-services/robot-data-factory-service/robot-data-factory.service';
-import { RobotActionAspiromanService } from '../../../robot-services/robot-action-services/robot-action-aspiroman-service/robot-action-aspiroman.service';
-import { RobotAspiromanRenderAnimationService } from '../../../robot-services/robot-graphics-services/robot-aspiroman-render-animation-service/robot-aspiroman-render-animation.service';
 
 @Injectable({
   providedIn: 'root',
@@ -18,7 +18,6 @@ export class AnimationFactoryService {
   // ─── Services injectés ──────────────────────────────────────────────────────
 
   private robotDataFactoryService = inject(RobotDataFactoryService);
-  public robotSignals: Map<string, Signal<RobotModel>> = this.robotDataFactoryService.robotSignals;
 
   private assetFactoryService = inject(AssetFactoryService);
   private assetServicesTab: AssetService[] = this.assetFactoryService.getAssetServicesTab();
@@ -26,12 +25,10 @@ export class AnimationFactoryService {
   private actionFactoryService = inject(ActionFactoryService);
   private actionServicesTab: RobotActionService[] = this.actionFactoryService.getActionServicesTab();
 
-  private robotActionAspiromanService = inject(RobotActionAspiromanService);
-
   private renderFactoryService = inject(RenderFactoryService);
-  private renderAnimationServicesTab: RenderAnimationService[] = this.renderFactoryService.getRenderAnimationServicesTab();
-
-  private robotAspiromanRenderAnimationService = inject(RobotAspiromanRenderAnimationService);
+  private renderObjectsAnimationServicesTab: RenderAnimationService[] = this.renderFactoryService.getObjectsRenderAnimationServicesTab();
+  private renderBotsAnimationServicesTab: RenderAnimationService[] = this.renderFactoryService.getBotsRenderAnimationServicesTab();
+  private robotPlayersRenderAnimationServiceTab: RobotAspiromanRenderAnimationService[] = this.renderFactoryService.getPlayersRenderAnimationServicesTab();
 
   // ─── Canvas ─────────────────────────────────────────────────────────────────
 
@@ -46,29 +43,52 @@ export class AnimationFactoryService {
   /** Durée d'un déplacement complet en ms */
   protected readonly STEP_DURATION = 600;
 
-  // ─── État boucle bots (maîtresse du canvas) ──────────────────────────────────
+  // État du jeu (start / pause)
+  private isGameStarted = false;
 
-  protected isRunning = false;
+  // Map de robots (type générique utilisé par la factory)
+  public robotSignals: Map<string, Signal<RobotModel>> = this.robotDataFactoryService.robotSignals;
+
+  // ─── État boucle bots (maîtresse du canvas) ──────────────────────────────────
+  protected areBotsRunning = false;
   private botsAnimationFrameId?: number;
   private lastBotsStepTime = 0;
   private botsProgress = 0;
 
-  // ─── État boucle joueur (modèle uniquement, pas de rendu) ────────────────────
+  // ─── État de la boucle Joueur (modèle uniquement, pas de rendu) ────────────────────
   //
   // La boucle joueur NE DESSINE PAS. Elle met uniquement à jour
-  // animationPlayerProgress (0→1) sur la durée d'un STEP_DURATION.
+  // animationPlayerProgress (0 → 1) sur la durée d'un STEP_DURATION.
   // La boucle bots lit ce signal à chaque frame et dessine le joueur.
   // Cela garantit qu'il n'est dessiné qu'une seule fois par frame,
   // quelle que soit l'activité de la boucle joueur.
+  private readonly _isPlayerRunningSignals: Map<string, WritableSignal<boolean>> = new Map<string, WritableSignal<boolean>>();
+  public readonly isPlayerRunningSignals = this._isPlayerRunningSignals;
 
-  public isPlayer1Running = false;
-  public isPlayer2Running = false;
+  private readonly _islastPlayerStepTimeSignals: Map<string, WritableSignal<number>> = new Map<string, WritableSignal<number>>();
+  private readonly lastPlayerStepTimeSignals = this._islastPlayerStepTimeSignals;
 
-  private player1AnimationFrameId?: number;
-  private player2AnimationFrameId?: number;
+  private readonly _playerAnimationFrameId: Map<string, WritableSignal<number | undefined>> = new Map<string, WritableSignal<number | undefined>>();
+  private readonly playerAnimationFrameId = this._playerAnimationFrameId;
 
-  private lastPlayer1StepTime = 0;
-  private lastPlayer2StepTime = 0;
+  constructor() {
+    console.log("AnimationFactoryService - constructor()");
+  }
+
+  /**
+   * Création des paramètres pour l'animation (appelé après l'instanciation des robots dans GameComponent)
+   */
+  public createRobotPlayersAnimationParams() {
+    console.log("AnimationFactoryService - createRobotPlayersAnimationParams");
+
+    this.robotSignals.forEach(robotSignal => {
+      if (robotSignal().robotType === "player") {
+        this._isPlayerRunningSignals.set(robotSignal().robotName, signal(false));
+        this.lastPlayerStepTimeSignals.set(robotSignal().robotName, signal(0));
+        this.playerAnimationFrameId.set(robotSignal().robotName, signal(0));
+      }
+    });
+  }
 
   // ────────────────────────────────────────────────────────────────────────────
   // Initialisation canvas
@@ -101,28 +121,45 @@ export class AnimationFactoryService {
   // Point d'entrée principal
   // ────────────────────────────────────────────────────────────────────────────
 
-  public startAnimation(ctx: CanvasRenderingContext2D): CanvasRenderingContext2D {
-    console.log('AnimationFactoryService - startAnimation()');
-    this.ctx = ctx;
-    this.ctx = this.startAnimationForBots();
-    return this.ctx;
+  /**
+   * Démarrage du Jeu
+   */
+  public onStart(): void {
+    console.log("GameComponent - onStart()");
+    this.isGameStarted = true;
+    this.startAllAnimation(this.ctx);
+  }
+
+  /**
+   * Mise en pause du Jeu
+   */
+  public onPause(): void {
+    console.log("GameComponent - onPause");
+    this.isGameStarted = false;
+    this.onRobotsPause(this.ctx);
   }
 
   // ────────────────────────────────────────────────────────────────────────────
-  // Boucle bots — maîtresse du canvas
+  // Boucle maîtresse du canvas
   // ────────────────────────────────────────────────────────────────────────────
-
-  public startAnimationForBots(): CanvasRenderingContext2D {
-    console.log('AnimationFactoryService - startAnimationForBots()');
+  /**
+   * Démarrage de l'animation générale (Bots, Joueurs, Maison...)
+   *
+   * @param ctx
+   * @returns ctx
+   */
+  public startAllAnimation(ctx: CanvasRenderingContext2D): CanvasRenderingContext2D {
+    console.log('AnimationFactoryService - startAnimation()');
+    this.ctx = ctx;
 
     if (this.robotSignals.size <= 0) return this.ctx;
-    if (this.isRunning) return this.ctx;
+    if (this.areBotsRunning) return this.ctx;
+    this.areBotsRunning = true;
 
-    this.isRunning = true;
     this.lastBotsStepTime = performance.now();
     this.botsProgress = 0;
 
-    this.robotDataFactoryService.animationProgress.set(this.botsProgress);
+    this.robotDataFactoryService.animationBotsProgSignal.set(this.botsProgress);
     this.calculateAndUpdateBots();
 
     const animate = (currentTime: number) => {
@@ -130,9 +167,12 @@ export class AnimationFactoryService {
       const sequenceEnded = deltaTime >= this.STEP_DURATION;
 
       // Pause demandée depuis l'UI : on attend la fin du step en cours
-      if (!this.isRunning && sequenceEnded) {
+      if (!this.areBotsRunning && sequenceEnded) {
         console.log('AnimationFactoryService - bots : pause, fin de step');
         this.stopBotsAnimation();
+
+        this.botsProgress = deltaTime / this.STEP_DURATION;
+        this.robotDataFactoryService.animationBotsProgSignal.set(this.botsProgress);
         return;
       }
 
@@ -148,19 +188,25 @@ export class AnimationFactoryService {
         this.calculateAndUpdateBots();
       } else {
         this.botsProgress = deltaTime / this.STEP_DURATION;
-        this.robotDataFactoryService.animationProgress.set(this.botsProgress);
+        this.robotDataFactoryService.animationBotsProgSignal.set(this.botsProgress);
       }
 
       // ── Rendu unique par frame ──────────────────────────────────────────────
-      // 1. Tous les bots IA
-      this.renderAnimationServicesTab.forEach(service => {
-        this.ctx = service.drawObject(this.ctx);
+      // 1. Tous les objets de décor (Maison)
+      this.renderObjectsAnimationServicesTab.forEach(renderObjectsAnimationService => {
+        this.ctx = renderObjectsAnimationService.drawObject(this.ctx);
+      });
+      // 2. Tous les bots IA
+      this.renderBotsAnimationServicesTab.forEach(renderBotsAnimationService => {
+        this.ctx = renderBotsAnimationService.drawObject(this.ctx);
       });
 
-      // 2. Le joueur — TOUJOURS dessiné ici, jamais ailleurs.
-      //    robotAspiromanRenderAnimationService lit animationPlayerProgress
-      //    (mis à jour par la boucle joueur) pour interpoler la position.
-      this.ctx = this.robotAspiromanRenderAnimationService.drawObject(this.ctx, false);
+      // 3. Le joueur — TOUJOURS dessiné ici, jamais ailleurs.
+      //    RobotAspiromanRenderAnimationService lit animationPlayerProgress
+      //    (mis à jour par la boucle Joueur) pour interpoler la position.
+      this.robotPlayersRenderAnimationServiceTab.forEach(playersRenderAnimationService => {
+        this.ctx = playersRenderAnimationService.drawObject(this.ctx, false);
+      });
       // ───────────────────────────────────────────────────────────────────────
 
       this.botsAnimationFrameId = requestAnimationFrame(animate);
@@ -177,62 +223,73 @@ export class AnimationFactoryService {
   /**
    * Déclenche un déplacement du robot joueur.
    *
+   * @param playerName
+   */
+  public onPlayerAction(playerName: string): void {
+    if (this.isGameStarted) {
+      this.startAnimationForPlayer(this.ctx, playerName);
+    } else {
+      console.log("Partie en pause !");
+    }
+  }
+
+  /**
+   * Déclenche un déplacement du robot joueur.
+   *
    * Cette boucle met uniquement à jour animationPlayerProgress (0 → 1)
-   * pendant STEP_DURATION ms, puis s'arrête.
+   * pendant STEP_DURATION (ms), puis s'arrête.
    * C'est la boucle bots qui lit cette valeur et dessine le joueur.
    * Il ne peut donc jamais être rendu deux fois par frame.
    */
   public startAnimationForPlayer(
     ctx: CanvasRenderingContext2D,
     playerName: string
-  ): CanvasRenderingContext2D {
+  ): void {
     console.log('AnimationFactoryService - startAnimationForPlayers()');
-    this.ctx = ctx;
 
-    if (this.robotSignals.size <= 0) return this.ctx;
+    this.ctx = ctx;
+    if (!this.ctx) return;
+
+    if (this.robotSignals.size <= 0) return;
 
     // Mise à jour du modèle (déplacement + cellules visitées)
-    this.robotActionAspiromanService.moveRobot(playerName);
-    this.robotActionAspiromanService.updateRobotsVisitedCells();
+    this.actionServicesTab.forEach(actionService => {
+      if (actionService.serviceName === "RobotActionAspiromanService") {
+        // on passe par la factory d'Action des robots "Joueurs" pour déclencher le mouvement
+        this.actionFactoryService.triggerRobotPlayerMove(playerName);
+      }
+    });
 
+    const isPlayerRunning = this.isPlayerRunningSignals.get(playerName);
     // Guard : un step joueur est déjà en cours, on ignore l'input
-    // if (this.isPlayer1Running) return this.ctx;
-    if (playerName === "Player 1") {
-      this.isPlayer1Running = true;
-      this.lastPlayer1StepTime = performance.now();
-      // Réinitialise la progression du joueur à 0 pour ce nouveau step
-      this.robotDataFactoryService.animationPlayer1Progress.set(0);
+    if (isPlayerRunning && isPlayerRunning() === true) return;
+    // sinon, on le passe en status "running"
+    this.isPlayerRunningSignals.set(playerName, signal(true));
+
+    const lastPlayerStepTimeSignals = this.lastPlayerStepTimeSignals.get(playerName);
+    if (lastPlayerStepTimeSignals) {
+      this.lastPlayerStepTimeSignals.set(playerName, signal(performance.now()));
     }
-    else if (playerName === "Player 2") {
-      this.isPlayer2Running = true;
-      this.lastPlayer2StepTime = performance.now();
-      // Réinitialise la progression du joueur à 0 pour ce nouveau step
-      this.robotDataFactoryService.animationPlayer2Progress.set(0);
-    }
+
+    // Réinitialise la progression du joueur à 0 pour ce nouveau step
+    this.robotDataFactoryService.animationPlayerProgSignals.set(playerName, signal(0));
 
     const animate = (currentTime: number) => {
       let deltaTime = -1;
 
-      if (playerName === "Player 1") {
-        deltaTime = currentTime - this.lastPlayer1StepTime;
-      }
-      else if (playerName === "Player 2") {
-        deltaTime = currentTime - this.lastPlayer2StepTime;
+      const lastPlayerStepTimeSignals = this.lastPlayerStepTimeSignals.get(playerName);
+      if (lastPlayerStepTimeSignals) {
+        deltaTime = currentTime - lastPlayerStepTimeSignals();
       }
 
       if (deltaTime >= this.STEP_DURATION) {
         // Step terminé : on fixe la progression à 1 (position finale exacte)
 
-        if (playerName === "Player 1") {
-          this.robotDataFactoryService.animationPlayer1Progress.set(1);
-        }
-        else if (playerName === "Player 2") {
-          this.robotDataFactoryService.animationPlayer2Progress.set(1);
-        }
+        this.robotDataFactoryService.animationPlayerProgSignals.set(playerName, signal(1));
 
         // Si la boucle bots est active, elle dessine cette dernière frame.
         // Sinon on la dessine ici avant de s'arrêter.
-        if (!this.isRunning) {
+        if (!this.areBotsRunning) {
           this.drawPlayerFrame();
         }
         this.stopPlayerAnimation(playerName);
@@ -240,38 +297,26 @@ export class AnimationFactoryService {
       }
 
       // Met à jour la progression (0 → 1)
-      if (playerName === "Player 1") {
-        this.robotDataFactoryService.animationPlayer1Progress.set(
-          deltaTime / this.STEP_DURATION
-        );
-      }
-      else if (playerName === "Player 2") {
-        this.robotDataFactoryService.animationPlayer2Progress.set(
-          deltaTime / this.STEP_DURATION
-        );
-      }
+      const progress = deltaTime / this.STEP_DURATION;
+      this.robotDataFactoryService.animationPlayerProgSignals.set(playerName, signal(progress));
 
-      // Si la boucle bots est inactive (pas de robots IA), on dessine
-      // le joueur nous-mêmes — sinon la boucle bots s'en charge.
-      if (!this.isRunning) {
+      // Si la boucle bots est inactive (pas de robots IA), on dessine le joueur nous-même,
+      // sinon la boucle bots s'en charge.
+      if (!this.areBotsRunning) {
         this.drawPlayerFrame();
       }
 
-      if (playerName === "Player 1") {
-        this.player1AnimationFrameId = requestAnimationFrame(animate);
-      }
-      else if (playerName === "Player 2") {
-        this.player2AnimationFrameId = requestAnimationFrame(animate);
+      const playerAnimationFrameId = this.playerAnimationFrameId.get(playerName);
+      if (playerAnimationFrameId) {
+        this.playerAnimationFrameId.set(playerName, signal(requestAnimationFrame(animate)));
       }
     };
 
-    if (playerName === "Player 1") {
-      this.player1AnimationFrameId = requestAnimationFrame(animate);
+    // Démarrage de l'animation : on set frameId au premier tour
+    const playerAnimationFrameId = this.playerAnimationFrameId.get(playerName);
+    if (playerAnimationFrameId) {
+      this.playerAnimationFrameId.set(playerName, signal(requestAnimationFrame(animate)));
     }
-    else if (playerName === "Player 2") {
-      this.player2AnimationFrameId = requestAnimationFrame(animate);
-    }
-    return this.ctx;
   }
 
   // ────────────────────────────────────────────────────────────────────────────
@@ -282,12 +327,21 @@ export class AnimationFactoryService {
     this.ctx = ctx;
     this.ctx.clearRect(0, 0, this.WIDTH, this.HEIGHT);
 
-    this.renderAnimationServicesTab.forEach(service => {
-      this.ctx = service.drawObject(this.ctx);
+    // Rendu des objets du décor si besoin (Maison): actuellement
+    // TODO: créer une animation pour le décor
+    this.renderObjectsAnimationServicesTab.forEach(renderObjectsAnimationService => {
+      this.ctx = renderObjectsAnimationService.drawObject(this.ctx);
+    });
+
+    // Rendu des bots
+    this.renderBotsAnimationServicesTab.forEach(renderBotsAnimationService => {
+      this.ctx = renderBotsAnimationService.drawObject(this.ctx);
     });
 
     // Le joueur est toujours dessiné en dernier (par-dessus les bots)
-    this.ctx = this.robotAspiromanRenderAnimationService.drawObject(this.ctx, false);
+    this.robotPlayersRenderAnimationServiceTab.forEach(robotPlayersRenderAnimationService => {
+      this.ctx = robotPlayersRenderAnimationService.drawObject(this.ctx, false);
+    });
 
     return this.ctx;
   }
@@ -300,7 +354,7 @@ export class AnimationFactoryService {
     console.log('AnimationFactoryService - onRobotsPause()');
     this.ctx = ctx;
     // La boucle bots s'arrêtera proprement à la fin du step en cours
-    this.isRunning = false;
+    this.areBotsRunning = false;
     // La boucle joueur peut finir son step ; elle s'arrêtera d'elle-même
     console.log('Service de robots mis en pause');
   }
@@ -321,16 +375,25 @@ export class AnimationFactoryService {
   private drawPlayerFrame(): void {
     this.ctx.clearRect(0, 0, this.WIDTH, this.HEIGHT);
 
-    this.renderAnimationServicesTab.forEach(renderAnimationService => {
-      this.ctx = renderAnimationService.drawObject(this.ctx);
+    // Rendu des objets de décor (Maison)
+    this.renderObjectsAnimationServicesTab.forEach(renderObjectsAnimationService => {
+      this.ctx = renderObjectsAnimationService.drawObject(this.ctx);
     });
 
-    this.ctx = this.robotAspiromanRenderAnimationService.drawObject(this.ctx, false);
+    // Rendu de la trame d'animation des Bots
+    this.renderBotsAnimationServicesTab.forEach(renderBotsAnimationService => {
+      this.ctx = renderBotsAnimationService.drawObject(this.ctx);
+    });
+
+    // Rendu de la trame d'animation des Joueurs
+    this.robotPlayersRenderAnimationServiceTab.forEach(robotPlayersRenderAnimationService => {
+      this.ctx = robotPlayersRenderAnimationService.drawObject(this.ctx, false);
+    });
   }
 
   private stopBotsAnimation(): void {
     console.log('AnimationFactoryService - stopBotsAnimation()');
-    this.isRunning = false;
+    this.areBotsRunning = false;
     if (this.botsAnimationFrameId !== undefined) {
       cancelAnimationFrame(this.botsAnimationFrameId);
       this.botsAnimationFrameId = undefined;
@@ -339,21 +402,15 @@ export class AnimationFactoryService {
 
   private stopPlayerAnimation(playerName: string): void {
     console.log('AnimationFactoryService - stopPlayerAnimation()');
-    if (playerName === "Player 1") {
-      this.isPlayer1Running = false;
 
-      if (this.player1AnimationFrameId !== undefined) {
-        cancelAnimationFrame(this.player1AnimationFrameId);
-        this.player1AnimationFrameId = undefined;
-      }
-    }
-    else if (playerName === "Player 2") {
-      this.isPlayer2Running = false;
+    const isPlayerRunning = this.isPlayerRunningSignals.get(playerName);
+    if (!isPlayerRunning) return;
+    this.isPlayerRunningSignals.set(playerName, signal(false));
 
-      if (this.player2AnimationFrameId !== undefined) {
-        cancelAnimationFrame(this.player2AnimationFrameId);
-        this.player2AnimationFrameId = undefined;
-      }
-    }
+    const playerAnimationFrameId = this.playerAnimationFrameId.get(playerName);
+    if (playerAnimationFrameId === undefined) return;
+    // on utilise "!" sur playerAnimationFrameId ici :la valeur doit être obligatoirement renseignée
+    cancelAnimationFrame(playerAnimationFrameId()!);
+    this.playerAnimationFrameId.set(playerName, signal(undefined));
   }
 }

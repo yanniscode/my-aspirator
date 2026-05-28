@@ -14,3 +14,24 @@
     margin-bottom: 50px;
     margin-left: 25px;
 }
+
+.buttons {
+    background-color: #752713;
+}
+
+.start-button {
+    padding-top: 20px;
+    padding-bottom: 10px;
+}
+
+.pause-button {
+    padding-top: 20px;
+}
+
+.robot-liste-infos {
+    display: grid;
+}
+
+.robot-card {
+    background: wheat;
+}

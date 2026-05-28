@@ -26,9 +26,13 @@ export class RobotAspiromanDataService extends RobotDataService {
 
   private robotNames = signal<string[]>([]);
 
+  // Map de Signals pour le progress (0 à 1) individualisé des joueurs
+  public readonly _animationPlayerProgSignals: Map<string, WritableSignal<number>> = new Map<string, WritableSignal<number>>();
+
   constructor() {
     console.log("AspiromanDataService - constructor");
     super();
+    this.serviceName = "RobotAspiromanDataService";
   }
 
   // TODO: EVOL - possible refactoring de méthode dans un service API (récupération des données dans des objets JSON / appels HTTP)
@@ -44,7 +48,7 @@ export class RobotAspiromanDataService extends RobotDataService {
 
     // robot 1 test
     let robotName = "Player 1";
-    let robotType = "aspiroman";
+    let robotType = "player";
     let basePosition = new GridPosition(3, 3);
     // au départ, le robot est à la base:
     let robotDirection = Direction.EAST;
@@ -78,7 +82,7 @@ export class RobotAspiromanDataService extends RobotDataService {
 
     // robot 2 test
     robotName = "Player 2";
-    robotType = "aspiroman";
+    robotType = "player";
     basePosition = new GridPosition(5, 6);
     // au départ, le robot est à la base:
     robotDirection = Direction.WEST;
@@ -110,8 +114,8 @@ export class RobotAspiromanDataService extends RobotDataService {
 
     // pour test de 1 ou plusieurs robots
     const robotModelTab: AspiromanModel[] = [{ ...robotPlayer1Model }, { ...robotPlayer2Model }];
-//     const robotModelTab: AspiromanModel[] = [{ ...robotPlayer1Model }];
-//     const robotModelTab: AspiromanModel[] = [];
+    // const robotModelTab: AspiromanModel[] = [{ ...robotPlayer1Model }];
+    // const robotModelTab: AspiromanModel[] = [];
 
     // spécifique aux robots aspirateurs: ajout de leurs bases de charge
     this.setAspiromenBases(robotModelTab);
@@ -209,7 +213,7 @@ export class RobotAspiromanDataService extends RobotDataService {
     const targetCoordinate = { ...robot.targetCoordinate };
     // TODO: revoir: bidouille
     if (mustMove === false) {
-      // this.moveRobotCoordinates(name, robot.position, robot.position);
+      this.moveRobotCoordinates(name, robot.position, robot.position);
       // TODO: important: targetcoordinate
       newXCoordinate = startCoordinate.x;
       newYCoordinate = startCoordinate.y;

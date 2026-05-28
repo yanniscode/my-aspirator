@@ -241,7 +241,7 @@ export class AlgoCheminOptimalService {
    * @param maison
    * @returns
    */
-  public obtenirPositionManuelleSuivante(moveDirection: String, position: GridPosition, maison: CellElement[][]): GridPosition {
+  public obtenirPositionSuivanteManuelle(moveDirection: String, position: GridPosition, maison: CellElement[][]): GridPosition {
     let newPosition: GridPosition = { ...position };
 
     if (moveDirection === "ArrowUp") {

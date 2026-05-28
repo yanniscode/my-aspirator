@@ -8,7 +8,7 @@ import { RobotAspiratorModel } from '../../../../classes/models/robot-model/robo
 @Injectable({
   providedIn: 'root',
 })
-export class MaisonRenderAnimationService extends RenderAnimationService {
+export abstract class MaisonRenderAnimationService extends RenderAnimationService {
 
   private maisonDataNettoyageService = inject(MaisonDataNettoyageService);
   private assetMaisonService = inject(AssetMaisonService);
@@ -16,9 +16,15 @@ export class MaisonRenderAnimationService extends RenderAnimationService {
   protected ctx!: CanvasRenderingContext2D;
 
   private readonly CELL_SIZE = 50;        // td-maison: width / height: 50px
-  private readonly CELL_PADDING = 6;      // td-maison: padding: 0.5rem (≈ 8px)
+  // TODO: modifier l'espacement des cellules ici
+  private readonly CELL_PADDING = 6;      // td-maison: padding - ex: 0.5rem (≈ 8px)
   private readonly ROW_COLOR = 'rgb(0, 140, 133)';      // tr-maison: background
 
+  /**
+   *
+   * @param ctx
+   * @returns ctx
+   */
   public override drawObject(ctx: CanvasRenderingContext2D): CanvasRenderingContext2D {
     console.log("MaisonRenderAnimationService - drawObject()");
 
@@ -67,10 +73,19 @@ export class MaisonRenderAnimationService extends RenderAnimationService {
     return this.ctx;
   }
 
-  protected override getRobotCtxFrame(robot: RobotAspiratorModel): HTMLImageElement {
-    throw new Error('Method not implemented.');
-  }
-  protected override drawRobotLabels(robot: RobotAspiratorModel, x: number, y: number): void {
-    throw new Error('Method not implemented.');
-  }
+  /**
+   * @override
+   *
+   * @param robot
+   */
+  protected abstract override getRobotCtxFrame(robot: RobotAspiratorModel): HTMLImageElement;
+
+  /**
+   * @override
+   *
+   * @param robot
+   * @param x
+   * @param y
+   */
+  protected abstract override drawRobotLabels(robot: RobotAspiratorModel, x: number, y: number): void;
 }

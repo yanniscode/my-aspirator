@@ -8,6 +8,8 @@ import { GridPosition } from '../../../classes/models/grid-position';
 })
 export abstract class RobotDataService {
 
+  public serviceName = "";
+
   private PIXELS_PER_STEP: number = 0; // Pixels à parcourir dans un intervale donné
 
   /**
@@ -16,16 +18,6 @@ export abstract class RobotDataService {
   // readonly sur la déclaration TypeScript signifie que la référence au signal ne peut pas être réassignée — pas que le signal lui-même est immuable
   protected readonly _robotSignals: Map<string, WritableSignal<RobotModel>> = new Map<string, WritableSignal<RobotModel>>();
   public readonly robotSignals: Map<string, Signal<RobotModel>> = this._robotSignals;
-
-  // Signal pour le progress (0 à 1)
-  protected readonly _animationProgress: WritableSignal<number> = signal(0);
-  public animationProgress: WritableSignal<number> = this._animationProgress;
-
-  protected readonly _animationPlayer1Progress: WritableSignal<number> = signal(0);
-  public animationPlayer1Progress: WritableSignal<number> = this._animationPlayer1Progress;
-
-  protected readonly _animationPlayer2Progress: WritableSignal<number> = signal(0);
-  public animationPlayer2Progress: WritableSignal<number> = this._animationPlayer2Progress;
 
   constructor() {
     this.PIXELS_PER_STEP = 50;

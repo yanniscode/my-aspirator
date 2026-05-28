@@ -1,17 +1,15 @@
-import { ElementRef, inject, Injectable, WritableSignal } from '@angular/core';
+import { inject, Injectable, WritableSignal } from '@angular/core';
 import { PixelPosition } from '../../../../classes/models/pixel-position';
 import { AssetRobotService } from '../asset-robot-service/asset-robot.service';
 import { RenderAnimationService } from '../../../main-services/graphics-services/render-animation-service/render-animation.service';
 import { RobotAspiromanDataService } from '../../robot-data-services/robot-aspiroman-data-service/robot-aspiroman-data.service';
 import { AspiromanModel } from '../../../../classes/models/robot-model/aspiroman-model/aspiroman-model';
-import { RobotDataService } from '../../robot-data-services/robot-data.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class RobotAspiromanRenderAnimationService extends RenderAnimationService {
 
-  private robotDataService = inject(RobotDataService);
   private robotAspiromanDataService = inject(RobotAspiromanDataService);
   private assetRobotService = inject(AssetRobotService);
 
@@ -35,13 +33,9 @@ export class RobotAspiromanRenderAnimationService extends RenderAnimationService
       let x: number;
       let y: number;
 
-      let animationPlayerProgress = -1;
-      if (robot.robotName === "Player 1") {
-        animationPlayerProgress = this.robotDataService.animationPlayer1Progress();
-      }
-      else if (robot.robotName === "Player 2") {
-        animationPlayerProgress = this.robotDataService.animationPlayer2Progress();
-      }
+      const animationPlayerProgSignal = this.robotAspiromanDataService?._animationPlayerProgSignals?.get(robot.robotName);
+      if (!animationPlayerProgSignal) continue;
+      const animationPlayerProgress = animationPlayerProgSignal();
 
       if (mustMove === true) {
         // Ancienne branche joueur — conservée si jamais mustMove=true est encore utilisé
@@ -84,18 +78,12 @@ export class RobotAspiromanRenderAnimationService extends RenderAnimationService
    */
   protected override getRobotCtxFrame(robot: AspiromanModel, mustMove?: boolean): HTMLImageElement | undefined {
     console.log("RobotAspiromanRenderAnimationService - getRobotCtxFrame()");
-    // console.log("animationPlayer1Progress = " + this.robotDataService.animationPlayer1Progress());
-    // console.log("animationPlayer2Progress = " + this.robotDataService.animationPlayer2Progress());
 
-    // if (robot.robotType !== "player") return;
+    if (robot.robotType !== "player") return;
 
-    let animationPlayerProgress = 0;
-    if (robot.robotName === "Player 1") {
-      animationPlayerProgress = this.robotDataService.animationPlayer1Progress();
-    }
-    else if (robot.robotName === "Player 2") {
-      animationPlayerProgress = this.robotDataService.animationPlayer2Progress();
-    }
+    const animationPlayerProgSignal = this.robotAspiromanDataService?._animationPlayerProgSignals?.get(robot.robotName);
+    if (!animationPlayerProgSignal) return this.assetRobotService.getRobotImageByFrameAndDirection(robot.robotDirection, 1);
+    const animationPlayerProgress = animationPlayerProgSignal();
 
     const robotAnimationFrame = (Number(animationPlayerProgress.toPrecision(2)) * 100);
 

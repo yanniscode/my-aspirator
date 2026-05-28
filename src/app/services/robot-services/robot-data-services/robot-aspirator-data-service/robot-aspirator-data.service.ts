@@ -25,9 +25,15 @@ export class RobotAspiratorDataService extends RobotDataService {
 
   private robotNames = signal<string[]>([]);
 
+  // TODO: individualiser le progress pour les bots aussi ?
+  // Signal pour le progress (0 à 1) synchronisé des bots
+  public readonly _animationBotsProgSignal: WritableSignal<number> = signal(0);
+
+
   constructor() {
     console.log("RobotAspiratorDataService - constructor");
     super();
+    this.serviceName = "RobotAspiratorDataService";
   }
 
   // TODO: EVOL - possible refactoring de méthode dans un service API (récupération des données dans des objets JSON / appels HTTP)
@@ -47,7 +53,7 @@ export class RobotAspiratorDataService extends RobotDataService {
     let position = { ...basePosition };
     let startCoordinate = this.calculatePixelCoordinates(basePosition);
     let targetCoordinate = this.calculatePixelCoordinates(basePosition);
-    let batterie = 4.5;
+    let batterie = 6;
     let isRobotStarted = false;
     let isRobotReturningToBase = false;
     let robotWidth = 42;
@@ -242,7 +248,7 @@ export class RobotAspiratorDataService extends RobotDataService {
    * @param name
    * @returns
    */
-  public override updateCurrentCoordinates(name: string, progress: number): PixelPosition {
+  public override updateCurrentCoordinates(name: string): PixelPosition {
     console.log("RobotDataService - updateCurrentCoordinates()");
 
     let robotAspiratorSignal = this.robotAspiratorSignals.get(name) as Signal<RobotAspiratorModel | undefined>;
@@ -262,7 +268,7 @@ export class RobotAspiratorDataService extends RobotDataService {
     this.moveRobotCoordinates(name, robot.lastPosition, robot.position);
 
     // const progress: Signal<number> = this.animationProgress;
-    console.log("updateCurrentCoordinates - progress = " + this.animationProgress());
+    console.log("updateCurrentCoordinates - progress = " + this._animationBotsProgSignal());
 
     const startCoordinate = { ...robot.startCoordinate };
     const targetCoordinate = { ...robot.targetCoordinate };
@@ -270,9 +276,9 @@ export class RobotAspiratorDataService extends RobotDataService {
     if (!robot.isRobotStarted) return new PixelPosition(startCoordinate.x, startCoordinate.y);
 
     // Interpolation linéaire (calcul de valeurs intermédiaires) entre startCoordinate et targetCoordinate
-    const newXCoordinate = startCoordinate.x + (targetCoordinate.x - startCoordinate.x) * progress;
-    const newYCoordinate = startCoordinate.y + (targetCoordinate.y - startCoordinate.y) * progress;
-    console.log("new Coordinate = " + newXCoordinate + " - " + newYCoordinate);
+    const newXCoordinate = startCoordinate.x + (targetCoordinate.x - startCoordinate.x) * this._animationBotsProgSignal();
+    const newYCoordinate = startCoordinate.y + (targetCoordinate.y - startCoordinate.y) * this._animationBotsProgSignal();
+    console.log("startCoordinate.x = " + startCoordinate.x + " / targetCoordinate.x = " + targetCoordinate.x + " / progress = " + this._animationBotsProgSignal() + " / new Coordinate = " + newXCoordinate + " - " + newYCoordinate);
 
     // Attention: inversion des coordonnées pour l'affichage: col = x, row = y
     return new PixelPosition(newXCoordinate, newYCoordinate);

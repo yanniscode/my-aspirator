@@ -4,14 +4,12 @@ import { RobotAspiratorModel } from '../../../../classes/models/robot-model/robo
 import { AssetRobotService } from '../asset-robot-service/asset-robot.service';
 import { RenderAnimationService } from '../../../main-services/graphics-services/render-animation-service/render-animation.service';
 import { RobotAspiratorDataService } from '../../robot-data-services/robot-aspirator-data-service/robot-aspirator-data.service';
-import { RobotDataService } from '../../robot-data-services/robot-data.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class RobotAspiratorRenderAnimationService extends RenderAnimationService {
 
-  private robotDataService = inject(RobotDataService);
   private robotAspiratorDataService = inject(RobotAspiratorDataService);
   private assetRobotService = inject(AssetRobotService);
 
@@ -50,7 +48,7 @@ export class RobotAspiratorRenderAnimationService extends RenderAnimationService
       }
 
       // mise à jour des coordonnées du robot dans l'espace (en pixels), pour la vue
-      const pixelPosition: PixelPosition = this.robotAspiratorDataService.updateCurrentCoordinates(robotName, this.robotDataService.animationProgress());
+      const pixelPosition: PixelPosition = this.robotAspiratorDataService.updateCurrentCoordinates(robotName);
       console.log("aspirator - pixelPosition = " + pixelPosition.x + " - " + pixelPosition.y);
       // recentrage du robot dans la cellule
       const x = pixelPosition.x + (this.CELL_SIZE - robot.robotWidth) / 2;
@@ -79,11 +77,11 @@ export class RobotAspiratorRenderAnimationService extends RenderAnimationService
    */
   protected override getRobotCtxFrame(robot: RobotAspiratorModel): HTMLImageElement | undefined {
     console.log("RobotAspiratorRenderAnimationService - getRobotCtxFrame()");
-    console.log("animationProgress = " + this.robotDataService.animationProgress());
+    console.log("animationProgress = " + this.robotAspiratorDataService._animationBotsProgSignal());
 
     if (robot.robotType !== "aspirator") return;
 
-    const robotAnimationFrame = (Number(this.robotDataService.animationProgress().toPrecision(2)) * 100);
+    const robotAnimationFrame = (Number(this.robotAspiratorDataService._animationBotsProgSignal().toPrecision(2)) * 100);
     if (!robotAnimationFrame || !robot.isRobotStarted) {
       return this.assetRobotService.getRobotImageByFrameAndDirection(robot.robotDirection, 1);
     }

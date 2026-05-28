@@ -3,6 +3,7 @@ import { GridPosition } from "../models/grid-position";
 /**
  * Utilisée pour algo V2 - RobotAspiratorWithNextPositionsTabService (à revoir avec Canvas + Signals si nécessaire)
  */
+// @Deprecated - champs à revoir si doit être utilisé
 export class RobotServiceDtoOut {
     batterie;
     isNettoyageComplete;

@@ -14,7 +14,6 @@ import { RobotAspiromanDataService } from '../../robot-data-services/robot-aspir
 export abstract class RobotActionAspiromanService extends RobotActionService {
 
   protected algoNettoyageService = inject(AlgoNettoyageService);
-
   private robotAspiromanDataService = inject(RobotAspiromanDataService);
   private maisonDataNettoyageService = inject(MaisonDataNettoyageService);
 
@@ -26,22 +25,35 @@ export abstract class RobotActionAspiromanService extends RobotActionService {
     this.maisonDataNettoyageService.maisonSignal()
   );
 
-  private readonly CELL_SIZE = 50;        // td-maison: width / height: 50px
+  private readonly CELL_SIZE = 50; // td-maison: width / height: 50px
 
   // Configuration de l'animation
   private PIXELS_PER_STEP: number = 0; // Pixels à parcourir dans un intervale donné
 
-  public readonly _player1Move: WritableSignal<string> = signal("");
-  public player1Move: WritableSignal<string> = this._player1Move;
-
-  public readonly _player2Move: WritableSignal<string> = signal("");
-  public player2Move: WritableSignal<string> = this._player2Move;
+  // Map de signaux contenant la direction de déplacement manuelle en cours de chaque Joueur
+  private readonly _playerMoveDirectionSignals: Map<string, WritableSignal<string>> = new Map<string, WritableSignal<string>>();
+  public readonly playerMoveDirectionSignals = this._playerMoveDirectionSignals;
 
   constructor() {
     console.log("RobotActionAspiromanService - constructor()");
     super();
     this.serviceName = "RobotActionAspiromanService";
     this.PIXELS_PER_STEP = 50;
+
+    this.aspiromanSignals.forEach(aspiromanSignal => {
+      this.playerMoveDirectionSignals.set(aspiromanSignal().robotName, signal(""));
+    });
+  }
+
+  /**
+ * Création des paramètres d'animation (appelé après l'instanciation des robots dans GameComponent)
+ */
+  public createPlayersActionParams() {
+    this.aspiromanSignals.forEach(aspiromanSignal => {
+      if (aspiromanSignal().robotType === "player") {
+        this.playerMoveDirectionSignals.set(aspiromanSignal().robotName, signal(""));
+      }
+    });
   }
 
   /**
@@ -56,13 +68,9 @@ export abstract class RobotActionAspiromanService extends RobotActionService {
     const robot = robotSignal();
     if (!robot) return;
 
-    let mouvement = "";
-    if (robot.robotName === "Player 1") {
-      mouvement = this.player1Move();
-    }
-    else if (robot.robotName === "Player 2") {
-      mouvement = this.player2Move();
-    }
+    let playerMoveSignal = this.playerMoveDirectionSignals.get(robot.robotName);
+    if (!playerMoveSignal) return;
+    const mouvement = playerMoveSignal();
     console.log("mouvement = " + mouvement);
 
     let nextPosition: GridPosition = new GridPosition();
@@ -74,7 +82,7 @@ export abstract class RobotActionAspiromanService extends RobotActionService {
       nextPosition = { ...robot.position };
       isRobotStarted = false;
     } else {
-      nextPosition = this.algoNettoyageService.obtenirPositionManuelleSuivante(mouvement, robot.position, this.maisonSignal().maison);
+      nextPosition = this.algoNettoyageService.obtenirPositionSuivanteManuelle(mouvement, robot.position, this.maisonSignal().maison);
       robotDirection = this.getRobotDirectionByDirection(mouvement);
       batterie -= robot.consommationParMouvement;
     }
@@ -108,12 +116,7 @@ export abstract class RobotActionAspiromanService extends RobotActionService {
 
     console.log(`### ${robotName}: moveRobot nextPosition[${nextPosition.col},${nextPosition.row}] - batterie(${robot.batterie})`);
 
-    if (robot.robotName === "Player 1") {
-      this.player1Move.set("");
-    }
-    else if (robot.robotName === "Player 2") {
-      this.player2Move.set("");
-    }
+    this.playerMoveDirectionSignals.set(robot.robotName, signal(""));
   }
 
   /**

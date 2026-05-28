@@ -13,25 +13,3 @@
     color: #0071e6;
     width: auto;
 }
-
-.buttons {
-    background-color: #752713;
-}
-
-.start-button {
-    padding-top: 20px;
-    padding-bottom: 10px;
-}
-
-.pause-button {
-    margin-top: 20px;
-    padding-bottom: 10px;
-}
-
-.infos-container {
-    text-align: center;
-}
-
-.robot-liste-infos {
-    display: grid;
-}
