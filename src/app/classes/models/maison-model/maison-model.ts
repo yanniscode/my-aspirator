@@ -1,8 +1,9 @@
 import { CellElement } from "../cellElement";
 import { GridPosition } from "../grid-position";
+import { AbstractModel } from "./abstract-model";
 
 
-export class MaisonModel {
+export class MaisonModel extends AbstractModel {
     public maison: CellElement[][];
     public largeurMaison;
     public hauteurMaison;
@@ -10,6 +11,8 @@ export class MaisonModel {
     public isNettoyageComplete;
 
     constructor() {
+        super();
+
         this.maison = [
             [
                 new CellElement(),

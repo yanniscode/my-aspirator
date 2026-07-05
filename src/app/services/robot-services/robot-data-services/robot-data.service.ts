@@ -2,13 +2,19 @@ import { Injectable, Signal, signal, WritableSignal } from '@angular/core';
 import { RobotModel } from '../../../classes/models/robot-model/robot-model';
 import { PixelPosition } from '../../../classes/models/pixel-position';
 import { GridPosition } from '../../../classes/models/grid-position';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { Direction } from '../../../classes/utils/direction';
 
 @Injectable({
   providedIn: 'root',
 })
-export abstract class RobotDataService {
+export abstract class RobotDataService<T extends RobotModel = RobotModel> {
 
   public serviceName = "";
+
+  protected url = "http://localhost:4200";
+  protected mockRobotAspiratorDatasPath = this.url + "";
 
   private PIXELS_PER_STEP: number = 0; // Pixels à parcourir dans un intervale donné
 
@@ -16,10 +22,13 @@ export abstract class RobotDataService {
   * Map en lecture seule pour stocker les signaux computed de chaque robot à afficher
   */
   // readonly sur la déclaration TypeScript signifie que la référence au signal ne peut pas être réassignée — pas que le signal lui-même est immuable
-  protected readonly _robotSignals: Map<string, WritableSignal<RobotModel>> = new Map<string, WritableSignal<RobotModel>>();
-  public readonly robotSignals: Map<string, Signal<RobotModel>> = this._robotSignals;
+  protected readonly _robotSignals: Map<string, WritableSignal<T>> = new Map<string, WritableSignal<T>>();
+  public readonly robotSignals: Map<string, Signal<T>> = this._robotSignals;
 
-  constructor() {
+  protected _robotNames: WritableSignal<string[]> = signal<string[]>([]);
+  public readonly robotNames: Signal<string[]> = this._robotNames;
+
+  constructor(protected http: HttpClient) {
     this.PIXELS_PER_STEP = 50;
   }
 
@@ -31,11 +40,9 @@ export abstract class RobotDataService {
    * @param robotName
    * @returns
    */
-  public getRobotSignal(robotName: string): Signal<RobotModel | undefined> {
+  public getRobotSignal(robotName: string): Signal<T> | undefined {
     console.log("RobotDataService - getRobotSignal()");
-
-    const writableSignal: WritableSignal<RobotModel> | undefined = this._robotSignals.get(robotName);
-    return writableSignal?.asReadonly() ?? signal(undefined);
+    return this._robotSignals.get(robotName);
   }
 
   /**
@@ -43,24 +50,28 @@ export abstract class RobotDataService {
    *
    * @param robotAspiratorModelTab
    */
-  public abstract setRobotSignalsList(robotAspiratorModelTab: RobotModel[]): void;
+  public abstract setRobotSignalsList(robotAspiratorModelTab: T[]): void;
 
   /**
    * Renvoie la map de signaux de robot selon le type spécifié dans la classe qui en hérite
    */
-  public abstract getRobotSignalsList(): Map<string, Signal<RobotModel>>;
+  public abstract getRobotSignalsList(): Map<string, Signal<T>>;
 
   /**
    * enregistre un robot dans la Map de signaux selon le type spécifié dans la classe qui en hérite
    *
    * @param robotModel
    */
-  protected abstract registerRobotInList(robotModel: RobotModel): void;
+  protected abstract registerRobotInList(robotModel: T): void;
+
+  public abstract getJsonData(): Observable<any>;
 
   /**
-   * Instancie la liste de robots avec leurs données selon le type spécifié dans la classe qui en hérite
+   * Instancie la liste de robots avec leurs données mockées selon le type spécifié dans la classe qui en hérite
    */
-  public abstract createRobotsParams(): RobotModel[];
+  // public abstract createMockRobotsParams(): T[];
+
+  public abstract setRobotAspiratorBases(robotModelTab: T[]): void;
 
   /**
    * Nettoye la map générique de signaux
@@ -76,6 +87,11 @@ export abstract class RobotDataService {
   // getRobotCount(): number {
   //   return this.robotSignals.size;
   // }
+
+  /**
+ * Création des paramètres d'animation (appelé après l'instanciation des robots dans GameComponent)
+ */
+  public abstract createPlayersActionParams(): void;
 
   // MÉTHODES D'ACTION SUR LE ROBOT:
 
@@ -104,4 +120,57 @@ export abstract class RobotDataService {
       grid.row * this.PIXELS_PER_STEP   // row → y (top)
     );
   }
+
+  /**
+ * Orientation dans l'espace 2D (cardinalité)
+ *
+ * @param position
+ * @param nextPosition
+ * @returns
+ */
+  protected getRobotDirectionByPosition(position: GridPosition, nextPosition: GridPosition): string {
+    // dx: 0, dy: -1  // Nord
+    if (position.col - nextPosition.col === 0 && position.row - nextPosition.row === -1) {
+      return Direction.NORTH;
+    }
+    // dx: -1, dy: 0   // Est
+    else if (position.col - nextPosition.col === -1 && position.row - nextPosition.row === 0) {
+      return Direction.EAST;
+    }
+    // dx: 0, dy: 1   // Sud
+    else if (position.col - nextPosition.col === 0 && position.row - nextPosition.row === 1) {
+      return Direction.SOUTH;
+    }
+    // dx: 1, dy: 0  // Ouest
+    else if (position.col - nextPosition.col === 1 && position.row - nextPosition.row === 0) {
+      return Direction.WEST;
+    }
+
+    return "";
+  }
+
+  /**
+ * Met à jour la cellule visitée
+ */
+  public abstract updateRobotsVisitedCells(): void;
+
+  /**
+ * Déplace manuellement un robot à une position pour le nettoyage
+ *
+ * @param robotName
+ * @param position
+ * @param nextPosition
+ */
+  public abstract moveRobot(robotName: string, position: GridPosition, nextPosition: GridPosition): void;
+
+
+  /**
+   * Arrêt d'un robot à une position
+   *
+   * @param robotName
+   * @param position
+   * @param nextPosition
+   * @returns
+   */
+  public abstract stopRobot(robotName: string, position: GridPosition, nextPosition: GridPosition): void;
 }

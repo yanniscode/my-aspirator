@@ -9,6 +9,7 @@ import { RenderFactoryService } from '../render-factory-service/render-factory.s
 import { ActionFactoryService } from '../action-factory-service/action-factory.service';
 import { AssetFactoryService } from '../asset-factory-service/asset-factory.service';
 import { RobotDataFactoryService } from '../../../robot-services/robot-data-factory-service/robot-data-factory.service';
+import { RobotDataService } from '../../../robot-services/robot-data-services/robot-data.service';
 
 @Injectable({
   providedIn: 'root',
@@ -18,6 +19,7 @@ export class AnimationFactoryService {
   // ─── Services injectés ──────────────────────────────────────────────────────
 
   private robotDataFactoryService = inject(RobotDataFactoryService);
+  private robotDataFactoryServicesTab: RobotDataService[] = this.robotDataFactoryService.getDataServicesTab();
 
   private assetFactoryService = inject(AssetFactoryService);
   private assetServicesTab: AssetService[] = this.assetFactoryService.getAssetServicesTab();
@@ -47,7 +49,10 @@ export class AnimationFactoryService {
   private isGameStarted = false;
 
   // Map de robots (type générique utilisé par la factory)
-  public robotSignals: Map<string, Signal<RobotModel>> = this.robotDataFactoryService.robotSignals;
+  // Au lieu d'assigner une fois au constructeur...
+  public get robotSignals(): Map<string, Signal<RobotModel>> {
+    return this.robotDataFactoryService.robotSignals; // recalculé à chaque accès
+  }
 
   // ─── État boucle bots (maîtresse du canvas) ──────────────────────────────────
   protected areBotsRunning = false;
@@ -159,7 +164,6 @@ export class AnimationFactoryService {
     this.lastBotsStepTime = performance.now();
     this.botsProgress = 0;
 
-    this.robotDataFactoryService.animationBotsProgSignal.set(this.botsProgress);
     this.calculateAndUpdateBots();
 
     const animate = (currentTime: number) => {
@@ -172,7 +176,6 @@ export class AnimationFactoryService {
         this.stopBotsAnimation();
 
         this.botsProgress = deltaTime / this.STEP_DURATION;
-        this.robotDataFactoryService.animationBotsProgSignal.set(this.botsProgress);
         return;
       }
 
@@ -367,7 +370,11 @@ export class AnimationFactoryService {
     this.actionServicesTab.forEach(actionService => {
       if (actionService.serviceName === 'RobotActionAspiratorService') {
         actionService.calculateNewDirectionsForAllRobots();
-        actionService.updateRobotsVisitedCells();
+      }
+    });
+    this.robotDataFactoryServicesTab.forEach(robotDataFactoryService => {
+      if (robotDataFactoryService.serviceName === 'RobotAspiratorDataService') {
+        robotDataFactoryService.updateRobotsVisitedCells();
       }
     });
   }

@@ -1,12 +1,12 @@
-import { Component, ChangeDetectionStrategy, inject, ViewChild, ElementRef, AfterViewInit, HostListener, computed, Signal, OnDestroy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, ViewChild, ElementRef, AfterViewInit, HostListener, Signal, OnDestroy } from '@angular/core';
 import { TableModule } from "primeng/table";
 import { LoggerService } from '../../services/main-services/logger-service/logger.service';
 import { FormsModule } from '@angular/forms';
 import { AnimationFactoryService } from '../../services/main-services/graphics-services/animation-factory-service/animation-factory.service';
 import { MaisonDataFactoryService } from '../../services/maison-services/maison-data-factory-service/maison-data-factory.service';
 import { RobotDataFactoryService } from '../../services/robot-services/robot-data-factory-service/robot-data-factory.service';
-import { ActionFactoryService } from '../../services/main-services/graphics-services/action-factory-service/action-factory.service';
 import { RobotModel } from '../../classes/models/robot-model/robot-model';
+import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-game',
@@ -33,9 +33,6 @@ export class GameComponent implements AfterViewInit, OnDestroy {
   private maisonDataFactoryService = inject(MaisonDataFactoryService);
   // Appel du Service dans le template, donc public:
   public robotDataFactoryService = inject(RobotDataFactoryService);
-
-  private actionFactoryService = inject(ActionFactoryService);
-
   private animationFactoryService = inject(AnimationFactoryService);
 
   private loggerService = inject(LoggerService);
@@ -46,16 +43,15 @@ export class GameComponent implements AfterViewInit, OnDestroy {
 
 
   // on récupère la liste de signaux à partir de la factory de robots dans un type générique (RobotModel)
-  public robotSignals: Map<string, Signal<RobotModel>> = this.robotDataFactoryService.robotSignals;
+  public robotNames: Signal<string[]> = this.robotDataFactoryService.robotNames;
 
-  // Signal computed qui expose les valeurs de la Map de robots sous forme de tableau
-  public readonly robotsList: Signal<RobotModel[]> = computed(() =>
-    Array.from(this.robotSignals.values()).map(signal => signal())
-  );
-
-  public robotViewModelTab: RobotModel[];
+  public robotSignal(name: string): Signal<RobotModel | undefined> {
+    return this.robotDataFactoryService.getRobotSignal(name);
+  }
 
   private isRobotMapStarted: boolean = false;
+
+  private endedSubscription$ = new Subject<void>();
 
   constructor() {
     console.log("GameComponent - constructor()");
@@ -63,21 +59,16 @@ export class GameComponent implements AfterViewInit, OnDestroy {
     // initialisation des paramètres de la maison et des robots
     this.maisonDataFactoryService.setMaisonParams();
 
-    this.robotDataFactoryService.createRobotsParams();
-
-    this.actionFactoryService.createPlayersActionParams();
-
-    this.animationFactoryService.createRobotPlayersAnimationParams();
-
-    // Copie de la liste de signaux pour le template, qui l'accepte mieux sous forme de tableau [] d'objets,
-    // ce qui évite de multiples recalculs
-    this.robotViewModelTab = this.robotsList();
+    this.robotDataFactoryService.createRobotsParams().pipe(takeUntil(this.endedSubscription$))
+      .subscribe(() => {
+        this.robotDataFactoryService.createPlayersActionParams();
+        this.animationFactoryService.createRobotPlayersAnimationParams();
+      });
   }
 
   ngOnDestroy(): void {
     console.log('GameComponent - ngOnDestroy()');
-    this.robotDataFactoryService.clearAllRobotsList();
-    console.log(`Nettoyage de la map générique de signaux - ${this.robotViewModelTab.length} robots`);
+    this.endedSubscription$.next();
   }
 
   /**
@@ -142,9 +133,10 @@ export class GameComponent implements AfterViewInit, OnDestroy {
   @HostListener('body:keydown', ['$event'])
   public keyDown(event: KeyboardEvent) {
     // Joueur 1:
-    const isPlayer1RunningSignal = this.animationFactoryService.isPlayerRunningSignals.get("Player 1");
-    const player1MoveDirectionSignal = this.actionFactoryService.getPlayerMoveDirectionSignals("Player 1");
+    const player1MoveDirectionSignal = this.robotDataFactoryService.getPlayerMoveDirectionSignals("Player 1");
     if (!player1MoveDirectionSignal) return;
+
+    const isPlayer1RunningSignal = this.animationFactoryService.isPlayerRunningSignals.get("Player 1");
 
     if (event.code === 'KeyW') {
       player1MoveDirectionSignal.set("ArrowUp");
@@ -171,9 +163,10 @@ export class GameComponent implements AfterViewInit, OnDestroy {
       }
     }
     // Joueur 2:
-    const isPlayer2RunningSignal = this.animationFactoryService.isPlayerRunningSignals.get("Player 2");
-    const player2MoveDirectionSignal = this.actionFactoryService.getPlayerMoveDirectionSignals("Player 2");
+    const player2MoveDirectionSignal = this.robotDataFactoryService.getPlayerMoveDirectionSignals("Player 2");
     if (!player2MoveDirectionSignal) return;
+
+    const isPlayer2RunningSignal = this.animationFactoryService.isPlayerRunningSignals.get("Player 2");
 
     if (event.code === 'KeyI') {
       player2MoveDirectionSignal.set("ArrowUp");

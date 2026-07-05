@@ -1,8 +1,9 @@
 import { Direction } from "../../utils/direction";
 import { GridPosition } from "../grid-position";
+import { AbstractModel } from "../maison-model/abstract-model";
 import { PixelPosition } from "../pixel-position";
 
-export class RobotModel {
+export class RobotModel extends AbstractModel {
 
     public robotName;
     public robotType;
@@ -18,6 +19,8 @@ export class RobotModel {
     public labelColor
 
     constructor() {
+        super();
+
         // valeurs par défaut pour l'init du robot
         this.robotName = "Theo";
         this.robotType = "aspirator"

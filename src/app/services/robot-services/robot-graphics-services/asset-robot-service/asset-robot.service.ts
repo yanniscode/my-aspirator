@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
 import { AssetService } from '../../../main-services/graphics-services/asset-service/asset.service';
+import { RobotAspiratorModel } from '../../../../classes/models/robot-model/robot-aspirator-model/robot-aspirator-model';
 
 @Injectable({
   providedIn: 'root',
 })
-export abstract class AssetRobotService extends AssetService {
+export abstract class AssetRobotService extends AssetService<RobotAspiratorModel> {
 
   private static ROBOT_IMAGES_PATH = '/assets/megaman';
 

@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
 import { RobotAspiratorModel } from '../../../../classes/models/robot-model/robot-aspirator-model/robot-aspirator-model';
+import { AbstractModel } from '../../../../classes/models/maison-model/abstract-model';
 
 @Injectable({
   providedIn: 'root',
 })
-export abstract class RenderAnimationService {
+export abstract class RenderAnimationService<T extends AbstractModel = AbstractModel> {
 
   /**
    * Méthode générique de dessin d'objet sur le Canvas (ex: Maison, Robot...)

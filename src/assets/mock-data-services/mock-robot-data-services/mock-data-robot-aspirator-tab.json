@@ -21,7 +21,7 @@
         },
         "isRobotStarted": false,
         "robotWidth": 42,
-        "labelColor": "",
+        "labelColor": "#E969E6",
         "basePosition": {
             "row": 0,
             "col": 0
@@ -51,8 +51,8 @@
             "y": 0
         },
         "isRobotStarted": false,
-        "robotWidth": 0,
-        "labelColor": "",
+        "robotWidth": 42,
+        "labelColor": "#E969E6",
         "basePosition": {
             "row": 0,
             "col": 9
@@ -82,11 +82,11 @@
             "y": 350
         },
         "isRobotStarted": false,
-        "robotWidth": 0,
-        "labelColor": "",
+        "robotWidth": 42,
+        "labelColor": "#E969E6",
         "basePosition": {
-            "row": 450,
-            "col": 350
+            "row": 7,
+            "col": 9
         },
         "batterie": 30,
         "consommationParMouvement": 0.5,
@@ -113,8 +113,8 @@
             "y": 350
         },
         "isRobotStarted": false,
-        "robotWidth": 0,
-        "labelColor": "",
+        "robotWidth": 42,
+        "labelColor": "#E969E6",
         "basePosition": {
             "row": 7,
             "col": 0

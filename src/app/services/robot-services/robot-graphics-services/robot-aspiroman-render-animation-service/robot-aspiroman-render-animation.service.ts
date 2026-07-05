@@ -1,4 +1,4 @@
-import { inject, Injectable, WritableSignal } from '@angular/core';
+import { inject, Injectable, Signal } from '@angular/core';
 import { PixelPosition } from '../../../../classes/models/pixel-position';
 import { AssetRobotService } from '../asset-robot-service/asset-robot.service';
 import { RenderAnimationService } from '../../../main-services/graphics-services/render-animation-service/render-animation.service';
@@ -8,7 +8,7 @@ import { AspiromanModel } from '../../../../classes/models/robot-model/aspiroman
 @Injectable({
   providedIn: 'root',
 })
-export class RobotAspiromanRenderAnimationService extends RenderAnimationService {
+export class RobotAspiromanRenderAnimationService extends RenderAnimationService<AspiromanModel> {
 
   private robotAspiromanDataService = inject(RobotAspiromanDataService);
   private assetRobotService = inject(AssetRobotService);
@@ -18,8 +18,8 @@ export class RobotAspiromanRenderAnimationService extends RenderAnimationService
   private readonly CELL_SIZE = 50;  // largeur d'une cellule de la maison
   private readonly HEIGHT = 400;    // hauteur de la maison
 
-  protected readonly aspiromanSignals: Map<string, WritableSignal<AspiromanModel>>
-    = this.robotAspiromanDataService.aspiromanSignals;
+  protected readonly aspiromanSignals: Map<string, Signal<AspiromanModel>>
+    = this.robotAspiromanDataService.robotSignals;
 
   public override drawObject(ctx: CanvasRenderingContext2D, mustMove?: boolean): CanvasRenderingContext2D {
     this.ctx = ctx;

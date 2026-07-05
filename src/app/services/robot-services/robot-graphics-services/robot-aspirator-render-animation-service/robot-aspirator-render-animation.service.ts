@@ -1,4 +1,4 @@
-import { inject, Injectable, WritableSignal } from '@angular/core';
+import { inject, Injectable, Signal } from '@angular/core';
 import { PixelPosition } from '../../../../classes/models/pixel-position';
 import { RobotAspiratorModel } from '../../../../classes/models/robot-model/robot-aspirator-model/robot-aspirator-model';
 import { AssetRobotService } from '../asset-robot-service/asset-robot.service';
@@ -8,7 +8,7 @@ import { RobotAspiratorDataService } from '../../robot-data-services/robot-aspir
 @Injectable({
   providedIn: 'root',
 })
-export class RobotAspiratorRenderAnimationService extends RenderAnimationService {
+export class RobotAspiratorRenderAnimationService extends RenderAnimationService<RobotAspiratorModel> {
 
   private robotAspiratorDataService = inject(RobotAspiratorDataService);
   private assetRobotService = inject(AssetRobotService);
@@ -18,8 +18,8 @@ export class RobotAspiratorRenderAnimationService extends RenderAnimationService
   private readonly CELL_SIZE = 50;  // largeur d'une cellule de la maison
   private readonly HEIGHT = 400;    // hauteur de la maison
 
-  protected readonly robotAspiratorSignals: Map<string, WritableSignal<RobotAspiratorModel>>
-    = this.robotAspiratorDataService.robotAspiratorSignals;
+  protected readonly robotAspiratorSignals: Map<string, Signal<RobotAspiratorModel>>
+    = this.robotAspiratorDataService.robotSignals;
 
   /**
    *

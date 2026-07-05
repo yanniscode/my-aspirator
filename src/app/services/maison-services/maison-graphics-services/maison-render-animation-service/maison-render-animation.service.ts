@@ -8,7 +8,7 @@ import { RobotAspiratorModel } from '../../../../classes/models/robot-model/robo
 @Injectable({
   providedIn: 'root',
 })
-export abstract class MaisonRenderAnimationService extends RenderAnimationService {
+export abstract class MaisonRenderAnimationService extends RenderAnimationService<MaisonModel> {
 
   private maisonDataNettoyageService = inject(MaisonDataNettoyageService);
   private assetMaisonService = inject(AssetMaisonService);
