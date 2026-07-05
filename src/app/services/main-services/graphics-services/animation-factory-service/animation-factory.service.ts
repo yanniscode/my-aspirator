@@ -117,9 +117,9 @@ export class AnimationFactoryService {
 
   public async loadCanvasImages(): Promise<void> {
     console.log('AnimationFactoryService - loadCanvasImages()');
-    for (const assetService of this.assetServicesTab) {
-      await assetService.loadAssets();
-    }
+    await Promise.all(
+      this.assetServicesTab.map(assetService => assetService.loadAssets()) // ✅ parallèle
+    );
   }
 
   // ────────────────────────────────────────────────────────────────────────────

@@ -6,7 +6,7 @@ import { AnimationFactoryService } from '../../services/main-services/graphics-s
 import { MaisonDataFactoryService } from '../../services/maison-services/maison-data-factory-service/maison-data-factory.service';
 import { RobotDataFactoryService } from '../../services/robot-services/robot-data-factory-service/robot-data-factory.service';
 import { RobotModel } from '../../classes/models/robot-model/robot-model';
-import { Subject, takeUntil } from 'rxjs';
+import { firstValueFrom, Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-game',
@@ -51,6 +51,9 @@ export class GameComponent implements AfterViewInit, OnDestroy {
 
   private isRobotMapStarted: boolean = false;
 
+  // Signal de synchronisation entre constructor (robots) et ngAfterViewInit (canvas)
+  private robotsReady$ = new Subject<void>();
+
   private endedSubscription$ = new Subject<void>();
 
   constructor() {
@@ -63,12 +66,16 @@ export class GameComponent implements AfterViewInit, OnDestroy {
       .subscribe(() => {
         this.robotDataFactoryService.createPlayersActionParams();
         this.animationFactoryService.createRobotPlayersAnimationParams();
+        this.robotsReady$.next();    // ✅ notifie que les robots sont prêts
+        this.robotsReady$.complete();
       });
   }
 
   ngOnDestroy(): void {
     console.log('GameComponent - ngOnDestroy()');
     this.endedSubscription$.next();
+    this.endedSubscription$.complete();
+    this.robotsReady$.complete();
   }
 
   /**
@@ -89,7 +96,11 @@ export class GameComponent implements AfterViewInit, OnDestroy {
     this.ctx = this.animationFactoryService.initCanvasContext(canvas);
 
     // Attente du chargement des images (maison) avant le rendu
-    await this.animationFactoryService.loadCanvasImages();
+    // ✅ attend que les DEUX soient terminés avant de rendre
+    await Promise.all([
+      this.animationFactoryService.loadCanvasImages(),
+      firstValueFrom(this.robotsReady$)   // attend le Subject
+    ]);
 
     this.ctx = this.animationFactoryService.renderAnimation(this.ctx);
   }

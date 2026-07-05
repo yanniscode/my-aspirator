@@ -81,6 +81,7 @@ export class RobotDataFactoryService implements OnDestroy {
   ngOnDestroy(): void {
     console.log("RobotDataFactoryService - ngOnDestroy()");
     this.endedSubscription$.next();
+    this.endedSubscription$.complete();
   }
 
   /**
