@@ -236,10 +236,6 @@ export abstract class RobotAspiratorDataService extends RobotDataService<RobotAs
 
     if (!this.robotSignals.has(robotModel.robotName)) {
       this._robotSignals.set(robotModel.robotName, signal(robotModel));
-    }
-
-    if (!this.robotSignals.has(robotModel.robotName)) {
-      this._robotSignals.set(robotModel.robotName, signal(robotModel));
     } else {
       console.warn(`Robot ${robotModel.robotName} déjà enregistré`);
     }
