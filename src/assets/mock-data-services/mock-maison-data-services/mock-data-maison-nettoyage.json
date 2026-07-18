@@ -1,6 +1,16 @@
 {
     "maison": [
-        []
+        [
+            {
+                "position": {
+                    "row": -1,
+                    "col": -1
+                },
+                "type": "O",
+                "visited": false,
+                "reserved": false
+            }
+        ]
     ],
     "largeurMaison": 10,
     "hauteurMaison": 8,

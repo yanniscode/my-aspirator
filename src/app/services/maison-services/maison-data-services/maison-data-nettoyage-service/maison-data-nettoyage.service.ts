@@ -4,17 +4,24 @@ import { CellElement } from '../../../../classes/models/cellElement';
 import { GridPosition } from '../../../../classes/models/grid-position';
 import { LoggerService } from '../../../main-services/logger-service/logger.service';
 import { MaisonModel } from '../../../../classes/models/maison-model/maison-model';
+import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
-export class MaisonDataNettoyageService extends MaisonDataService {
+export class MaisonDataNettoyageService extends MaisonDataService<MaisonModel> {
 
   private loggerService = inject(LoggerService);
+
+  protected override mockMaisonDatasPath = this.url + "/assets/mock-data-services/mock-maison-data-services/mock-data-maison-nettoyage.json";
 
   constructor() {
     console.log("MaisonDataNettoyageService - constructor()");
     super();
+  }
+
+  public override getJsonData(): Observable<MaisonModel> {
+    return this.httpClient.get(this.mockMaisonDatasPath) as Observable<MaisonModel>;
   }
 
   // TODO: EVOL - possible refactoring de méthode dans un service API (récupération des données dans des objets JSON / appels HTTP)
@@ -23,29 +30,9 @@ export class MaisonDataNettoyageService extends MaisonDataService {
    *
    * @returns
    */
-  public override setMaisonParams(): void {
+  public override setMaisonParams(maisonModel: MaisonModel): void {
     console.log("MaisonDataNettoyageService - setMaisonParams()");
-
-    // Création des paramètres de la maison
-    const largeurMaison: number = 10;
-    const hauteurMaison: number = 8;
-
-    // const obstacles: GridPosition[] = [];
-    const obstacles: GridPosition[] = [
-      { row: 3, col: 2 }, { row: 4, col: 2 }, { row: 4, col: 3 },
-      { row: 1, col: 7 }, { row: 2, col: 7 }, { row: 3, col: 7 },
-      { row: 6, col: 4 }, { row: 6, col: 5 }, { row: 6, col: 6 }
-    ];
-
-    const isNettoyageComplete = false;
-
-    const newMaison = new MaisonModel();
-    newMaison.largeurMaison = largeurMaison;
-    newMaison.hauteurMaison = hauteurMaison;
-    newMaison.obstacles = obstacles;
-    newMaison.isNettoyageComplete = isNettoyageComplete;
-
-    this.initMaison(newMaison);
+    this.initMaison(maisonModel);
   }
 
   /**

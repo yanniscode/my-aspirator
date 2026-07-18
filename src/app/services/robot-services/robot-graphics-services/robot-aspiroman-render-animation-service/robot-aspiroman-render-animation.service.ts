@@ -22,6 +22,8 @@ export class RobotAspiromanRenderAnimationService extends RenderAnimationService
     = this.robotAspiromanDataService.robotSignals;
 
   public override drawObject(ctx: CanvasRenderingContext2D, mustMove?: boolean): CanvasRenderingContext2D {
+//     console.log("RobotAspiromanRenderAnimationService - drawObject()");
+
     this.ctx = ctx;
 
     for (const [robotName, robotSignal] of this.aspiromanSignals) {

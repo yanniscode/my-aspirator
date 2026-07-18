@@ -1,4 +1,4 @@
-import { Injectable, Signal, signal, WritableSignal } from '@angular/core';
+import { inject, Injectable, Signal, signal, WritableSignal } from '@angular/core';
 import { RobotModel } from '../../../classes/models/robot-model/robot-model';
 import { PixelPosition } from '../../../classes/models/pixel-position';
 import { GridPosition } from '../../../classes/models/grid-position';
@@ -13,8 +13,10 @@ export abstract class RobotDataService<T extends RobotModel = RobotModel> {
 
   public serviceName = "";
 
+  protected httpClient = inject(HttpClient);
+
   protected url = "http://localhost:4200";
-  protected mockRobotAspiratorDatasPath = this.url + "";
+  protected mockRobotDatasPath = this.url + "";
 
   private PIXELS_PER_STEP: number = 0; // Pixels à parcourir dans un intervale donné
 
@@ -28,7 +30,8 @@ export abstract class RobotDataService<T extends RobotModel = RobotModel> {
   protected _robotNames: WritableSignal<string[]> = signal<string[]>([]);
   public readonly robotNames: Signal<string[]> = this._robotNames;
 
-  constructor(protected http: HttpClient) {
+  constructor() {
+    // constructor(protected http: HttpClient) {
     this.PIXELS_PER_STEP = 50;
   }
 
@@ -64,6 +67,9 @@ export abstract class RobotDataService<T extends RobotModel = RobotModel> {
    */
   protected abstract registerRobotInList(robotModel: T): void;
 
+  /**
+   * Renvoie les données mockées (fake database)
+   */
   public abstract getJsonData(): Observable<any>;
 
   /**

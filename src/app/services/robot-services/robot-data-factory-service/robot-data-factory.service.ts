@@ -128,6 +128,7 @@ export class RobotDataFactoryService implements OnDestroy {
         })
       )
     );
+
     return forkJoin(requests$).pipe(
       takeUntil(this.endedSubscription$),
       tap(() => this.initAnimationPlayersProgSignals()), // ✅  initialisation de la Map de signaux appelée une seule fois, tous les services chargés

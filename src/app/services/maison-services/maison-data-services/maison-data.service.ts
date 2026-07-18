@@ -1,13 +1,20 @@
-import { Injectable, Signal, signal, WritableSignal } from '@angular/core';
+import { inject, Injectable, Signal, signal, WritableSignal } from '@angular/core';
 
 import { CellElement } from '../../../classes/models/cellElement';
 import { GridPosition } from '../../../classes/models/grid-position';
 import { MaisonModel } from '../../../classes/models/maison-model/maison-model';
+import { Observable } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
 })
-export abstract class MaisonDataService {
+export abstract class MaisonDataService<T extends MaisonModel = MaisonModel> {
+
+  protected httpClient = inject(HttpClient);
+
+  protected url = "http://localhost:4200";
+  protected mockMaisonDatasPath = this.url + "";
 
   // Instanciation de la maison:
   // Privé et mutable — seul le service peut écrire dedans
@@ -31,7 +38,7 @@ export abstract class MaisonDataService {
    *
    * @returns
    */
-  public abstract setMaisonParams(): void;
+  public abstract setMaisonParams(t: T): void;
 
   /**
    * Initialisation de la maison
@@ -82,4 +89,9 @@ export abstract class MaisonDataService {
       )
     }));
   }
+
+  /**
+   * Renvoie les données mockées de la maison (fake database)
+   */
+  public abstract getJsonData(): Observable<T>;
 }

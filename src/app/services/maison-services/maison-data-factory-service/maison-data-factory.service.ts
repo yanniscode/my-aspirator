@@ -1,12 +1,13 @@
-import { inject, Injectable, Signal } from '@angular/core';
+import { inject, Injectable, OnDestroy, Signal } from '@angular/core';
 import { MaisonDataService } from '../maison-data-services/maison-data.service';
 import { MaisonDataNettoyageService } from '../maison-data-services/maison-data-nettoyage-service/maison-data-nettoyage.service';
 import { MaisonModel } from '../../../classes/models/maison-model/maison-model';
+import { forkJoin, map, Observable, Subject, takeUntil, tap } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
 })
-export class MaisonDataFactoryService {
+export class MaisonDataFactoryService implements OnDestroy {
 
   private maisonDataNettoyageService = inject(MaisonDataNettoyageService);
   // Pattern factory: tableau de Maison Data Services de type spécifiques vers un type générique
@@ -14,14 +15,33 @@ export class MaisonDataFactoryService {
 
   public readonly maisonSignal: Signal<MaisonModel> = this.maisonDataNettoyageService.maisonSignal;
 
-  /**
-   * Initialisation des datas de la maison
-   */
-  public setMaisonParams(): void {
-    console.log("MaisonDataFactoryService - setMaisonParams()");
+  private endedSubscription$ = new Subject<void>();
 
-    this.maisonDataServicesTab.forEach(maisonDataService => {
-      maisonDataService.setMaisonParams();
-    });
+  ngOnDestroy(): void {
+    console.log("MaisonDataFactoryService - ngOnDestroy()");
+    this.endedSubscription$.next();
+    this.endedSubscription$.complete();
+  }
+
+  /**
+   * Méthode de factory : renvoie les paramètres des robots avec un upcast vers le type générique RobotModel[]
+   */
+  public createMaisonParams(): Observable<void> {
+    console.log("MaisonDataFactoryService - createMaisonParams()");
+
+    // initialisation des paramètres des robots
+    const requests$: Observable<MaisonModel>[] = this.maisonDataServicesTab.map(maisonDataService =>
+
+      maisonDataService.getJsonData().pipe(
+        tap(maisonModel => {
+          maisonDataService.setMaisonParams(maisonModel);
+        })
+      )
+    );
+
+    return forkJoin(requests$).pipe(
+      takeUntil(this.endedSubscription$),
+      map(() => void 0)
+    );
   }
 }

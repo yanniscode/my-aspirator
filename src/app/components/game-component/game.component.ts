@@ -7,6 +7,7 @@ import { MaisonDataFactoryService } from '../../services/maison-services/maison-
 import { RobotDataFactoryService } from '../../services/robot-services/robot-data-factory-service/robot-data-factory.service';
 import { RobotModel } from '../../classes/models/robot-model/robot-model';
 import { firstValueFrom, Subject, takeUntil } from 'rxjs';
+import { MaisonModel } from '../../classes/models/maison-model/maison-model';
 
 @Component({
   selector: 'app-game',
@@ -41,6 +42,9 @@ export class GameComponent implements AfterViewInit, OnDestroy {
 
   private readonly CELL_SIZE = 50;        // td-maison: width / height: 50px
 
+  private get maisonSignal(): MaisonModel {
+    return this.maisonDataFactoryService.maisonSignal();
+  }
 
   // on récupère la liste de signaux à partir de la factory de robots dans un type générique (RobotModel)
   public robotNames: Signal<string[]> = this.robotDataFactoryService.robotNames;
@@ -51,6 +55,8 @@ export class GameComponent implements AfterViewInit, OnDestroy {
 
   private isRobotMapStarted: boolean = false;
 
+  // Signal de synchronisation entre constructor (maison) et ngAfterViewInit (canvas)
+  private maisonReady$ = new Subject<void>();
   // Signal de synchronisation entre constructor (robots) et ngAfterViewInit (canvas)
   private robotsReady$ = new Subject<void>();
 
@@ -60,7 +66,13 @@ export class GameComponent implements AfterViewInit, OnDestroy {
     console.log("GameComponent - constructor()");
 
     // initialisation des paramètres de la maison et des robots
-    this.maisonDataFactoryService.setMaisonParams();
+    this.maisonDataFactoryService.createMaisonParams().pipe(takeUntil(this.endedSubscription$))
+      .subscribe(() => {
+        // this.robotDataFactoryService.createPlayersActionParams();
+        // this.animationFactoryService.createRobotPlayersAnimationParams();
+        this.maisonReady$.next();    // ✅ notifie que les robots sont prêts
+        this.maisonReady$.complete();
+      });
 
     this.robotDataFactoryService.createRobotsParams().pipe(takeUntil(this.endedSubscription$))
       .subscribe(() => {
@@ -76,6 +88,7 @@ export class GameComponent implements AfterViewInit, OnDestroy {
     this.endedSubscription$.next();
     this.endedSubscription$.complete();
     this.robotsReady$.complete();
+    this.maisonReady$.complete();
   }
 
   /**
@@ -84,25 +97,39 @@ export class GameComponent implements AfterViewInit, OnDestroy {
   async ngAfterViewInit(): Promise<void> {
     console.log("GameComponent - ngAfterViewInit()");
 
-    const maison = this.maisonDataFactoryService.maisonSignal();
+
+    // Attente du chargement des images (maison et robots) avant le rendu
+    // ✅ attend que les deux soient terminés avant de rendre
+    await Promise.all([
+      this.animationFactoryService.loadCanvasImages(),
+      firstValueFrom(this.robotsReady$),  // attend le Subject
+      firstValueFrom(this.maisonReady$)   // attend le Subject
+    ]);
+
+    // const maison = this.maisonDataFactoryService.maisonSignal();
 
     // adaptation de la taille du canvas à la maison (représente tout l'environnement)
     const canvas = this.gameCanvas.nativeElement;
-    canvas.width = maison.maison[0].length * this.CELL_SIZE;
-    canvas.height = maison.maison.length * this.CELL_SIZE;
+    canvas.width = this.maisonSignal.maison[0].length * this.CELL_SIZE;
+    canvas.height = this.maisonSignal.maison.length * this.CELL_SIZE;
 
     // Fix Firefox
     // on doit assigner la valeur du ctx pour le Canvas
     this.ctx = this.animationFactoryService.initCanvasContext(canvas);
 
-    // Attente du chargement des images (maison) avant le rendu
-    // ✅ attend que les DEUX soient terminés avant de rendre
-    await Promise.all([
-      this.animationFactoryService.loadCanvasImages(),
-      firstValueFrom(this.robotsReady$)   // attend le Subject
-    ]);
-
-    this.ctx = this.animationFactoryService.renderAnimation(this.ctx);
+    // ✅ dessine la première frame immédiatement sans démarrer la boucle
+    // Note: Firefox a besoin d'un tick supplémentaire avant de rendre
+    // Firefox maintient le canvas en état "lazy" jusqu'au premier cycle de rendu du navigateur (paint).
+    // Le fillRect dans initCanvasContext() force bien un premier dessin synchrone (d'où le fond jaune visible),
+    // mais les appels suivants dans le même tick synchrone sont ignorés ou écrasés avant que le navigateur n'ait eu le temps
+    // de les peindre à l'écran.
+    // requestAnimationFrame garantit que drawInitialFrame() s'exécute au début du prochain cycle de peinture, quand Firefox est prêt.
+    // (l'appel doit être doublé !)
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        this.animationFactoryService.renderAnimation(this.ctx);
+      });
+    });
   }
 
   /**
