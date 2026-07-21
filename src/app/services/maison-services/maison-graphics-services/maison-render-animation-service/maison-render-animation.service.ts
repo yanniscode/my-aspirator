@@ -1,4 +1,4 @@
-import { inject, Injectable, WritableSignal } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { MaisonDataNettoyageService } from '../../maison-data-services/maison-data-nettoyage-service/maison-data-nettoyage.service';
 import { AssetMaisonService } from '../asset-maison-service/asset-maison.service';
 import { RenderAnimationService } from '../../../main-services/graphics-services/render-animation-service/render-animation.service';

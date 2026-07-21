@@ -1,12 +1,12 @@
 import { Injectable, Signal, signal, WritableSignal } from '@angular/core';
 import { AssetConfig } from '../../../../classes/config/asset-config';
 import { Direction } from '../../../../classes/utils/direction';
-import { RobotModel } from '../../../../classes/models/robot-model/robot-model';
+import { AbstractModel } from '../../../../classes/models/maison-model/abstract-model';
 
 @Injectable({
   providedIn: 'root',
 })
-export abstract class AssetService<T extends RobotModel = RobotModel> {
+export abstract class AssetService<T extends AbstractModel = AbstractModel> {
 
   private images: Map<string, HTMLImageElement> = new Map();
 

@@ -118,6 +118,7 @@ export class RobotDataFactoryService implements OnDestroy {
         tap(data => {
           console.log("RobotDataFactoryService data");
           console.log(data);
+          if (!data) return;
 
           let robotModelsTab: RobotModel[] = [...data];
 
