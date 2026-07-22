@@ -14,52 +14,17 @@ export class RenderFactoryService {
     private robotAspiromanRenderAnimationService = inject(RobotAspiromanRenderAnimationService);
 
     /**
-     * Pattern factory: tableau de Render Animation Services pour les objets statiques comme les éléments de décor (Maison...)
-     * de leur type spécifique vers un type générique
-     * (chargement des services de rendu sur le Canvas)
+     * Pattern factory: tableau général de Render Animation Services de leur type spécifique vers un type générique
      */
-    private renderObjectsAnimationServicesTab: RenderAnimationService[] =
-        [this.maisonRenderAnimationService];
+    private renderAllAnimationServicesTab: RenderAnimationService[] =
+        [this.maisonRenderAnimationService, this.robotAspiratorRenderAnimationService, this.robotAspiromanRenderAnimationService];
 
     /**
-     *
-     * Pattern factory: tableau de Render Animation Services pour les Bots, de leur type spécifique vers un type générique
-     * (chargement des services de rendu sur le Canvas)
-     */
-    private renderBotsAnimationServicesTab: RenderAnimationService[] =
-        [this.robotAspiratorRenderAnimationService];
-
-    /**
-     * Pattern factory: tableau de Render Animation Services pour les Joueurs, de leur type spécifique vers un type générique
-     * (chargement des services de rendu sur le Canvas)
-     */
-    private renderPlayersAnimationServicesTab: RobotAspiromanRenderAnimationService[] =
-        [this.robotAspiromanRenderAnimationService];
-
-    /**
-     * Getter: Liste de services de rendu visuel pour les Objets statiques comme les éléments de décor (Maison...)
+     * Getter: Liste générale des services de rendu visuel (render)
      *
      * @returns
      */
-    public getObjectsRenderAnimationServicesTab(): RenderAnimationService[] {
-        return this.renderObjectsAnimationServicesTab;
-    }
-
-    /**
-     * Getter: Liste de services de rendu visuel pour les Bots
-     *
-     * @returns
-     */
-    public getBotsRenderAnimationServicesTab(): RenderAnimationService[] {
-        return this.renderBotsAnimationServicesTab;
-    }
-
-    /**
-     * Getter: Liste de services de rendu visuel pour les robots Joueurs
-     *
-     * @returns
-     */
-    public getPlayersRenderAnimationServicesTab(): RobotAspiromanRenderAnimationService[] {
-        return this.renderPlayersAnimationServicesTab;
+    public getAllRenderAnimationServicesTab(): RenderAnimationService[] {
+        return this.renderAllAnimationServicesTab;
     }
 }

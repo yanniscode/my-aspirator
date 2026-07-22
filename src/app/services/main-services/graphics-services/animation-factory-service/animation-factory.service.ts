@@ -3,7 +3,6 @@ import { AssetService } from '../asset-service/asset.service';
 import { RobotModel } from '../../../../classes/models/robot-model/robot-model';
 
 import { RenderAnimationService } from '../render-animation-service/render-animation.service';
-import { RobotAspiromanRenderAnimationService } from '../../../robot-services/robot-graphics-services/robot-aspiroman-render-animation-service/robot-aspiroman-render-animation.service';
 import { RobotActionService } from '../../../robot-services/robot-action-services/robot-action.service';
 import { RenderFactoryService } from '../render-factory-service/render-factory.service';
 import { ActionFactoryService } from '../action-factory-service/action-factory.service';
@@ -28,9 +27,8 @@ export class AnimationFactoryService {
   private actionServicesTab: RobotActionService[] = this.actionFactoryService.getActionServicesTab();
 
   private renderFactoryService = inject(RenderFactoryService);
-  private renderObjectsAnimationServicesTab: RenderAnimationService[] = this.renderFactoryService.getObjectsRenderAnimationServicesTab();
-  private renderBotsAnimationServicesTab: RenderAnimationService[] = this.renderFactoryService.getBotsRenderAnimationServicesTab();
-  private robotPlayersRenderAnimationServiceTab: RobotAspiromanRenderAnimationService[] = this.renderFactoryService.getPlayersRenderAnimationServicesTab();
+
+  private renderAllAnimationServicesTab: RenderAnimationService[] = this.renderFactoryService.getAllRenderAnimationServicesTab();
 
   // ─── Canvas ─────────────────────────────────────────────────────────────────
 
@@ -196,21 +194,13 @@ export class AnimationFactoryService {
 
       // ── Rendu unique par frame ──────────────────────────────────────────────
       // 1. Tous les objets de décor (Maison)
-      this.renderObjectsAnimationServicesTab.forEach(renderObjectsAnimationService => {
+      // 2. Tous les bots IA
+      // 3. Le joueur — TOUJOURS dessiné ici, jamais ailleurs.
+
+      // Rendu générique de tous les éléments (Maison, bots, joueurs...)
+      this.renderAllAnimationServicesTab.forEach(renderObjectsAnimationService => {
         this.ctx = renderObjectsAnimationService.drawObject(this.ctx);
       });
-      // 2. Tous les bots IA
-      this.renderBotsAnimationServicesTab.forEach(renderBotsAnimationService => {
-        this.ctx = renderBotsAnimationService.drawObject(this.ctx);
-      });
-
-      // 3. Le joueur — TOUJOURS dessiné ici, jamais ailleurs.
-      //    RobotAspiromanRenderAnimationService lit animationPlayerProgress
-      //    (mis à jour par la boucle Joueur) pour interpoler la position.
-      this.robotPlayersRenderAnimationServiceTab.forEach(playersRenderAnimationService => {
-        this.ctx = playersRenderAnimationService.drawObject(this.ctx, false);
-      });
-      // ───────────────────────────────────────────────────────────────────────
 
       this.botsAnimationFrameId = requestAnimationFrame(animate);
     };
@@ -330,20 +320,9 @@ export class AnimationFactoryService {
     this.ctx = ctx;
     this.ctx.clearRect(0, 0, this.WIDTH, this.HEIGHT);
 
-    // Rendu des objets du décor si besoin (Maison): actuellement
-    // TODO: créer une animation pour le décor
-    this.renderObjectsAnimationServicesTab.forEach(renderObjectsAnimationService => {
+    // Rendu générique de tous les éléments (Maison, bots, joueurs...)
+    this.renderAllAnimationServicesTab.forEach(renderObjectsAnimationService => {
       this.ctx = renderObjectsAnimationService.drawObject(this.ctx);
-    });
-
-    // Rendu des bots
-    this.renderBotsAnimationServicesTab.forEach(renderBotsAnimationService => {
-      this.ctx = renderBotsAnimationService.drawObject(this.ctx);
-    });
-
-    // Le joueur est toujours dessiné en dernier (par-dessus les bots)
-    this.robotPlayersRenderAnimationServiceTab.forEach(robotPlayersRenderAnimationService => {
-      this.ctx = robotPlayersRenderAnimationService.drawObject(this.ctx, false);
     });
 
     return this.ctx;
@@ -382,19 +361,9 @@ export class AnimationFactoryService {
   private drawPlayerFrame(): void {
     this.ctx.clearRect(0, 0, this.WIDTH, this.HEIGHT);
 
-    // Rendu des objets de décor (Maison)
-    this.renderObjectsAnimationServicesTab.forEach(renderObjectsAnimationService => {
+    // Rendu générique de tous les éléments (Maison, bots, joueurs...)
+    this.renderAllAnimationServicesTab.forEach(renderObjectsAnimationService => {
       this.ctx = renderObjectsAnimationService.drawObject(this.ctx);
-    });
-
-    // Rendu de la trame d'animation des Bots
-    this.renderBotsAnimationServicesTab.forEach(renderBotsAnimationService => {
-      this.ctx = renderBotsAnimationService.drawObject(this.ctx);
-    });
-
-    // Rendu de la trame d'animation des Joueurs
-    this.robotPlayersRenderAnimationServiceTab.forEach(robotPlayersRenderAnimationService => {
-      this.ctx = robotPlayersRenderAnimationService.drawObject(this.ctx, false);
     });
   }
 

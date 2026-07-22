@@ -21,8 +21,8 @@ export class RobotAspiromanRenderAnimationService extends RenderAnimationService
   protected readonly aspiromanSignals: Map<string, Signal<AspiromanModel>>
     = this.robotAspiromanDataService.robotSignals;
 
-  public override drawObject(ctx: CanvasRenderingContext2D, mustMove?: boolean): CanvasRenderingContext2D {
-//     console.log("RobotAspiromanRenderAnimationService - drawObject()");
+  public override drawObject(ctx: CanvasRenderingContext2D): CanvasRenderingContext2D {
+    //     console.log("RobotAspiromanRenderAnimationService - drawObject()");
 
     this.ctx = ctx;
 
@@ -39,26 +39,15 @@ export class RobotAspiromanRenderAnimationService extends RenderAnimationService
       if (!animationPlayerProgSignal) continue;
       const animationPlayerProgress = animationPlayerProgSignal();
 
-      if (mustMove === true) {
-        // Ancienne branche joueur — conservée si jamais mustMove=true est encore utilisé
-        const pixelPosition: PixelPosition = this.robotAspiromanDataService
-          .updateCurrentCoordinates(robotName, animationPlayerProgress, mustMove);
-        x = pixelPosition.x + (this.CELL_SIZE - robot.robotWidth) / 2;
-        y = pixelPosition.y + (this.CELL_SIZE - robot.robotWidth) / 2;
+      const progress: number = animationPlayerProgress;
 
-      } else {
-        // ✅ CORRECTION : interpolation entre startCoordinate et targetCoordinate
-        // selon playerAnimationProgress (0 → 1), mis à jour par la boucle joueur.
-        const progress: number = animationPlayerProgress;
+      const interpX = robot.startCoordinate.x + (robot.targetCoordinate.x - robot.startCoordinate.x) * progress;
+      const interpY = robot.startCoordinate.y + (robot.targetCoordinate.y - robot.startCoordinate.y) * progress;
 
-        const interpX = robot.startCoordinate.x + (robot.targetCoordinate.x - robot.startCoordinate.x) * progress;
-        const interpY = robot.startCoordinate.y + (robot.targetCoordinate.y - robot.startCoordinate.y) * progress;
+      x = interpX + (this.CELL_SIZE - robot.robotWidth) / 2;
+      y = interpY + (this.CELL_SIZE - robot.robotWidth) / 2;
 
-        x = interpX + (this.CELL_SIZE - robot.robotWidth) / 2;
-        y = interpY + (this.CELL_SIZE - robot.robotWidth) / 2;
-      }
-
-      const robotImage: HTMLImageElement | undefined = this.getRobotCtxFrame(robot, mustMove);
+      const robotImage: HTMLImageElement | undefined = this.getRobotCtxFrame(robot);
       if (!robotImage) {
         console.warn('Image robot non chargée');
         this.ctx.restore();
@@ -78,7 +67,7 @@ export class RobotAspiromanRenderAnimationService extends RenderAnimationService
    * @param robot
    * @returns
    */
-  protected override getRobotCtxFrame(robot: AspiromanModel, mustMove?: boolean): HTMLImageElement | undefined {
+  protected override getRobotCtxFrame(robot: AspiromanModel): HTMLImageElement | undefined {
     console.log("RobotAspiromanRenderAnimationService - getRobotCtxFrame()");
 
     if (robot.robotType !== "player") return;

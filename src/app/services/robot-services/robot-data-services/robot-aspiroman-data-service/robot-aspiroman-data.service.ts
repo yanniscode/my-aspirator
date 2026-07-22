@@ -147,7 +147,7 @@ export class RobotAspiromanDataService extends RobotDataService<AspiromanModel> 
    * @param progress
    * @returns
    */
-  public override updateCurrentCoordinates(name: string, progress: number, mustMove?: boolean): PixelPosition {
+  public override updateCurrentCoordinates(name: string, progress: number): PixelPosition {
     console.log("RobotDataService - updateCurrentCoordinates()");
 
     let aspiromanSignal = this.robotSignals.get(name) as Signal<AspiromanModel | undefined>;
@@ -160,28 +160,22 @@ export class RobotAspiromanDataService extends RobotDataService<AspiromanModel> 
     // calcul de la nouvelle position en pixels du robot en fonction de son index (numéro de case dans le tableau représentant l'espace en 2D - la maison)
     const x = this.calculatePixelCoordinates(robot.position).x;
     const y = this.calculatePixelCoordinates(robot.position).y;
+
     if (!robot.isRobotStarted) return new PixelPosition(x, y);
+
     let newXCoordinate;
     let newYCoordinate;
 
     const startCoordinate = { ...robot.startCoordinate };
     const targetCoordinate = { ...robot.targetCoordinate };
-    // TODO: revoir: bidouille
-    if (mustMove === false) {
-      this.moveRobotCoordinates(name, robot.position, robot.position);
-      // TODO: important: targetcoordinate
-      newXCoordinate = startCoordinate.x;
-      newYCoordinate = startCoordinate.y;
-    }
-    else {
-      this.moveRobotCoordinates(name, robot.lastPosition, robot.position);
 
-      // const progress = this. animationProgress();
-      // Interpolation linéaire (calcul de valeurs intermédiaires) entre startCoordinate et targetCoordinate
-      newXCoordinate = startCoordinate.x + (targetCoordinate.x - startCoordinate.x) * progress;
-      newYCoordinate = startCoordinate.y + (targetCoordinate.y - startCoordinate.y) * progress;
-      console.log("new Coordinate = " + newXCoordinate + " - " + newYCoordinate);
-    }
+    this.moveRobotCoordinates(name, robot.position, robot.position);
+
+    // Interpolation linéaire (calcul de valeurs intermédiaires) entre startCoordinate et targetCoordinate
+    newXCoordinate = startCoordinate.x + (targetCoordinate.x - startCoordinate.x) * progress;
+    newYCoordinate = startCoordinate.y + (targetCoordinate.y - startCoordinate.y) * progress;
+    console.log("new Coordinate = " + newXCoordinate + " - " + newYCoordinate);
+
     // Attention: inversion nécessaire des coordonnées pour l'affichage: col = x, row = y
     return new PixelPosition(newXCoordinate, newYCoordinate);
   }
