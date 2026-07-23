@@ -41,7 +41,8 @@ export class AnimationFactoryService {
   // ─── Configuration ──────────────────────────────────────────────────────────
 
   /** Durée d'un déplacement complet en ms */
-  protected readonly STEP_DURATION = 600;
+  protected readonly BOTS_STEP_DURATION = 600;
+  protected readonly PLAYERS_STEP_DURATION = 600;
 
   // État du jeu (start / pause)
   private isGameStarted = false;
@@ -61,7 +62,7 @@ export class AnimationFactoryService {
   // ─── État de la boucle Joueur (modèle uniquement, pas de rendu) ────────────────────
   //
   // La boucle joueur NE DESSINE PAS. Elle met uniquement à jour
-  // animationPlayerProgress (0 → 1) sur la durée d'un STEP_DURATION.
+  // animationPlayerProgress (0 → 1) sur la durée d'un PLAYERS_STEP_DURATION.
   // La boucle bots lit ce signal à chaque frame et dessine le joueur.
   // Cela garantit qu'il n'est dessiné qu'une seule fois par frame,
   // quelle que soit l'activité de la boucle joueur.
@@ -130,7 +131,8 @@ export class AnimationFactoryService {
   public onStart(): void {
     console.log("GameComponent - onStart()");
     this.isGameStarted = true;
-    this.startAllAnimation(this.ctx);
+    // on démarre les bots à l'animation coordonnée (IAs)
+    this.startBotsAnimation(this.ctx);
   }
 
   /**
@@ -151,8 +153,8 @@ export class AnimationFactoryService {
    * @param ctx
    * @returns ctx
    */
-  public startAllAnimation(ctx: CanvasRenderingContext2D): CanvasRenderingContext2D {
-    console.log('AnimationFactoryService - startAnimation()');
+  public startBotsAnimation(ctx: CanvasRenderingContext2D): CanvasRenderingContext2D {
+    console.log('AnimationFactoryService - startBotsAnimation()');
     this.ctx = ctx;
 
     if (this.robotSignals.size <= 0) return this.ctx;
@@ -166,14 +168,14 @@ export class AnimationFactoryService {
 
     const animate = (currentTime: number) => {
       const deltaTime = currentTime - this.lastBotsStepTime;
-      const sequenceEnded = deltaTime >= this.STEP_DURATION;
+      const sequenceEnded = deltaTime >= this.BOTS_STEP_DURATION;
 
       // Pause demandée depuis l'UI : on attend la fin du step en cours
       if (!this.areBotsRunning && sequenceEnded) {
         console.log('AnimationFactoryService - bots : pause, fin de step');
         this.stopBotsAnimation();
 
-        this.botsProgress = deltaTime / this.STEP_DURATION;
+        this.botsProgress = deltaTime / this.BOTS_STEP_DURATION;
         return;
       }
 
@@ -188,7 +190,7 @@ export class AnimationFactoryService {
         this.botsProgress = 0;
         this.calculateAndUpdateBots();
       } else {
-        this.botsProgress = deltaTime / this.STEP_DURATION;
+        this.botsProgress = deltaTime / this.BOTS_STEP_DURATION;
         this.robotDataFactoryService.animationBotsProgSignal.set(this.botsProgress);
       }
 
@@ -230,7 +232,7 @@ export class AnimationFactoryService {
    * Déclenche un déplacement du robot joueur.
    *
    * Cette boucle met uniquement à jour animationPlayerProgress (0 → 1)
-   * pendant STEP_DURATION (ms), puis s'arrête.
+   * pendant PLAYERS_STEP_DURATION (ms), puis s'arrête.
    * C'est la boucle bots qui lit cette valeur et dessine le joueur.
    * Il ne peut donc jamais être rendu deux fois par frame.
    */
@@ -275,7 +277,7 @@ export class AnimationFactoryService {
         deltaTime = currentTime - lastPlayerStepTimeSignals();
       }
 
-      if (deltaTime >= this.STEP_DURATION) {
+      if (deltaTime >= this.PLAYERS_STEP_DURATION) {
         // Step terminé : on fixe la progression à 1 (position finale exacte)
 
         this.robotDataFactoryService.animationPlayerProgSignals.set(playerName, signal(1));
@@ -290,7 +292,7 @@ export class AnimationFactoryService {
       }
 
       // Met à jour la progression (0 → 1)
-      const progress = deltaTime / this.STEP_DURATION;
+      const progress = deltaTime / this.PLAYERS_STEP_DURATION;
       this.robotDataFactoryService.animationPlayerProgSignals.set(playerName, signal(progress));
 
       // Si la boucle bots est inactive (pas de robots IA), on dessine le joueur nous-même,
