@@ -200,9 +200,7 @@ export class AnimationFactoryService {
       // 3. Le joueur — TOUJOURS dessiné ici, jamais ailleurs.
 
       // Rendu générique de tous les éléments (Maison, bots, joueurs...)
-      this.renderAllAnimationServicesTab.forEach(renderObjectsAnimationService => {
-        this.ctx = renderObjectsAnimationService.drawObject(this.ctx);
-      });
+      this.renderAnimation(ctx);
 
       this.botsAnimationFrameId = requestAnimationFrame(animate);
     };
@@ -285,7 +283,7 @@ export class AnimationFactoryService {
         // Si la boucle bots est active, elle dessine cette dernière frame.
         // Sinon on la dessine ici avant de s'arrêter.
         if (!this.areBotsRunning) {
-          this.drawPlayerFrame();
+          this.renderAnimation(ctx);
         }
         this.stopPlayerAnimation(playerName);
         return;
@@ -298,7 +296,7 @@ export class AnimationFactoryService {
       // Si la boucle bots est inactive (pas de robots IA), on dessine le joueur nous-même,
       // sinon la boucle bots s'en charge.
       if (!this.areBotsRunning) {
-        this.drawPlayerFrame();
+        this.renderAnimation(ctx);
       }
 
       const playerAnimationFrameId = this.playerAnimationFrameId.get(playerName);
@@ -318,7 +316,7 @@ export class AnimationFactoryService {
   // Rendu complet (bots + joueur) — appelable depuis l'extérieur si besoin
   // ────────────────────────────────────────────────────────────────────────────
 
-  public renderAnimation(ctx: CanvasRenderingContext2D): CanvasRenderingContext2D {
+  public renderAnimation(ctx: CanvasRenderingContext2D): void {
     this.ctx = ctx;
     this.ctx.clearRect(0, 0, this.WIDTH, this.HEIGHT);
 
@@ -326,8 +324,6 @@ export class AnimationFactoryService {
     this.renderAllAnimationServicesTab.forEach(renderObjectsAnimationService => {
       this.ctx = renderObjectsAnimationService.drawObject(this.ctx);
     });
-
-    return this.ctx;
   }
 
   // ────────────────────────────────────────────────────────────────────────────
@@ -357,15 +353,6 @@ export class AnimationFactoryService {
       if (robotDataFactoryService.serviceName === 'RobotAspiratorDataService') {
         robotDataFactoryService.updateRobotsVisitedCells();
       }
-    });
-  }
-
-  private drawPlayerFrame(): void {
-    this.ctx.clearRect(0, 0, this.WIDTH, this.HEIGHT);
-
-    // Rendu générique de tous les éléments (Maison, bots, joueurs...)
-    this.renderAllAnimationServicesTab.forEach(renderObjectsAnimationService => {
-      this.ctx = renderObjectsAnimationService.drawObject(this.ctx);
     });
   }
 
