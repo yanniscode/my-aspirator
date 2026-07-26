@@ -1,5 +1,4 @@
 import { Component, ChangeDetectionStrategy, inject, ViewChild, ElementRef, AfterViewInit, HostListener, Signal, OnDestroy } from '@angular/core';
-import { TableModule } from "primeng/table";
 import { LoggerService } from '../../services/main-services/logger-service/logger.service';
 import { FormsModule } from '@angular/forms';
 import { AnimationFactoryService } from '../../services/main-services/graphics-services/animation-factory-service/animation-factory.service';
@@ -12,7 +11,7 @@ import { MaisonModel } from '../../classes/models/maison-model/maison-model';
 @Component({
   selector: 'app-game',
   standalone: true,
-  imports: [FormsModule, TableModule],
+  imports: [FormsModule],
   templateUrl: './game.component.html',
   styleUrl: './game.component.css',
   changeDetection: ChangeDetectionStrategy.Eager,

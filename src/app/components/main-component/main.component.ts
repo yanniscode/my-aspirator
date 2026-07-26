@@ -1,6 +1,5 @@
 import { Component, ViewChild, inject, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { TableModule } from 'primeng/table';
 import { GameComponent } from '../game-component/game.component';
 import { MessagesComponent } from '../messages-component/messages.component';
 import { LoggerService } from '../../services/main-services/logger-service/logger.service';
@@ -10,7 +9,7 @@ import { RobotAspiratorWithNextPositionsTabService } from '../../services/robot-
   selector: 'app-main',
   standalone: true,
   imports: [
-    GameComponent, MessagesComponent, FormsModule, TableModule,
+    GameComponent, MessagesComponent, FormsModule,
   ],
   templateUrl: './main.component.html',
   styleUrl: './main.component.css',
