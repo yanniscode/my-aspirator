@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 
 import { LoggerService } from '../../services/main-services/logger-service/logger.service';
 
@@ -6,6 +6,7 @@ import { LoggerService } from '../../services/main-services/logger-service/logge
   selector: 'app-messages',
   imports: [],
   templateUrl: './messages.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./messages.component.css']
 })
 export class MessagesComponent {

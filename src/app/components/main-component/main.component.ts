@@ -14,7 +14,7 @@ import { RobotAspiratorWithNextPositionsTabService } from '../../services/robot-
   ],
   templateUrl: './main.component.html',
   styleUrl: './main.component.css',
-  changeDetection: ChangeDetectionStrategy.Default, // ATTENTION: ChangeDetectionStrategy.OnPush pourrait poser problème lors de l'affichage de la maison en intro
+  changeDetection: ChangeDetectionStrategy.Eager, // ATTENTION: ChangeDetectionStrategy.OnPush pourrait poser problème lors de l'affichage de la maison en intro
   providers: [RobotAspiratorWithNextPositionsTabService]
 })
 export class MainComponent {

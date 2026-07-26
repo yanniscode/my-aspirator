@@ -15,7 +15,7 @@ import { MaisonModel } from '../../classes/models/maison-model/maison-model';
   imports: [FormsModule, TableModule],
   templateUrl: './game.component.html',
   styleUrl: './game.component.css',
-  changeDetection: ChangeDetectionStrategy.Default,
+  changeDetection: ChangeDetectionStrategy.Eager,
   // TODO: remplacer animation d'intro
   // animations: [
   // TODO: supprimer car obsolète
