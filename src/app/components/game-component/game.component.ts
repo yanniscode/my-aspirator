@@ -123,10 +123,12 @@ export class GameComponent implements AfterViewInit, OnDestroy {
     // mais les appels suivants dans le même tick synchrone sont ignorés ou écrasés avant que le navigateur n'ait eu le temps
     // de les peindre à l'écran.
     // requestAnimationFrame garantit que drawInitialFrame() s'exécute au début du prochain cycle de peinture, quand Firefox est prêt.
-    // (l'appel doit être doublé !)
+    // (l'appel doit être doublé > voire triplé !)
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        this.animationFactoryService.renderAnimation(this.ctx);
+        requestAnimationFrame(() => {
+          this.animationFactoryService.renderAnimation(this.ctx);
+        });
       });
     });
   }
