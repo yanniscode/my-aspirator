@@ -8,6 +8,7 @@ export class MaisonModel extends AbstractModel {
     public largeurMaison;
     public hauteurMaison;
     public obstacles: GridPosition[];
+    public nombreCellulesANettoyer: number;
     public isNettoyageComplete;
 
     constructor() {
@@ -24,6 +25,7 @@ export class MaisonModel extends AbstractModel {
         this.obstacles = [
             new GridPosition(),
         ];
+        this.nombreCellulesANettoyer = 0;
         this.isNettoyageComplete = false;
     }
 
@@ -35,6 +37,7 @@ export class MaisonModel extends AbstractModel {
         console.debug("maisonModel.largeurMaison = " + maisonModel.largeurMaison);
         console.debug("maisonModel.hauteurMaison = " + maisonModel.hauteurMaison);
         console.debug("maisonModel.obstacles = " + maisonModel.obstacles);
+        console.debug("maisonModel.nombreCellulesANettoyer = " + maisonModel.nombreCellulesANettoyer);
         console.debug("maisonModel.isNettoyageComplete = " + maisonModel.isNettoyageComplete);
         console.debug("*******************");
     }

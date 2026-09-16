@@ -15,9 +15,27 @@
   </form>
 </div>
 
-<div class="infos-container">
-  <h2>Main Test Signaux avec {{ robotNames().length }} robots</h2>
+<div>
+  Cells:
+  <ul>
+    @for (cell of cellStore.cells(); track cell.id) {
+    <li>
+      @if (cell.isVisited) {
+      <span>{{ cell.cellName }}</span>
+      } @else {
+      <s>{{ cell.cellName }}</s>
+      }
+      <button (click)="cellStore.changeStatus(cell.id, cell.isVisited)">Change Status</button>
+    </li>
+    }
+  </ul>
+</div>
+<input type="text" placeholder="Test ajout cells (store)" #title />
+<button (click)="cellStore.addCell(title.value)">Add</button>
 
+<div class=" infos-container">
+  <h2>Main Test Signaux avec {{ robotNames().length }} robots</h2>
+  <p>Nombre total de cases à nettoyer : {{ maisonSignal().nombreCellulesANettoyer}}</p>
   <!-- Note: accès uniquement aux infos génériques des robots (ex: pas le niveau de batterie, spécifique au robot de type spirateur et robot Joueur dans notre cas) -->
   <div class="robot-liste-infos">
     @for (name of robotNames(); track name) {

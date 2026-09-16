@@ -7,10 +7,13 @@ import { RobotDataFactoryService } from '../../services/robot-services/robot-dat
 import { RobotModel } from '../../classes/models/robot-model/robot-model';
 import { firstValueFrom, Subject, takeUntil } from 'rxjs';
 import { MaisonModel } from '../../classes/models/maison-model/maison-model';
+import { CellStore } from '../../maison.signal-store';
+
 
 @Component({
   selector: 'app-game',
   standalone: true,
+  providers: [CellStore],
   imports: [FormsModule],
   templateUrl: './game.component.html',
   styleUrl: './game.component.css',
@@ -35,13 +38,15 @@ export class GameComponent implements AfterViewInit, OnDestroy {
   public robotDataFactoryService = inject(RobotDataFactoryService);
   private animationFactoryService = inject(AnimationFactoryService);
 
+  public readonly cellStore = inject(CellStore);
+
   private loggerService = inject(LoggerService);
 
   protected ctx!: CanvasRenderingContext2D;
 
   private readonly CELL_SIZE = 50;        // td-maison: width / height: 50px
 
-  private get maisonSignal(): MaisonModel {
+  public maisonSignal(): MaisonModel {
     return this.maisonDataFactoryService.maisonSignal();
   }
 
@@ -109,8 +114,8 @@ export class GameComponent implements AfterViewInit, OnDestroy {
 
     // adaptation de la taille du canvas à la maison (représente tout l'environnement)
     const canvas = this.gameCanvas.nativeElement;
-    canvas.width = this.maisonSignal.maison[0].length * this.CELL_SIZE;
-    canvas.height = this.maisonSignal.maison.length * this.CELL_SIZE;
+    canvas.width = this.maisonSignal().maison[0].length * this.CELL_SIZE;
+    canvas.height = this.maisonSignal().maison.length * this.CELL_SIZE;
 
     // Fix Firefox
     // on doit assigner la valeur du ctx pour le Canvas

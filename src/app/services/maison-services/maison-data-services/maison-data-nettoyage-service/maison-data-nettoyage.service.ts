@@ -1,4 +1,4 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, WritableSignal } from '@angular/core';
 import { MaisonDataService as MaisonDataService } from '../maison-data.service';
 import { CellElement } from '../../../../classes/models/cellElement';
 import { GridPosition } from '../../../../classes/models/grid-position';
@@ -49,6 +49,7 @@ export class MaisonDataNettoyageService extends MaisonDataService<MaisonModel> {
       largeurMaison: maisonModel.largeurMaison,
       hauteurMaison: maisonModel.hauteurMaison,
       obstacles: maisonModel.obstacles,
+      nombreCellulesANettoyer: (maisonModel.largeurMaison * maisonModel.hauteurMaison) - maisonModel.obstacles.length,
       isNettoyageComplete: maisonModel.isNettoyageComplete
     });
   }
@@ -101,6 +102,7 @@ export class MaisonDataNettoyageService extends MaisonDataService<MaisonModel> {
       reserved: true
     };
     this.updateMaisonCell(newRobotBaseCell);
+    this.updateCleanedCellsNumber();
   }
 
   /**
@@ -151,11 +153,9 @@ export class MaisonDataNettoyageService extends MaisonDataService<MaisonModel> {
     if (!maisonModel) return;
 
     // Copie par référence, ici, pas par valeur:
-    const lastVisitedCell: CellElement = !maisonModel?.maison[lastPosition.row]
-      ? new CellElement
-      : maisonModel?.maison[lastPosition.row][lastPosition.col] ? { ...maisonModel?.maison[lastPosition.row][lastPosition.col] } : new CellElement();
-
-    if (!lastVisitedCell) return;
+    const lastVisitedCell: CellElement = this.getMaisonCellByPosition(lastPosition);
+    // Si la cellule est absente ou déjà visitée, on sort de la fonction
+    if (!lastVisitedCell || lastVisitedCell.visited) return;
 
     // Ici, l'update du  signal est automatique car on a une copie par référence
 
@@ -164,6 +164,7 @@ export class MaisonDataNettoyageService extends MaisonDataService<MaisonModel> {
       lastVisitedCell.visited = visitedStatus;
       if (lastVisitedCell.visited) {
         lastVisitedCell.type = '_';
+        this.updateCleanedCellsNumber();
       }
     }
 
@@ -187,6 +188,25 @@ export class MaisonDataNettoyageService extends MaisonDataService<MaisonModel> {
       row.every(cell =>
         cell.type === 'X' || cell.type === 'B' || cell.visited
       )
+    );
+  }
+
+  /**
+   * Définit une case de la maison comme nettoyée
+   */
+  private updateCleanedCellsNumber(): void {
+    console.log("MaisonDataNettoyageService - updateCleanedCellsNumber()");
+
+    const maisonModel: WritableSignal<MaisonModel> | undefined = this._maisonSignal;
+    if (!maisonModel) return;
+
+    const nombreCellulesANettoyer = maisonModel()?.nombreCellulesANettoyer;
+    console.log("nombreCellulesANettoyer (MAJ):" + nombreCellulesANettoyer);
+
+    maisonModel.update(current => ({
+      ...current,
+      nombreCellulesANettoyer: current.nombreCellulesANettoyer - 1,
+    })
     );
   }
 

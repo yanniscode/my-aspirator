@@ -19,7 +19,7 @@ export abstract class MaisonDataService<T extends MaisonModel = MaisonModel> {
   // Instanciation de la maison:
   // Privé et mutable — seul le service peut écrire dedans
   // readonly sur la déclaration TypeScript signifie que la référence au signal ne peut pas être réassignée — pas que le signal lui-même est immuable
-  protected readonly _maisonSignal: WritableSignal<MaisonModel> = signal<MaisonModel>(new MaisonModel());
+  public readonly _maisonSignal: WritableSignal<MaisonModel> = signal<MaisonModel>(new MaisonModel());
   // Public et lecture seule — les composants peuvent seulement lire
   public readonly maisonSignal: Signal<MaisonModel> = this._maisonSignal.asReadonly();
 
@@ -60,6 +60,21 @@ export abstract class MaisonDataService<T extends MaisonModel = MaisonModel> {
     hauteur: number,
     obstacles: GridPosition[]
   ): CellElement[][];
+
+  /**
+   * renvoie une cellule de la maison par sa position
+   *
+   * @param position
+   * @returns
+   */
+  protected getMaisonCellByPosition(position: GridPosition): CellElement {
+    console.log("MaisonDataService - getMaisonCellByPosition()");
+    const maison: CellElement[][] = this.maisonSignal()?.maison;
+
+    return !maison[position.row]
+      ? new CellElement
+      : maison[position.row][position.col] ? { ...maison[position.row][position.col] } : new CellElement();
+  }
 
   /**
    * Mise à jour effective d'une case (maison de type générique)
