@@ -1,13 +1,14 @@
-import { inject, Injectable, WritableSignal } from '@angular/core';
+import { computed, inject, Injectable, Signal, WritableSignal } from '@angular/core';
 import { MaisonDataService as MaisonDataService } from '../maison-data.service';
 import { CellElement } from '../../../../classes/models/cellElement';
 import { GridPosition } from '../../../../classes/models/grid-position';
 import { LoggerService } from '../../../main-services/logger-service/logger.service';
 import { MaisonModel } from '../../../../classes/models/maison-model/maison-model';
 import { Observable } from 'rxjs';
+import { CellSelectors } from '../../../../data-access/maison.selector';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class MaisonDataNettoyageService extends MaisonDataService<MaisonModel> {
 
@@ -43,13 +44,17 @@ export class MaisonDataNettoyageService extends MaisonDataService<MaisonModel> {
   protected override initMaison(maisonModel: MaisonModel): void {
     console.log("MaisonDataNettoyageService - initMaison()");
 
+    // construit le tableau de cellules constituant la maison:
+    this.buildMaison(maisonModel.largeurMaison, maisonModel.hauteurMaison, maisonModel.obstacles);
+    const maisonCellsTab = this.getMaisonCells(maisonModel.largeurMaison, maisonModel.hauteurMaison);
+
     this._maisonSignal.set({
       ...new MaisonModel(),
-      maison: this.buildMaison(maisonModel.largeurMaison, maisonModel.hauteurMaison, maisonModel.obstacles),
+      maison: maisonCellsTab,
+      // maison: this.buildMaison(maisonModel.largeurMaison, maisonModel.hauteurMaison, maisonModel.obstacles),
       largeurMaison: maisonModel.largeurMaison,
       hauteurMaison: maisonModel.hauteurMaison,
       obstacles: maisonModel.obstacles,
-      nombreCellulesANettoyer: (maisonModel.largeurMaison * maisonModel.hauteurMaison) - maisonModel.obstacles.length,
       isNettoyageComplete: maisonModel.isNettoyageComplete
     });
   }
@@ -66,16 +71,19 @@ export class MaisonDataNettoyageService extends MaisonDataService<MaisonModel> {
     largeur: number,
     hauteur: number,
     obstacles: GridPosition[]
-  ): CellElement[][] {
+  ): void {
     console.log("MaisonDataNettoyageService - buildMaison()");
 
-    return Array.from({ length: hauteur }, (_, row) =>
+    Array.from({ length: hauteur }, (_, row) =>
+      // return Array.from({ length: hauteur }, (_, row) =>
       Array.from({ length: largeur }, (_, col) => {
         const cell = new CellElement();
         const isObstacle = obstacles.some(o => o.row === row && o.col === col);
-        cell.type = isObstacle ? 'X' : 'O';
+        cell.cellType = isObstacle ? 'X' : 'O';
         cell.position = new GridPosition(row, col);
-        return cell;
+
+        this.cellStore.addCell(cell.cellType, cell.position);
+        // return cell;
       })
     );
   }
@@ -95,14 +103,23 @@ export class MaisonDataNettoyageService extends MaisonDataService<MaisonModel> {
     console.log("base position:", robotBasePosition);
 
     // On ajoute la base de chaque robot:
-    const newRobotBaseCell: CellElement = {
-      position: { ...robotBasePosition },
-      type: 'B',
-      visited: false,
-      reserved: true
-    };
-    this.updateMaisonCell(newRobotBaseCell);
-    this.updateCleanedCellsNumber();
+
+    // TODO: remplacer updateMaisonCell() par:
+    // ✅ computed : réactif, recalculé seulement si cells ou targetPosition changent
+    const cellAtTarget: Signal<CellElement | undefined> = computed(() => {
+      const items = this.cellStore.cells();
+      const pos = robotBasePosition;
+      return items.find(cell =>
+        cell.position.col === pos.col &&
+        cell.position.row === pos.row
+      );
+    })
+    if (!cellAtTarget()) return;
+
+    this.cellStore.updateCellType(cellAtTarget()!.cellId, "B");
+    this.cellStore.updateCellByPosition(cellAtTarget()!.cellId, robotBasePosition);
+
+    this.updateMaisonCell(cellAtTarget()!);
   }
 
   /**
@@ -128,7 +145,7 @@ export class MaisonDataNettoyageService extends MaisonDataService<MaisonModel> {
     // Ici, l'update du  signal est automatique car on a une copie par référence
 
     // On ne veut pas que le status de la base soit modifiée
-    if (reservedPosition.type !== 'B') {
+    if (reservedPosition.cellType !== 'B') {
       // On passe la case au status réservé ou non
       reservedPosition.reserved = reservedStatus;
 
@@ -136,7 +153,8 @@ export class MaisonDataNettoyageService extends MaisonDataService<MaisonModel> {
       // reservedPosition.type = "_";
     }
 
-    this.updateMaisonCell(reservedPosition);
+    this.cellStore.updateCellReserved(reservedPosition.cellId, reservedPosition.reserved);
+    // this.updateMaisonCell(reservedPosition);
   }
 
   /**
@@ -160,14 +178,14 @@ export class MaisonDataNettoyageService extends MaisonDataService<MaisonModel> {
     // Ici, l'update du  signal est automatique car on a une copie par référence
 
     // On ne veut pas que le status de la base soit modifiée
-    if (lastVisitedCell.type !== 'B') {
+    if (lastVisitedCell.cellType !== 'B') {
       lastVisitedCell.visited = visitedStatus;
       if (lastVisitedCell.visited) {
-        lastVisitedCell.type = '_';
-        this.updateCleanedCellsNumber();
+        lastVisitedCell.cellType = '_';
       }
     }
 
+    this.cellStore.updateCellVisited(lastVisitedCell.cellId, lastVisitedCell.visited);
     this.updateMaisonCell(lastVisitedCell);
   }
 
@@ -186,27 +204,8 @@ export class MaisonDataNettoyageService extends MaisonDataService<MaisonModel> {
       // row.every() renvoie true pour un mur, une position de base (on ne veut pas savoir s'ils sont visités) ou une cellule visitée,
       // false pour une position non visitée:
       row.every(cell =>
-        cell.type === 'X' || cell.type === 'B' || cell.visited
+        cell.cellType === 'X' || cell.cellType === 'B' || cell.visited
       )
-    );
-  }
-
-  /**
-   * Définit une case de la maison comme nettoyée
-   */
-  private updateCleanedCellsNumber(): void {
-    console.log("MaisonDataNettoyageService - updateCleanedCellsNumber()");
-
-    const maisonModel: WritableSignal<MaisonModel> | undefined = this._maisonSignal;
-    if (!maisonModel) return;
-
-    const nombreCellulesANettoyer = maisonModel()?.nombreCellulesANettoyer;
-    console.log("nombreCellulesANettoyer (MAJ):" + nombreCellulesANettoyer);
-
-    maisonModel.update(current => ({
-      ...current,
-      nombreCellulesANettoyer: current.nombreCellulesANettoyer - 1,
-    })
     );
   }
 

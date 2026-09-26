@@ -4,6 +4,7 @@ import { AssetMaisonService } from '../asset-maison-service/asset-maison.service
 import { RenderAnimationService } from '../../../main-services/graphics-services/render-animation-service/render-animation.service';
 import { MaisonModel } from '../../../../classes/models/maison-model/maison-model';
 import { RobotAspiratorModel } from '../../../../classes/models/robot-model/robot-aspirator-model/robot-aspirator-model';
+import { CellStore } from '../../../../maison.signal-store';
 
 @Injectable({
   providedIn: 'root',
@@ -12,6 +13,8 @@ export abstract class MaisonRenderAnimationService extends RenderAnimationServic
 
   private maisonDataNettoyageService = inject(MaisonDataNettoyageService);
   private assetMaisonService = inject(AssetMaisonService);
+
+  private cellStore = inject(CellStore);
 
   protected ctx!: CanvasRenderingContext2D;
 
@@ -33,6 +36,7 @@ export abstract class MaisonRenderAnimationService extends RenderAnimationServic
     // récupération des données de la maison à partir de son Signal
     const maisonModel: MaisonModel = this.maisonDataNettoyageService.maisonSignal();
 
+    // TODO: revoir si on utiliser le store car Cell() = tab à 1 dimension, maison la maison: 2 !
     maisonModel.maison.forEach((row, rowIndex) => {
 
       //  tr-maison → background: rgb(0, 140, 133)
@@ -58,7 +62,7 @@ export abstract class MaisonRenderAnimationService extends RenderAnimationServic
         const offsetX = (this.CELL_SIZE - innerSize) / 2;
         const offsetY = (this.CELL_SIZE - innerSize) / 2;
 
-        const img: HTMLImageElement | undefined = this.assetMaisonService.getImageForCell(cell.type);
+        const img: HTMLImageElement | undefined = this.assetMaisonService.getImageForCell(cell.cellType);
         if (img) {
           this.ctx.drawImage(
             img,

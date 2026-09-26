@@ -5,6 +5,7 @@ import { GridPosition } from '../../../classes/models/grid-position';
 import { MaisonModel } from '../../../classes/models/maison-model/maison-model';
 import { Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
+import { CellStore } from '../../../maison.signal-store';
 
 @Injectable({
   providedIn: 'root'
@@ -12,6 +13,8 @@ import { HttpClient } from '@angular/common/http';
 export abstract class MaisonDataService<T extends MaisonModel = MaisonModel> {
 
   protected httpClient = inject(HttpClient);
+
+  protected cellStore = inject(CellStore);
 
   protected url = "http://localhost:4200";
   protected mockMaisonDatasPath = this.url + "";
@@ -48,7 +51,7 @@ export abstract class MaisonDataService<T extends MaisonModel = MaisonModel> {
   protected abstract initMaison(maisonModel: MaisonModel): void;
 
   /**
-   * Construction de la maison (datas)
+   * Construction de la maison (datas) dans le signals store NGXS
    *
    * @param largeur
    * @param hauteur
@@ -59,7 +62,21 @@ export abstract class MaisonDataService<T extends MaisonModel = MaisonModel> {
     largeur: number,
     hauteur: number,
     obstacles: GridPosition[]
-  ): CellElement[][];
+  ): void;
+
+  public getMaisonCells(largeurMaison: number, hauteurMaison: number): CellElement[][] {
+
+    const maisonCellsTab: CellElement[][] = Array.from(
+      { length: hauteurMaison },
+      () => Array.from({ length: largeurMaison }, () => new CellElement())
+    );
+
+    this.cellStore?.cells()?.forEach(cell => {
+      maisonCellsTab[cell.position.row][cell.position.col] = { ...cell };
+    });
+
+    return maisonCellsTab;
+  }
 
   /**
    * renvoie une cellule de la maison par sa position
@@ -84,6 +101,18 @@ export abstract class MaisonDataService<T extends MaisonModel = MaisonModel> {
    */
   protected updateMaisonCell(newCellElement: CellElement): void {
     console.log("MaisonDataService - updateMaisonCell()");
+
+    // Attention: tableau à 1 dimension ici ! (liste des cellules à plat)
+    // const cellsList: CellElement[] | undefined = this.cellStore?.cells();
+    // cellsList?.forEach(cell => {
+    //   if (cell.position.row === newCellElement.position.row
+    //     && cell.position.col === newCellElement.position.col) {
+
+    // TODO: méthode udate cell dans le store + get d'une cell par position
+
+    //     // this.cellStore.updateCell();
+    //   }
+    // })
 
     const maison: CellElement[][] = this.maisonSignal()?.maison;
 

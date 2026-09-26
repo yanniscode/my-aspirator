@@ -1,9 +1,18 @@
-export interface CellModel {
-    id: number;
-    cellName: string;
-    isVisited: boolean;
+import { GridPosition } from "../classes/models/grid-position";
+
+export interface CellElement {
+    cellId: number,
+    position: GridPosition;
+    cellType: 'O' | 'X' | 'B' | '_'; // 'O' = non visitée, 'X' = mur, 'B' = base, '_' = visitée
+    visited: boolean;
+    reserved: boolean;
 }
 
 export interface CellStateModel {
-    items: CellModel[];
+    item: CellElement;
+}
+
+export interface CellsStateModel {
+    items: CellElement[];
+    cellId: number; // ✅ Ajoute cellId à l'état
 }

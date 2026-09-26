@@ -1,43 +1,90 @@
 import { Injectable } from '@angular/core';
 import { Action, State, StateContext } from '@ngxs/store';
-import { CellModel, CellStateModel } from './maison.model';
-import { AddCell, ChangeStatus } from './maison.actions';
+import { CellElement, CellsStateModel } from './maison.model';
+import { AddCell, UpdateCellByPosition, UpdateCellReserved, UpdateCellType, UpdateCellVisited } from './maison.actions';
 
-@State<CellStateModel>({
-    name: 'cell',
+@State<CellsStateModel>({
+    name: 'cells', // Nom du slice dans le store
     defaults: {
         items: [],
+        cellId: 0, // init
     },
 })
 @Injectable()
 export class CellState {
+
     @Action(AddCell)
-    addCell(ctx: StateContext<CellStateModel>, action: AddCell) {
+    addCell(ctx: StateContext<CellsStateModel>, action: AddCell) {
         const state = ctx.getState();
 
-        const newItem: CellModel = {
-            id: Math.floor(Math.random() * 1000),
-            cellName: action.cellName,
-            isVisited: true,
+        const newItem: CellElement = {
+            cellId: state.cellId,
+            position: action.position,
+            cellType: action.cellType,
+            visited: false,
+            reserved: false
         };
 
         ctx.setState({
             ...state,
             items: [...state.items, newItem],
+            cellId: state.cellId + 1, // ✅ Incrémente cellId
         });
     }
 
-    @Action(ChangeStatus)
-    test(ctx: StateContext<CellStateModel>, action: ChangeStatus) {
-        const state = ctx.getState();
+    @Action(UpdateCellType)
+    updateCellType(ctx: StateContext<CellsStateModel>, action: UpdateCellType) {
+        const state: CellsStateModel = ctx.getState();
 
-        const items = state.items.map((item) =>
-            item.id === action.cellId ? { ...item, isVisited: action.status } : item
+        const items: CellElement[] = state.items.map(item =>
+            item.cellId === action.cellId ? { ...item, cellType: action.cellType } : item
         );
 
         ctx.setState({
             ...state,
-            items,
+            items, // ✅ Immutabilité
+        });
+    }
+
+    @Action(UpdateCellVisited)
+    updateCellVisited(ctx: StateContext<CellsStateModel>, action: UpdateCellVisited) {
+        const state: CellsStateModel = ctx.getState();
+
+        const items: CellElement[] = state.items.map(item =>
+            item.cellId === action.cellId ? { ...item, visited: action.visited } : item
+        );
+
+        ctx.setState({
+            ...state,
+            items, // ✅ Immutabilité
+        });
+    }
+
+    @Action(UpdateCellReserved)
+    updateCellReserved(ctx: StateContext<CellsStateModel>, action: UpdateCellReserved) {
+        const state: CellsStateModel = ctx.getState();
+
+        const items: CellElement[] = state.items.map(item =>
+            item.cellId === action.cellId ? { ...item, reserved: action.reserved } : item
+        );
+
+        ctx.setState({
+            ...state,
+            items, // ✅ Immutabilité
+        });
+    }
+
+    @Action(UpdateCellByPosition)
+    updateCellByPosition(ctx: StateContext<CellsStateModel>, action: UpdateCellByPosition) {
+        const state: CellsStateModel = ctx.getState();
+
+        const items: CellElement[] = state.items.map(item =>
+            item.cellId === action.cellId ? { ...item, position: action.position } : item
+        );
+
+        ctx.setState({
+            ...state,
+            items, // ✅ Immutabilité
         });
     }
 }

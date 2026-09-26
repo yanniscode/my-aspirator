@@ -20,7 +20,6 @@
     "@angular/router": "^22.1.6",
     "@ngrx/signals": "^22.0.1",
     "@ngxs/store": "^22.0.0",
-    "ngx-toastr": "^20.0.5",
     "primeicons": "^7.0.0",
     "rxjs": "^7.8.2",
     "rxjs-interop": "^2.0.0",

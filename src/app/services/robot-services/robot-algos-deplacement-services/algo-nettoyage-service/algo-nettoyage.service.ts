@@ -44,7 +44,7 @@ export class AlgoNettoyageService extends AlgoCheminOptimalService {
       const { cellElement: cellElement, distance } = queue.shift()!;
 
       // Si la cellule n'est pas encore visitée et n'est pas un obstacle, la retourner
-      if (!cellElement.visited && cellElement.type !== 'X' && cellElement.type !== 'B') {
+      if (!cellElement.visited && cellElement.cellType !== 'X' && cellElement.cellType !== 'B') {
         return cellElement;
       }
 
@@ -132,7 +132,7 @@ export class AlgoNettoyageService extends AlgoCheminOptimalService {
 
       for (const voisin of voisins) {
         // Ignorer les obstacles
-        if (voisin.type === 'X') continue;
+        if (voisin.cellType === 'X') continue;
 
         const voisinKey = positionKey(voisin.position);
 
