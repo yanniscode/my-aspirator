@@ -1,4 +1,4 @@
-import { CellElement, CellsStateModel } from './maison.model';
+import { CellElement, CellsStateModel } from '../classes/models/maison-model/maison.model';
 import { CellState } from './maison.state';
 import { GridPosition } from '../classes/models/grid-position';
 import { createSelector, Selector } from '@ngxs/store';
@@ -9,6 +9,24 @@ export class CellSelectors {
     @Selector([CellState])
     static items(state: CellsStateModel): CellElement[] {
         return state?.items;
+    }
+
+    // Sélecteur principal : toutes les lignes du tableau de cellules (maison)
+    @Selector([CellState])
+    static rows(state: CellsStateModel): number {
+        return state.rows;
+    }
+
+    // Sélecteur principal : toutes les colonnes du tableau de cellules (maison)
+    @Selector([CellState])
+    static cols(state: CellsStateModel): number {
+        return state.cols;
+    }
+
+    // Sélecteur principal : tous les obstacles du tableau de cellules (maison)
+    @Selector([CellState])
+    static obstacles(state: CellsStateModel): GridPosition[] {
+        return state.obstacles;
     }
 
     // Sélecteur : cellules de type sol ('O' ou '_')

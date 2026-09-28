@@ -8,7 +8,7 @@ export class CellElement {
     reserved;
 
     constructor() {
-        this.cellId = -1;
+        this.cellId = 0;
         this.position = new GridPosition();
         this.cellType = 'O';
         this.visited = false;

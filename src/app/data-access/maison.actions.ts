@@ -1,5 +1,9 @@
 import { GridPosition } from "../classes/models/grid-position";
-import { CellElement } from "./maison.model";
+
+export class InitMaison {
+    static readonly type = '[Cells] Init Maison';
+    constructor(public rows: number, public cols: number, public obstacles: GridPosition[]) { }
+}
 
 export class AddCell {
     static readonly type = '[Cell] Add cell';
@@ -9,14 +13,14 @@ export class AddCell {
     ) { }
 }
 
-export class GetCellByPosition {
+export class GetCellAtPosition {
     static readonly type = '[Cell] Get cell by position';
     constructor(
         public readonly position: GridPosition,
     ) { }
 }
 
-export class UpdateCellByPosition {
+export class UpdateCellByItsPosition {
     static readonly type = '[Cell] Update cell by position';
     constructor(
         public readonly cellId: number,

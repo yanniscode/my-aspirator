@@ -1,11 +1,12 @@
-import { Injectable } from "@angular/core";
+import { inject, Injectable } from "@angular/core";
 import { Subscription, Observable, Subscriber, Subject, takeUntil, tap, finalize, timer, map, takeWhile } from "rxjs";
 import { RobotServiceDtoOut } from "../../../../classes/dtos/robot-service-dto-out";
 import { GridPosition } from "../../../../classes/models/grid-position";
 import { RobotAspiratorModel } from "../../../../classes/models/robot-model/robot-aspirator-model/robot-aspirator-model";
 import { LoggerService } from "../../../main-services/logger-service/logger.service";
 import { AlgoCheminOptimalService } from "../../../main-services/algos-deplacement-services/algo-chemin-optimal.service";
-import { MaisonModel } from "../../../../classes/models/maison-model/maison-model";
+import { CellStore } from "../../../../maison.signal-store";
+import { CellElement } from "../../../../classes/models/cell-element";
 
 @Injectable() // Pas de providedIn: 'root' car on veut une instance du service par composant appelant RobotAspiratorComponent, pas un singleton
 export class RobotAspiratorWithNextPositionsTabService {
@@ -13,14 +14,16 @@ export class RobotAspiratorWithNextPositionsTabService {
   // Nécessaire pour l'animation (écoute d'observable avec rxjs)
   private subscription?: Subscription;
 
-  private maisonModel: MaisonModel;
+  private maisonModel: CellElement[][];
   private robot: RobotAspiratorModel;
   private robotServiceDtoOut: RobotServiceDtoOut;
+
+  private cellStore = inject(CellStore);
 
   constructor(private loggerService: LoggerService, private algoCheminOptimalService: AlgoCheminOptimalService) {
     console.log("RobotAspiratorWithNextPositionsTabService - constructor()");
 
-    this.maisonModel = new MaisonModel();
+    this.maisonModel = this.cellStore.maisonGrid();
     this.robot = new RobotAspiratorModel();
     this.robotServiceDtoOut = new RobotServiceDtoOut();
   }
@@ -36,10 +39,10 @@ export class RobotAspiratorWithNextPositionsTabService {
   }
 
   // Fonction principale pour nettoyer la maison
-  public onStartNettoyer(maisonModelInput: MaisonModel, robotInput: RobotAspiratorModel): Observable<RobotServiceDtoOut> {
+  public onStartNettoyer(robotInput: RobotAspiratorModel): Observable<RobotServiceDtoOut> {
     console.log("RobotAspiratorWithNextPositionsTabService - onStartNettoyer()");
 
-    this.maisonModel = { ...maisonModelInput };
+    this.maisonModel = this.cellStore.maisonGrid();
 
     console.log("robot datas:");
     RobotAspiratorModel.logger(robotInput);
@@ -224,15 +227,13 @@ export class RobotAspiratorWithNextPositionsTabService {
   ): Observable<RobotServiceDtoOut> {
     console.log("RobotAspiratorWithNextPositionsTabService - nettoyerAvecControle()");
 
-    this.maisonModel.isNettoyageComplete = false;
-
     // Calculer le chemin initial
     let cheminRestant: GridPosition[] = [];
 
     // Empêcher la recherche d'un nouveau chemin si le robot doit rentrer à la base par manque d'énergie
     if (!nextPathStopSearchFlag) {
       cheminRestant = this.algoCheminOptimalService.calculerCheminSuivant(
-        this.robot.isRobotReturningToBase, this.maisonModel.maison, this.robot.basePosition, this.robot.position
+        this.robot.isRobotReturningToBase, this.cellStore.maisonGrid(), this.robot.basePosition, this.robot.position
       );
 
       console.log("cheminRestant :");
@@ -240,10 +241,6 @@ export class RobotAspiratorWithNextPositionsTabService {
       console.log(cheminRestant[0]);
       console.log(cheminRestant[0].col);
       console.log(cheminRestant[0].row);
-
-      if (cheminRestant.length === 0) {
-        this.maisonModel.isNettoyageComplete = true;
-      }
     }
 
     // Utiliser un timer régulier pour l'animation
@@ -303,8 +300,8 @@ export class RobotAspiratorWithNextPositionsTabService {
       return this.robotServiceDtoOut;
     }
     // Sinon si la maison est nettoyée
-    else if (this.maisonModel.isNettoyageComplete) {
-      this.robotServiceDtoOut.isNettoyageComplete = this.maisonModel.isNettoyageComplete
+    else if (this.cellStore.unVisitedCellsCount() === 0) {
+      this.robotServiceDtoOut.isNettoyageComplete = true;
       RobotServiceDtoOut.logger(this.robotServiceDtoOut);
       this.robotServiceDtoOut.isRobotReturningToBase = true;
       return this.robotServiceDtoOut;
@@ -312,7 +309,7 @@ export class RobotAspiratorWithNextPositionsTabService {
     // Sinon si le chemin actuel est terminé, chercher la prochaine destination
     // (cette action est valable seulement si ce n'est pas un retour à la base)
     else if (cheminRestant.length === 0 && this.robot.isRobotReturningToBase === false) {
-      cheminRestant = this.algoCheminOptimalService.calculerCheminSuivant(false, this.maisonModel.maison, this.robot.basePosition, this.robot.position);
+      cheminRestant = this.algoCheminOptimalService.calculerCheminSuivant(false, this.cellStore.maisonGrid(), this.robot.basePosition, this.robot.position);
       // Si aucune nouvelle destination n'est trouvée, le netttoyage est complet :
       if (cheminRestant.length === 0) {
         console.log("Aucun chemin trouvé !")
@@ -352,7 +349,7 @@ export class RobotAspiratorWithNextPositionsTabService {
 
     console.log(`Déplacement vers (${lastPosition.col}, ${position.row}). Batterie: ${this.robot.batterie.toFixed(1)}%`);
 
-    this.robotServiceDtoOut.isNettoyageComplete = this.maisonModel.isNettoyageComplete;
+    this.robotServiceDtoOut.isNettoyageComplete = this.cellStore.unVisitedCellsCount() === 0 ? true : false;
     this.robotServiceDtoOut.positions = [{ ...lastPosition }, { ...position }];
     this.robotServiceDtoOut.isRobotReturningToBase = this.robot.isRobotReturningToBase;
     this.robotServiceDtoOut.isNettoyageComplete = false;

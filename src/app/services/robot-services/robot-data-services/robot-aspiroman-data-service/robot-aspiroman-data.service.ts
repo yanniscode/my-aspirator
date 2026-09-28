@@ -8,26 +8,20 @@ import { AspiromanModel } from '../../../../classes/models/robot-model/aspiroman
 import { PixelPosition } from '../../../../classes/models/pixel-position';
 import { Observable } from 'rxjs';
 import { AlgoNettoyageService } from '../../robot-algos-deplacement-services/algo-nettoyage-service/algo-nettoyage.service';
-import { MaisonModel } from '../../../../classes/models/maison-model/maison-model';
+import { CellStore } from '../../../../maison.signal-store';
 
 @Injectable({
   providedIn: 'root',
 })
 export class RobotAspiromanDataService extends RobotDataService<AspiromanModel> {
 
+  private cellStore = inject(CellStore);
   private maisonDataNettoyageService = inject(MaisonDataNettoyageService);
   protected algoNettoyageService = inject(AlgoNettoyageService);
 
   private loggerService = inject(LoggerService);
 
   protected override mockRobotDatasPath = this.url + "/assets/mock-data-services/mock-robot-data-services/mock-data-aspiroman-tab.json";
-
-  /**
-   * Map en lecture seule pour stocker les signaux computed de chaque robot à afficher
-   */
-  public readonly maisonSignal: Signal<MaisonModel> = computed(() =>
-    this.maisonDataNettoyageService.maisonSignal()
-  );
 
   // Map de Signals pour le progress (0 à 1) individualisé des joueurs
   public readonly _animationPlayerProgSignals: Map<string, WritableSignal<number>> = new Map<string, WritableSignal<number>>();
@@ -258,7 +252,7 @@ export class RobotAspiromanDataService extends RobotDataService<AspiromanModel> 
       nextPosition = { ...robot.position };
       isRobotStarted = false;
     } else {
-      nextPosition = this.algoNettoyageService.obtenirPositionSuivanteManuelle(mouvement, robot.position, this.maisonSignal().maison);
+      nextPosition = this.algoNettoyageService.obtenirPositionSuivanteManuelle(mouvement, robot.position, this.cellStore.maisonGrid());
       robotDirection = this.getRobotDirectionByDirection(mouvement);
       batterie -= robot.consommationParMouvement;
     }

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { CellElement } from '../../../classes/models/cellElement';
+import { CellElement } from '../../../classes/models/cell-element';
 import { GridPosition } from '../../../classes/models/grid-position';
 
 @Injectable({
@@ -241,6 +241,7 @@ export class AlgoCheminOptimalService {
    * @param maison
    * @returns
    */
+  // TODO: définir dans le store ?
   public obtenirPositionSuivanteManuelle(moveDirection: String, position: GridPosition, maison: CellElement[][]): GridPosition {
     let newPosition: GridPosition = { ...position };
 

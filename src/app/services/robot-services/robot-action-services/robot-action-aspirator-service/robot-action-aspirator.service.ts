@@ -1,13 +1,13 @@
 import { computed, inject, Injectable, Signal } from '@angular/core';
-import { CellElement } from '../../../../classes/models/cellElement';
+import { CellElement } from '../../../../classes/models/cell-element';
 import { GridPosition } from '../../../../classes/models/grid-position';
 import { PixelPosition } from '../../../../classes/models/pixel-position';
 import { RobotAspiratorModel } from '../../../../classes/models/robot-model/robot-aspirator-model/robot-aspirator-model';
 import { RobotActionService } from '../robot-action.service';
 import { AlgoNettoyageService } from '../../robot-algos-deplacement-services/algo-nettoyage-service/algo-nettoyage.service';
 import { MaisonDataNettoyageService } from '../../../maison-services/maison-data-services/maison-data-nettoyage-service/maison-data-nettoyage.service';
-import { MaisonModel } from '../../../../classes/models/maison-model/maison-model';
 import { RobotAspiratorDataService } from '../../robot-data-services/robot-aspirator-data-service/robot-aspirator-data.service';
+import { CellStore } from '../../../../maison.signal-store';
 
 @Injectable({
   providedIn: 'root'
@@ -18,13 +18,11 @@ export class RobotActionAspiratorService extends RobotActionService<RobotAspirat
   private robotAspiratorDataService = inject(RobotAspiratorDataService);
   private maisonDataNettoyageService = inject(MaisonDataNettoyageService);
 
+  private cellStore = inject(CellStore);
+
   // Map en lecture seule pour stocker les signaux computed de chaque robot à afficher
   private readonly robotAspiratorSignals: Map<string, Signal<RobotAspiratorModel>>
     = this.robotAspiratorDataService.robotSignals;
-
-  public readonly maisonSignal: Signal<MaisonModel> = computed(() =>
-    this.maisonDataNettoyageService.maisonSignal()
-  );
 
   // Configuration de l'animation
   private PIXELS_PER_STEP: number = 0; // Pixels à parcourir dans un intervale donné
@@ -79,7 +77,7 @@ export class RobotActionAspiratorService extends RobotActionService<RobotAspirat
           this.activateReturnToBase(robot);
           return;
         }
-        else if (this.maisonDataNettoyageService.toutEstVisite()) {
+        else if (this.cellStore.unVisitedCellsCount() === 0) {
 
           console.log(`### updateAllRobots() - Maison entièrement nettoyée ou bien: limite de batterie atteinte : le robot doit rentrer à la base - Batterie: ${robot.batterie}%`);
 
@@ -132,14 +130,14 @@ export class RobotActionAspiratorService extends RobotActionService<RobotAspirat
   private nettoyer(robotModelInput: RobotAspiratorModel): GridPosition {
     console.log("RobotActionAspiratorService - nettoyer()");
 
-    const maisonModel: MaisonModel = this.maisonSignal();
+    const maisonModel: CellElement[][] = this.cellStore.maisonGrid();
     if (!maisonModel) return new GridPosition();
 
     // Dé-réserver la position actuelle:
     this.maisonDataNettoyageService.updateReservedCell(robotModelInput.position, false);
 
     // Chercher la prochaine case non visitée
-    let prochaineCaseNonVisitee: CellElement | null = this.algoNettoyageService.trouverProchaineDestination(maisonModel.maison, robotModelInput.position);
+    let prochaineCaseNonVisitee: CellElement | null = this.algoNettoyageService.trouverProchaineDestination(this.cellStore.maisonGrid(), robotModelInput.position);
     console.log(prochaineCaseNonVisitee);
 
     if (!prochaineCaseNonVisitee) {
@@ -159,7 +157,7 @@ export class RobotActionAspiratorService extends RobotActionService<RobotAspirat
     // Utiliser un algorithme de recherche de chemin optimal pour rechercher le pas suivant du robot
     // on récupère la position 0 du chemin vers une position non nettoyée et (de préférence) non réservée avant
     let nextPositionNettoyage: GridPosition = this.algoNettoyageService.trouverPositionSuivante(
-      maisonModel.maison, robotModelInput.position, prochaineCaseNonVisitee.position
+      this.cellStore.maisonGrid(), robotModelInput.position, prochaineCaseNonVisitee.position
     );
 
     console.log("nextPositionNettoyage :" + nextPositionNettoyage);
@@ -169,7 +167,7 @@ export class RobotActionAspiratorService extends RobotActionService<RobotAspirat
     }
 
     // on recherche la cellule correspondant à la position suivante dans la maison pour vérifier son status réservé ou non
-    const cellulesVoisines = this.algoNettoyageService.obtenirCellulesAdjacentes(maisonModel.maison, nextPositionNettoyage);
+    const cellulesVoisines = this.algoNettoyageService.obtenirCellulesAdjacentes(this.cellStore.maisonGrid(), nextPositionNettoyage);
     let nextCellNettoyage: CellElement = new CellElement();
     for (const celluleVoisine of cellulesVoisines) {
       if (celluleVoisine.position.col === nextPositionNettoyage.col && celluleVoisine.position.row === nextPositionNettoyage.row)
@@ -204,11 +202,11 @@ export class RobotActionAspiratorService extends RobotActionService<RobotAspirat
     console.log("RobotActionAspiratorService - retournerALaBase()");
     console.log("Retour à la base de charge");
 
-    const maisonModel: MaisonModel = this.maisonSignal();
+    const maisonModel: CellElement[][] = this.cellStore.maisonGrid();
     if (!maisonModel) return new GridPosition();
 
     // Trouver le chemin vers la base
-    const positionRetourALaBase: GridPosition = this.algoNettoyageService.trouverPositionSuivante(maisonModel.maison, robotModelInput.position, robotModelInput.basePosition);
+    const positionRetourALaBase: GridPosition = this.algoNettoyageService.trouverPositionSuivante(this.cellStore.maisonGrid(), robotModelInput.position, robotModelInput.basePosition);
     console.log("nextPosition :" + positionRetourALaBase);
 
     if (!positionRetourALaBase) {
@@ -230,11 +228,11 @@ export class RobotActionAspiratorService extends RobotActionService<RobotAspirat
   private energieNecessairePourRetour(position: GridPosition, basePosition: GridPosition, consommationParMouvement: number): number {
     console.log("RobotActionAspiratorService - energieNecessairePourRetour()");
 
-    const maisonModel: MaisonModel = this.maisonSignal();
+    const maisonModel: CellElement[][] = this.cellStore.maisonGrid();
     if (!maisonModel) return -1;
 
     // Estimer la distance jusqu'à la base (la distance de Manhattan ne suffit pas car elle ne tient pas compte des obstacles)
-    const distance = this.algoNettoyageService.distanceDeLaBase(maisonModel.maison, position, basePosition);
+    const distance = this.algoNettoyageService.distanceDeLaBase(this.cellStore.maisonGrid(), position, basePosition);
     console.log("distance minimale de la base = " + distance);
 
     // Ajouter une marge de sécurité si on veut:

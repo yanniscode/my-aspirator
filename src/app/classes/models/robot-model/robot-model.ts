@@ -1,6 +1,6 @@
 import { Direction } from "../../utils/direction";
 import { GridPosition } from "../grid-position";
-import { AbstractModel } from "../maison-model/abstract-model";
+import { AbstractModel } from "../abstract-model";
 import { PixelPosition } from "../pixel-position";
 
 export class RobotModel extends AbstractModel {

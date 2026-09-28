@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
 import { AssetService } from '../../../main-services/graphics-services/asset-service/asset.service';
-import { MaisonModel } from '../../../../classes/models/maison-model/maison-model';
+import { CellsStateModel } from '../../../../classes/models/maison-model/maison.model';
 
 @Injectable({
   providedIn: 'root',
 })
-export class AssetMaisonService extends AssetService<MaisonModel> {
+export class AssetMaisonService extends AssetService<CellsStateModel> {
 
   constructor() {
     console.log("AssetMaisonService - constructor()");

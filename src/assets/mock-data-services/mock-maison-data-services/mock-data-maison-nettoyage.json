@@ -12,8 +12,8 @@
             }
         ]
     ],
-    "largeurMaison": 10,
-    "hauteurMaison": 8,
+    "rows": 8,
+    "cols": 10,
     "obstacles": [
         {
             "row": 3,

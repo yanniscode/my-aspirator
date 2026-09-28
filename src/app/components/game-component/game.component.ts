@@ -6,7 +6,6 @@ import { MaisonDataFactoryService } from '../../services/maison-services/maison-
 import { RobotDataFactoryService } from '../../services/robot-services/robot-data-factory-service/robot-data-factory.service';
 import { RobotModel } from '../../classes/models/robot-model/robot-model';
 import { firstValueFrom, Subject, takeUntil } from 'rxjs';
-import { MaisonModel } from '../../classes/models/maison-model/maison-model';
 import { CellStore } from '../../maison.signal-store';
 
 
@@ -18,16 +17,6 @@ import { CellStore } from '../../maison.signal-store';
   templateUrl: './game.component.html',
   styleUrl: './game.component.css',
   changeDetection: ChangeDetectionStrategy.Eager,
-  // TODO: remplacer animation d'intro
-  // animations: [
-  // TODO: supprimer car obsolète
-  //   trigger('maisonAnimation', [
-  //     transition(':enter', [
-  //       style({ opacity: 0 }),
-  //       animate('1500ms ease-out', style({ opacity: 1 }))
-  //     ])
-  //   ]),
-  // ]
 })
 export class GameComponent implements AfterViewInit, OnDestroy {
   @ViewChild('gameCanvas', { static: true }) gameCanvas!: ElementRef<HTMLCanvasElement>;
@@ -45,10 +34,6 @@ export class GameComponent implements AfterViewInit, OnDestroy {
   protected ctx!: CanvasRenderingContext2D;
 
   private readonly CELL_SIZE = 50;        // td-maison: width / height: 50px
-
-  public maisonSignal(): MaisonModel {
-    return this.maisonDataFactoryService.maisonSignal();
-  }
 
   // on récupère la liste de signaux à partir de la factory de robots dans un type générique (RobotModel)
   public robotNames: Signal<string[]> = this.robotDataFactoryService.robotNames;
@@ -72,8 +57,6 @@ export class GameComponent implements AfterViewInit, OnDestroy {
     // initialisation des paramètres de la maison et des robots
     this.maisonDataFactoryService.createMaisonParams().pipe(takeUntil(this.endedSubscription$))
       .subscribe(() => {
-        // this.robotDataFactoryService.createPlayersActionParams();
-        // this.animationFactoryService.createRobotPlayersAnimationParams();
         this.maisonReady$.next();    // ✅ notifie que les robots sont prêts
         this.maisonReady$.complete();
       });
@@ -103,7 +86,7 @@ export class GameComponent implements AfterViewInit, OnDestroy {
 
 
     // Attente du chargement des images (maison et robots) avant le rendu
-    // ✅ attend que les deux soient terminés avant de rendre
+    // Attend que les deux soient terminés avant de rendre
     await Promise.all([
       this.animationFactoryService.loadCanvasImages(),
       firstValueFrom(this.robotsReady$),  // attend le Subject
@@ -114,8 +97,8 @@ export class GameComponent implements AfterViewInit, OnDestroy {
 
     // adaptation de la taille du canvas à la maison (représente tout l'environnement)
     const canvas = this.gameCanvas.nativeElement;
-    canvas.width = this.maisonSignal().maison[0].length * this.CELL_SIZE;
-    canvas.height = this.maisonSignal().maison.length * this.CELL_SIZE;
+    canvas.width = this.cellStore.cols() * this.CELL_SIZE;
+    canvas.height = this.cellStore.rows() * this.CELL_SIZE;
 
     // Fix Firefox
     // on doit assigner la valeur du ctx pour le Canvas

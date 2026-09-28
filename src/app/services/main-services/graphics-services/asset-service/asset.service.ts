@@ -1,7 +1,7 @@
 import { Injectable, Signal, signal, WritableSignal } from '@angular/core';
 import { AssetConfig } from '../../../../classes/config/asset-config';
 import { Direction } from '../../../../classes/utils/direction';
-import { AbstractModel } from '../../../../classes/models/maison-model/abstract-model';
+import { AbstractModel } from '../../../../classes/models/abstract-model';
 
 @Injectable({
   providedIn: 'root',

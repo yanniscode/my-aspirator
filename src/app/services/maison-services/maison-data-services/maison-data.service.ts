@@ -1,16 +1,16 @@
-import { inject, Injectable, Signal, signal, WritableSignal } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 
-import { CellElement } from '../../../classes/models/cellElement';
+import { CellElement } from '../../../classes/models/cell-element';
 import { GridPosition } from '../../../classes/models/grid-position';
-import { MaisonModel } from '../../../classes/models/maison-model/maison-model';
 import { Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { CellStore } from '../../../maison.signal-store';
+import { CellsStateModel } from '../../../classes/models/maison-model/maison.model';
 
 @Injectable({
   providedIn: 'root'
 })
-export abstract class MaisonDataService<T extends MaisonModel = MaisonModel> {
+export abstract class MaisonDataService<T extends CellsStateModel = CellsStateModel> {
 
   protected httpClient = inject(HttpClient);
 
@@ -19,120 +19,13 @@ export abstract class MaisonDataService<T extends MaisonModel = MaisonModel> {
   protected url = "http://localhost:4200";
   protected mockMaisonDatasPath = this.url + "";
 
-  // Instanciation de la maison:
-  // Privé et mutable — seul le service peut écrire dedans
-  // readonly sur la déclaration TypeScript signifie que la référence au signal ne peut pas être réassignée — pas que le signal lui-même est immuable
-  public readonly _maisonSignal: WritableSignal<MaisonModel> = signal<MaisonModel>(new MaisonModel());
-  // Public et lecture seule — les composants peuvent seulement lire
-  public readonly maisonSignal: Signal<MaisonModel> = this._maisonSignal.asReadonly();
-
-  /**
-   * Mise à jour intégrale de la maison
-   *
-   * @param maison
-   */
-  // public updateMaison(maison: MaisonModel): void {
-  //   this._maisonSignal.set(maison);
-  // }
-
   // TODO: EVOL - possible refactoring de méthode dans un service API (récupération des données dans des objets JSON / appels HTTP)
   /**
    * initialisation des datas de la Maison
    *
    * @returns
    */
-  public abstract setMaisonParams(t: T): void;
-
-  /**
-   * Initialisation de la maison
-   *
-   * @param maisonModel
-   */
-  protected abstract initMaison(maisonModel: MaisonModel): void;
-
-  /**
-   * Construction de la maison (datas) dans le signals store NGXS
-   *
-   * @param largeur
-   * @param hauteur
-   * @param obstacles
-   * @returns
-   */
-  protected abstract buildMaison(
-    largeur: number,
-    hauteur: number,
-    obstacles: GridPosition[]
-  ): void;
-
-  public getMaisonCells(largeurMaison: number, hauteurMaison: number): CellElement[][] {
-
-    const maisonCellsTab: CellElement[][] = Array.from(
-      { length: hauteurMaison },
-      () => Array.from({ length: largeurMaison }, () => new CellElement())
-    );
-
-    this.cellStore?.cells()?.forEach(cell => {
-      maisonCellsTab[cell.position.row][cell.position.col] = { ...cell };
-    });
-
-    return maisonCellsTab;
-  }
-
-  /**
-   * renvoie une cellule de la maison par sa position
-   *
-   * @param position
-   * @returns
-   */
-  protected getMaisonCellByPosition(position: GridPosition): CellElement {
-    console.log("MaisonDataService - getMaisonCellByPosition()");
-    const maison: CellElement[][] = this.maisonSignal()?.maison;
-
-    return !maison[position.row]
-      ? new CellElement
-      : maison[position.row][position.col] ? { ...maison[position.row][position.col] } : new CellElement();
-  }
-
-  /**
-   * Mise à jour effective d'une case (maison de type générique)
-   *
-   * @param newCellElement
-   * @returns
-   */
-  protected updateMaisonCell(newCellElement: CellElement): void {
-    console.log("MaisonDataService - updateMaisonCell()");
-
-    // Attention: tableau à 1 dimension ici ! (liste des cellules à plat)
-    // const cellsList: CellElement[] | undefined = this.cellStore?.cells();
-    // cellsList?.forEach(cell => {
-    //   if (cell.position.row === newCellElement.position.row
-    //     && cell.position.col === newCellElement.position.col) {
-
-    // TODO: méthode udate cell dans le store + get d'une cell par position
-
-    //     // this.cellStore.updateCell();
-    //   }
-    // })
-
-    const maison: CellElement[][] = this.maisonSignal()?.maison;
-
-    if ((maison?.length <= 0) || maison[0]?.length <= 0) return;
-
-    if (newCellElement.position.row < 0 || newCellElement.position.row >= maison.length
-      || newCellElement.position.col < 0 || newCellElement.position.col >= (maison[0]?.length ?? 0)) {
-      console.warn(`updateMaisonCell: position (${newCellElement.position.row}, ${newCellElement.position.col}) hors limites`);
-      return;
-    }
-
-    this._maisonSignal.update(current => ({
-      ...current,
-      maison: current.maison.map((rowMaison, i) =>
-        i === newCellElement.position.row
-          ? rowMaison.map((cellElement, j) => j === newCellElement.position.col ? newCellElement : cellElement)
-          : rowMaison
-      )
-    }));
-  }
+  public abstract setMaisonParams(maisonModel: CellsStateModel): void;
 
   /**
    * Renvoie les données mockées de la maison (fake database)

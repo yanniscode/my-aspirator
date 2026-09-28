@@ -2,14 +2,15 @@ import { inject, Injectable } from '@angular/core';
 import { MaisonDataNettoyageService } from '../../maison-data-services/maison-data-nettoyage-service/maison-data-nettoyage.service';
 import { AssetMaisonService } from '../asset-maison-service/asset-maison.service';
 import { RenderAnimationService } from '../../../main-services/graphics-services/render-animation-service/render-animation.service';
-import { MaisonModel } from '../../../../classes/models/maison-model/maison-model';
 import { RobotAspiratorModel } from '../../../../classes/models/robot-model/robot-aspirator-model/robot-aspirator-model';
 import { CellStore } from '../../../../maison.signal-store';
+import { CellsStateModel } from '../../../../classes/models/maison-model/maison.model';
+import { CellElement } from '../../../../classes/models/cell-element';
 
 @Injectable({
   providedIn: 'root',
 })
-export abstract class MaisonRenderAnimationService extends RenderAnimationService<MaisonModel> {
+export abstract class MaisonRenderAnimationService extends RenderAnimationService<CellsStateModel> {
 
   private maisonDataNettoyageService = inject(MaisonDataNettoyageService);
   private assetMaisonService = inject(AssetMaisonService);
@@ -33,11 +34,9 @@ export abstract class MaisonRenderAnimationService extends RenderAnimationServic
 
     // récupération du canvas avec ses données pour ajouter les données de la maison
     this.ctx = ctx;
-    // récupération des données de la maison à partir de son Signal
-    const maisonModel: MaisonModel = this.maisonDataNettoyageService.maisonSignal();
 
     // TODO: revoir si on utiliser le store car Cell() = tab à 1 dimension, maison la maison: 2 !
-    maisonModel.maison.forEach((row, rowIndex) => {
+    this.cellStore.maisonGrid().forEach((row, rowIndex) => {
 
       //  tr-maison → background: rgb(0, 140, 133)
       // On peint d'abord toute la ligne en vert
@@ -45,7 +44,7 @@ export abstract class MaisonRenderAnimationService extends RenderAnimationServic
       this.ctx.fillRect(
         0,
         rowIndex * this.CELL_SIZE,
-        maisonModel.maison[0].length * this.CELL_SIZE,  // largeur totale de la ligne
+        this.cellStore.maisonGrid()[0].length * this.CELL_SIZE,  // largeur totale de la ligne
         this.CELL_SIZE
       );
 
@@ -56,7 +55,7 @@ export abstract class MaisonRenderAnimationService extends RenderAnimationServic
         //  td-maison → border-style: none (pas de strokeRect)
         //  td-maison → text-align: center + padding: 0.5rem
         // Le padding s'applique des deux côtés → innerSize réduit de 2 * padding
-        const innerSize = this.CELL_SIZE - this.CELL_PADDING * 2;  // 50 - 16 = 34px
+        const innerSize = this.CELL_SIZE - this.CELL_PADDING * 2;  // 50 - 12 = 38px
 
         //  Centrage horizontal équivalent à text-align: center
         const offsetX = (this.CELL_SIZE - innerSize) / 2;

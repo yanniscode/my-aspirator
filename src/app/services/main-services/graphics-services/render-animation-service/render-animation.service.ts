@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { RobotAspiratorModel } from '../../../../classes/models/robot-model/robot-aspirator-model/robot-aspirator-model';
-import { AbstractModel } from '../../../../classes/models/maison-model/abstract-model';
+import { AbstractModel } from '../../../../classes/models/abstract-model';
 
 @Injectable({
   providedIn: 'root',

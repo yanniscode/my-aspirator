@@ -1,17 +1,25 @@
 import { Injectable } from '@angular/core';
 import { Action, State, StateContext } from '@ngxs/store';
-import { CellElement, CellsStateModel } from './maison.model';
-import { AddCell, UpdateCellByPosition, UpdateCellReserved, UpdateCellType, UpdateCellVisited } from './maison.actions';
+import { CellElement, CellsStateModel } from '../classes/models/maison-model/maison.model';
+import { AddCell, GetCellAtPosition, InitMaison, UpdateCellByItsPosition, UpdateCellReserved, UpdateCellType, UpdateCellVisited } from './maison.actions';
 
 @State<CellsStateModel>({
     name: 'cells', // Nom du slice dans le store
     defaults: {
         items: [],
         cellId: 0, // init
+        rows: 8,
+        cols: 10,
+        obstacles: []
     },
 })
 @Injectable()
 export class CellState {
+
+    @Action(InitMaison)
+    initMaison(ctx: StateContext<CellsStateModel>, action: InitMaison) {
+        ctx.patchState({ rows: action.rows, cols: action.cols, obstacles: action.obstacles });
+    }
 
     @Action(AddCell)
     addCell(ctx: StateContext<CellsStateModel>, action: AddCell) {
@@ -30,6 +38,16 @@ export class CellState {
             items: [...state.items, newItem],
             cellId: state.cellId + 1, // ✅ Incrémente cellId
         });
+    }
+
+    @Action(GetCellAtPosition)
+    getCellAtPosition(ctx: StateContext<CellsStateModel>, action: GetCellAtPosition): CellElement | undefined {
+        const state = ctx.getState();
+
+        return state.items.find(cell =>
+            cell.position.col === action.position.col &&
+            cell.position.row === action.position.row
+        );
     }
 
     @Action(UpdateCellType)
@@ -74,8 +92,8 @@ export class CellState {
         });
     }
 
-    @Action(UpdateCellByPosition)
-    updateCellByPosition(ctx: StateContext<CellsStateModel>, action: UpdateCellByPosition) {
+    @Action(UpdateCellByItsPosition)
+    updateCellByPosition(ctx: StateContext<CellsStateModel>, action: UpdateCellByItsPosition) {
         const state: CellsStateModel = ctx.getState();
 
         const items: CellElement[] = state.items.map(item =>
