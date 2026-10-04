@@ -1,8 +1,8 @@
 import { inject, Injectable } from '@angular/core';
 import { GridPosition } from '../../../../classes/models/grid-position';
-import { CellElement } from '../../../../classes/models/cell-element';
 import { LoggerService } from '../../../main-services/logger-service/logger.service';
 import { AlgoCheminOptimalService } from '../../../main-services/algos-deplacement-services/algo-chemin-optimal.service';
+import { CellElement } from '../../../../data-access/maison.model';
 
 @Injectable({
   providedIn: 'root'

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Action, State, StateContext } from '@ngxs/store';
-import { CellElement, CellsStateModel } from '../classes/models/maison-model/maison.model';
+import { CellElement, CellsStateModel } from './maison.model';
 import { AddCell, GetCellAtPosition, InitMaison, UpdateCellByItsPosition, UpdateCellReserved, UpdateCellType, UpdateCellVisited } from './maison.actions';
 
 @State<CellsStateModel>({

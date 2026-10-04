@@ -1,15 +1,15 @@
-import { computed, inject, Injectable, Signal, WritableSignal } from '@angular/core';
+import { computed, inject, Injectable, Signal } from '@angular/core';
 import { MaisonDataService as MaisonDataService } from '../maison-data.service';
-import { CellElement } from '../../../../classes/models/cell-element';
 import { GridPosition } from '../../../../classes/models/grid-position';
 import { LoggerService } from '../../../main-services/logger-service/logger.service';
 import { Observable } from 'rxjs';
-import { CellsStateModel } from '../../../../classes/models/maison-model/maison.model';
+import { MaisonConfig } from '../../../../classes/config/maison.config';
+import { CellElement, newDefaultCell } from '../../../../data-access/maison.model';
 
 @Injectable({
   providedIn: 'root',
 })
-export class MaisonDataNettoyageService extends MaisonDataService<CellsStateModel> {
+export class MaisonDataNettoyageService extends MaisonDataService<MaisonConfig> {
 
   private loggerService = inject(LoggerService);
 
@@ -20,8 +20,8 @@ export class MaisonDataNettoyageService extends MaisonDataService<CellsStateMode
     super();
   }
 
-  public override getJsonData(): Observable<CellsStateModel> {
-    return this.httpClient.get(this.mockMaisonDatasPath) as Observable<CellsStateModel>;
+  public override getJsonData(): Observable<MaisonConfig> {
+    return this.httpClient.get(this.mockMaisonDatasPath) as Observable<MaisonConfig>;
   }
 
   // TODO: EVOL - possible refactoring de méthode dans un service API (récupération des données dans des objets JSON / appels HTTP)
@@ -30,14 +30,20 @@ export class MaisonDataNettoyageService extends MaisonDataService<CellsStateMode
    *
    * @returns
    */
-  public override setMaisonParams(maisonModel: CellsStateModel): void {
+  public override setMaisonParams(maisonConfig: MaisonConfig): void {
     console.log("MaisonDataNettoyageService - setMaisonParams()");
 
-    Array.from({ length: maisonModel.rows }, (_, row) =>
-      Array.from({ length: maisonModel.cols }, (_, col) => {
-        const cell = new CellElement();
+    const obstacleKeys = new Set(maisonConfig.obstacles.map(o => `${o.row},${o.col}`));
 
-        const isObstacle = maisonModel.obstacles.some(o => o.row === row && o.col === col);
+    Array.from({ length: maisonConfig.rows }, (_, row) =>
+      Array.from({ length: maisonConfig.cols }, (_, col) => {
+        const cell: CellElement = newDefaultCell(
+          row,
+          col,
+          obstacleKeys.has(`${row},${col}`) ? 'X' : 'O'
+        );
+
+        const isObstacle = maisonConfig.obstacles.some(o => o.row === row && o.col === col);
         cell.cellType = isObstacle ? 'X' : 'O';
 
         cell.position = new GridPosition(row, col);

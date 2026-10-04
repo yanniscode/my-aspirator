@@ -1,8 +1,8 @@
-import { inject, Injectable, OnDestroy, Signal } from '@angular/core';
+import { inject, Injectable, OnDestroy } from '@angular/core';
 import { MaisonDataService } from '../maison-data-services/maison-data.service';
 import { MaisonDataNettoyageService } from '../maison-data-services/maison-data-nettoyage-service/maison-data-nettoyage.service';
 import { forkJoin, map, Observable, Subject, takeUntil, tap } from 'rxjs';
-import { CellsStateModel } from '../../../classes/models/maison-model/maison.model';
+import { MaisonConfig } from '../../../classes/config/maison.config';
 
 @Injectable({
   providedIn: 'root',
@@ -28,11 +28,11 @@ export class MaisonDataFactoryService implements OnDestroy {
     console.log("MaisonDataFactoryService - createMaisonParams()");
 
     // initialisation des paramètres des robots
-    const requests$: Observable<CellsStateModel>[] = this.maisonDataServicesTab.map(maisonDataService =>
+    const requests$: Observable<MaisonConfig>[] = this.maisonDataServicesTab.map(maisonDataService =>
 
       maisonDataService.getJsonData().pipe(
-        tap(maisonModel => {
-          maisonDataService.setMaisonParams(maisonModel);
+        tap(maisonConfig => {
+          maisonDataService.setMaisonParams(maisonConfig);
         })
       )
     );

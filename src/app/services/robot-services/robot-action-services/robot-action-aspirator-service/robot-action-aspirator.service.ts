@@ -1,5 +1,4 @@
-import { computed, inject, Injectable, Signal } from '@angular/core';
-import { CellElement } from '../../../../classes/models/cell-element';
+import { inject, Injectable, Signal } from '@angular/core';
 import { GridPosition } from '../../../../classes/models/grid-position';
 import { PixelPosition } from '../../../../classes/models/pixel-position';
 import { RobotAspiratorModel } from '../../../../classes/models/robot-model/robot-aspirator-model/robot-aspirator-model';
@@ -8,6 +7,7 @@ import { AlgoNettoyageService } from '../../robot-algos-deplacement-services/alg
 import { MaisonDataNettoyageService } from '../../../maison-services/maison-data-services/maison-data-nettoyage-service/maison-data-nettoyage.service';
 import { RobotAspiratorDataService } from '../../robot-data-services/robot-aspirator-data-service/robot-aspirator-data.service';
 import { CellStore } from '../../../../maison.signal-store';
+import { CellElement } from '../../../../data-access/maison.model';
 
 @Injectable({
   providedIn: 'root'
@@ -168,15 +168,18 @@ export class RobotActionAspiratorService extends RobotActionService<RobotAspirat
 
     // on recherche la cellule correspondant à la position suivante dans la maison pour vérifier son status réservé ou non
     const cellulesVoisines = this.algoNettoyageService.obtenirCellulesAdjacentes(this.cellStore.maisonGrid(), nextPositionNettoyage);
-    let nextCellNettoyage: CellElement = new CellElement();
     for (const celluleVoisine of cellulesVoisines) {
-      if (celluleVoisine.position.col === nextPositionNettoyage.col && celluleVoisine.position.row === nextPositionNettoyage.row)
+      let nextCellNettoyage: CellElement;
+
+      if (celluleVoisine.position.col === nextPositionNettoyage.col && celluleVoisine.position.row === nextPositionNettoyage.row) {
         // copie par référence:
         nextCellNettoyage = celluleVoisine;
-    }
-    if (!nextCellNettoyage.reserved) {
-      // Réserver la position non-visitée la plus proche, si elle est accessible
-      this.maisonDataNettoyageService.updateReservedCell(nextPositionNettoyage, true);
+
+        if (!nextCellNettoyage.reserved) {
+          // Réserver la position non-visitée la plus proche, si elle est accessible
+          this.maisonDataNettoyageService.updateReservedCell(nextPositionNettoyage, true);
+        }
+      }
     }
 
     return nextPositionNettoyage;

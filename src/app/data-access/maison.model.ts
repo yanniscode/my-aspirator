@@ -1,5 +1,4 @@
-import { GridPosition } from "../grid-position";
-import { AbstractModel } from "../abstract-model";
+import { GridPosition } from "../classes/models/grid-position";
 
 export interface CellElement {
     cellId: number,
@@ -13,17 +12,13 @@ export function newDefaultCell(row: number, col: number, cellType: 'O' | 'X' | '
     return {
         cellId: -1,
         position: new GridPosition(row, col),
-        cellType: '_',
+        cellType,
         visited: false,
         reserved: false,
     };
 }
 
-export interface CellStateModel {
-    item: CellElement;
-}
-
-export interface CellsStateModel extends AbstractModel {
+export interface CellsStateModel {
     items: CellElement[];
     cellId: number; // ✅ Ajoute cellId à l'état
     rows: number; // 8,

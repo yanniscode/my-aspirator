@@ -21,6 +21,7 @@
   <p>Nombre de cases à nettoyer : {{ cellStore.floorCellsCount() }}</p>
   <p>Nombre de cases non-nettoyées : {{ cellStore.unVisitedCellsCount() }}</p>
   <p>Nombre de cases nettoyées : {{ cellStore.visitedCellsCount() }}</p>
+  <p>Nombre de cases réservées : {{ cellStore.reservedCellsCount() }}</p>
   <!-- Note: accès uniquement aux infos génériques des robots (ex: pas le niveau de batterie, spécifique au robot de type spirateur et robot Joueur dans notre cas) -->
   <div class="robot-liste-infos">
     @for (name of robotNames(); track name) {

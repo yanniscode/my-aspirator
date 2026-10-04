@@ -1,16 +1,14 @@
 import { inject, Injectable } from '@angular/core';
 
-import { CellElement } from '../../../classes/models/cell-element';
-import { GridPosition } from '../../../classes/models/grid-position';
 import { Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { CellStore } from '../../../maison.signal-store';
-import { CellsStateModel } from '../../../classes/models/maison-model/maison.model';
+import { MaisonConfig } from '../../../classes/config/maison.config';
 
 @Injectable({
   providedIn: 'root'
 })
-export abstract class MaisonDataService<T extends CellsStateModel = CellsStateModel> {
+export abstract class MaisonDataService<T extends MaisonConfig = MaisonConfig> {
 
   protected httpClient = inject(HttpClient);
 
@@ -25,7 +23,7 @@ export abstract class MaisonDataService<T extends CellsStateModel = CellsStateMo
    *
    * @returns
    */
-  public abstract setMaisonParams(maisonModel: CellsStateModel): void;
+  public abstract setMaisonParams(maisonConfig: MaisonConfig): void;
 
   /**
    * Renvoie les données mockées de la maison (fake database)

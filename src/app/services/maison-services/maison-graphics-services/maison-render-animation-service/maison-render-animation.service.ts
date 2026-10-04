@@ -4,15 +4,13 @@ import { AssetMaisonService } from '../asset-maison-service/asset-maison.service
 import { RenderAnimationService } from '../../../main-services/graphics-services/render-animation-service/render-animation.service';
 import { RobotAspiratorModel } from '../../../../classes/models/robot-model/robot-aspirator-model/robot-aspirator-model';
 import { CellStore } from '../../../../maison.signal-store';
-import { CellsStateModel } from '../../../../classes/models/maison-model/maison.model';
-import { CellElement } from '../../../../classes/models/cell-element';
+import { CellsStateModel } from '../../../../data-access/maison.model';
 
 @Injectable({
   providedIn: 'root',
 })
 export abstract class MaisonRenderAnimationService extends RenderAnimationService<CellsStateModel> {
 
-  private maisonDataNettoyageService = inject(MaisonDataNettoyageService);
   private assetMaisonService = inject(AssetMaisonService);
 
   private cellStore = inject(CellStore);

@@ -7,7 +7,7 @@ import { Actions, ofActionSuccessful } from '@ngxs/store';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { tap } from 'rxjs';
 import { GridPosition } from './classes/models/grid-position';
-import { CellElement, newDefaultCell } from './classes/models/maison-model/maison.model';
+import { CellElement, newDefaultCell } from './data-access/maison.model';
 
 export const CellStore = signalStore(
     { providedIn: 'root' },

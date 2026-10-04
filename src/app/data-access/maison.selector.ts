@@ -1,4 +1,4 @@
-import { CellElement, CellsStateModel } from '../classes/models/maison-model/maison.model';
+import { CellElement, CellsStateModel } from './maison.model';
 import { CellState } from './maison.state';
 import { GridPosition } from '../classes/models/grid-position';
 import { createSelector, Selector } from '@ngxs/store';

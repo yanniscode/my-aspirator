@@ -6,7 +6,6 @@ import { RobotAspiratorModel } from "../../../../classes/models/robot-model/robo
 import { LoggerService } from "../../../main-services/logger-service/logger.service";
 import { AlgoCheminOptimalService } from "../../../main-services/algos-deplacement-services/algo-chemin-optimal.service";
 import { CellStore } from "../../../../maison.signal-store";
-import { CellElement } from "../../../../classes/models/cell-element";
 
 @Injectable() // Pas de providedIn: 'root' car on veut une instance du service par composant appelant RobotAspiratorComponent, pas un singleton
 export class RobotAspiratorWithNextPositionsTabService {
@@ -14,7 +13,6 @@ export class RobotAspiratorWithNextPositionsTabService {
   // Nécessaire pour l'animation (écoute d'observable avec rxjs)
   private subscription?: Subscription;
 
-  private maisonModel: CellElement[][];
   private robot: RobotAspiratorModel;
   private robotServiceDtoOut: RobotServiceDtoOut;
 
@@ -23,7 +21,6 @@ export class RobotAspiratorWithNextPositionsTabService {
   constructor(private loggerService: LoggerService, private algoCheminOptimalService: AlgoCheminOptimalService) {
     console.log("RobotAspiratorWithNextPositionsTabService - constructor()");
 
-    this.maisonModel = this.cellStore.maisonGrid();
     this.robot = new RobotAspiratorModel();
     this.robotServiceDtoOut = new RobotServiceDtoOut();
   }
@@ -41,8 +38,6 @@ export class RobotAspiratorWithNextPositionsTabService {
   // Fonction principale pour nettoyer la maison
   public onStartNettoyer(robotInput: RobotAspiratorModel): Observable<RobotServiceDtoOut> {
     console.log("RobotAspiratorWithNextPositionsTabService - onStartNettoyer()");
-
-    this.maisonModel = this.cellStore.maisonGrid();
 
     console.log("robot datas:");
     RobotAspiratorModel.logger(robotInput);

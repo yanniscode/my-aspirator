@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { CellElement } from '../../../classes/models/cell-element';
 import { GridPosition } from '../../../classes/models/grid-position';
+import { CellElement, newDefaultCell } from '../../../data-access/maison.model';
 
 @Injectable({
   providedIn: 'root'
@@ -269,7 +269,14 @@ export class AlgoCheminOptimalService {
     return position;
   }
 
-  // Obtenir les cellules adjacentes à une position
+  /**
+   *
+   * Obtenir les cellules adjacentes à une position
+   *
+   * @param maison
+   * @param position
+   * @returns
+   */
   public obtenirCellulesAdjacentes(maison: CellElement[][], position: GridPosition): CellElement[] {
     // console.log("AlgoCheminOptimalService - obtenirCellulesAdjacentes()");
 
