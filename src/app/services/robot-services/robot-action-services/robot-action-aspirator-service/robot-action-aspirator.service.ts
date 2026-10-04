@@ -104,6 +104,10 @@ export class RobotActionAspiratorService extends RobotActionService<RobotAspirat
           }
 
           console.log(`### Nouvelle position de nettoyage trouvée pour le Robot ${robot.robotName} : row = ${nextPosition.row}, col = ${nextPosition.col} - Batterie: ${robot.batterie}%`);
+
+          // Réservation de la position suivante trouvée (pour éviter la concurrence d'autres bots)
+          this.maisonDataNettoyageService.updateReservedCell(nextPosition, true);
+
           // MAJ du robot: déplacement normal
           this.robotAspiratorDataService.moveRobot(robotName, nextPosition);
         }
@@ -136,7 +140,7 @@ export class RobotActionAspiratorService extends RobotActionService<RobotAspirat
     // Dé-réserver la position actuelle:
     this.maisonDataNettoyageService.updateReservedCell(robotModelInput.position, false);
 
-    // Chercher la prochaine case non visitée
+    // 1 - Chercher la prochaine case non visitée en vue (pas forcément la case adjacente !)
     let prochaineCaseNonVisitee: CellElement | null = this.algoNettoyageService.trouverProchaineDestination(this.cellStore.maisonGrid(), robotModelInput.position);
     console.log(prochaineCaseNonVisitee);
 
@@ -154,8 +158,10 @@ export class RobotActionAspiratorService extends RobotActionService<RobotAspirat
       return positionRetourALaBase;
     }
 
-    // Utiliser un algorithme de recherche de chemin optimal pour rechercher le pas suivant du robot
-    // on récupère la position 0 du chemin vers une position non nettoyée et (de préférence) non réservée avant
+    // 2 - Recherche de la prochaine case adjacente à parcourir en direction de la prochaine case non visitée ciblée
+
+    // Utiliser un algorithme de recherche de chemin optimal
+    // On récupère la position 0 du chemin vers une position non nettoyée et (de préférence) non réservée avant
     let nextPositionNettoyage: GridPosition = this.algoNettoyageService.trouverPositionSuivante(
       this.cellStore.maisonGrid(), robotModelInput.position, prochaineCaseNonVisitee.position
     );
@@ -166,22 +172,28 @@ export class RobotActionAspiratorService extends RobotActionService<RobotAspirat
       return robotModelInput.position;
     }
 
-    // on recherche la cellule correspondant à la position suivante dans la maison pour vérifier son status réservé ou non
-    const cellulesVoisines = this.algoNettoyageService.obtenirCellulesAdjacentes(this.cellStore.maisonGrid(), nextPositionNettoyage);
-    for (const celluleVoisine of cellulesVoisines) {
-      let nextCellNettoyage: CellElement;
-
-      if (celluleVoisine.position.col === nextPositionNettoyage.col && celluleVoisine.position.row === nextPositionNettoyage.row) {
-        // copie par référence:
-        nextCellNettoyage = celluleVoisine;
-
-        if (!nextCellNettoyage.reserved) {
-          // Réserver la position non-visitée la plus proche, si elle est accessible
-          this.maisonDataNettoyageService.updateReservedCell(nextPositionNettoyage, true);
-        }
-      }
+    // On recherche la cellule correspondant à partir de la position suivante trouvée
+    let nextCellNettoyage: CellElement | undefined = this.getCellAt(nextPositionNettoyage);
+    if (!nextCellNettoyage) {
+      console.log("Impossible de trouver la cellule correspondant à la position (row: " + robotModelInput.position.row + ", col: " + robotModelInput.position.col);
+      return robotModelInput.position;
     }
 
+    // Position non réservée trouvée ! Est-elle disponible (non-réservée) ?
+    if (!nextCellNettoyage.reserved) {
+      return nextPositionNettoyage;
+    }
+
+    // Sinon, recherche d'une autre position au hasard, autour du joueur
+    const cellulesVoisines = this.algoNettoyageService.obtenirCellulesAdjacentes(this.cellStore.maisonGrid(), robotModelInput.position);
+
+    const celluleRandom = this.algoNettoyageService.obtenirRandomCellVoisine(cellulesVoisines);
+
+    if (!celluleRandom?.reserved) {
+      console.log("random cell non réservée trouvée !");
+
+      return celluleRandom!.position;
+    }
     return nextPositionNettoyage;
   }
 
@@ -245,5 +257,19 @@ export class RobotActionAspiratorService extends RobotActionService<RobotAspirat
   // TODO: revoir CSS de la maison si on affiche ces logs dans l'ihm
   private log(message: string) {
     this.loggerService.add(`RobotActionAspiratorService: ${message} `);
+  }
+
+  /**
+   * Recherche d'un objet de type Cellule à partir de sa position
+   *
+   * @param position
+   * @returns
+   */
+  private getCellAt(position: GridPosition): CellElement | undefined {
+    //  Lecture ponctuelle de l'état courant des cellules du store
+    return this.cellStore.cells()?.find(cell =>
+      cell.position.col === position.col &&
+      cell.position.row === position.row
+    );
   }
 }

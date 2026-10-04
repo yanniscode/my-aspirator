@@ -305,6 +305,17 @@ export class AlgoCheminOptimalService {
   }
 
   /**
+   * Renvoie une cellule d'un tableau de Cellules à partir d'un index random
+   *
+   * @param cellVoisines
+   * @returns
+   */
+  public obtenirRandomCellVoisine(cellVoisines: CellElement[]) {
+    const randomTabIndex = Math.floor(Math.random() * cellVoisines.length);
+    return cellVoisines[randomTabIndex];
+  }
+
+  /**
 * Recherche de la distance du robot à sa base
 *
 * @param maison

@@ -77,6 +77,8 @@ export class MaisonDataNettoyageService extends MaisonDataService<MaisonConfig> 
     if (!cellAtTarget()) return;
 
     this.cellStore.updateCellType(cellAtTarget()!.cellId, "B");
+    this.cellStore.updateCellReserved(cellAtTarget()!.cellId, true);
+    this.cellStore.updateCellVisited(cellAtTarget()!.cellId, true);
     this.cellStore.updateCellByItsPosition(cellAtTarget()!.cellId, robotBasePosition);
   }
 
