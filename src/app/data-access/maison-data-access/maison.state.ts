@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
 import { Action, State, StateContext } from '@ngxs/store';
-import { CellElement, CellsStateModel } from './maison.model';
+import { CellElement, CellsStateModel, newCell, newDefaultCell } from './maison.model';
 import { AddCell, GetCellAtPosition, InitMaison, UpdateCellByItsPosition, UpdateCellReserved, UpdateCellType, UpdateCellVisited } from './maison.actions';
+import { GridPosition } from '../../classes/models/grid-position';
 
 @State<CellsStateModel>({
     name: 'cells', // Nom du slice dans le store
@@ -17,26 +18,40 @@ import { AddCell, GetCellAtPosition, InitMaison, UpdateCellByItsPosition, Update
 export class CellState {
 
     @Action(InitMaison)
-    initMaison(ctx: StateContext<CellsStateModel>, action: InitMaison) {
-        ctx.patchState({ rows: action.rows, cols: action.cols, obstacles: action.obstacles });
+    initMaison(ctx: StateContext<CellsStateModel>, action: InitMaison): void {
+        const state = ctx.getState();
+        const obstacleKeys = new Set(action.obstacles.map(o => `${o.row},${o.col}`));
+
+        // Construction complète en mémoire, UN SEUL setState
+        const items: CellElement[] = [];
+        for (let row = 0; row < action.rows; row++) {
+            for (let col = 0; col < action.cols; col++) {
+                items.push(newCell(
+                    state.cellId + items.length,
+                    new GridPosition(row, col),
+                    obstacleKeys.has(`${row},${col}`) ? 'X' : 'O'
+                ));
+            }
+        }
+
+        ctx.setState({
+            ...state,
+            items,                                   // remplace, pas de concat successifs
+            rows: action.rows,
+            cols: action.cols,
+            obstacles: action.obstacles,
+            cellId: state.cellId + items.length,      // avancer le compteur d'ID
+        });
     }
 
     @Action(AddCell)
     addCell(ctx: StateContext<CellsStateModel>, action: AddCell): void {
         const state = ctx.getState();
 
-        const newItem: CellElement = {
-            cellId: state.cellId,
-            position: action.position,
-            cellType: action.cellType,
-            visited: false,
-            reserved: false
-        };
-
         ctx.setState({
             ...state,
-            items: [...state.items, newItem],
-            cellId: state.cellId + 1, // ✅ Incrémente cellId
+            items: [...state.items, newCell(state.cellId, action.position, action.cellType)],
+            cellId: state.cellId + 1,
         });
     }
 

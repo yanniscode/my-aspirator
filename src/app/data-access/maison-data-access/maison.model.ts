@@ -18,6 +18,16 @@ export function newDefaultCell(row: number, col: number, cellType: 'O' | 'X' | '
     };
 }
 
+export function newCell(cellId: number, position: GridPosition, cellType: 'O' | 'X' | 'B' | '_'): CellElement {
+    return {
+        cellId,
+        position,
+        cellType,
+        visited: false,
+        reserved: false,
+    };
+}
+
 export interface CellsStateModel {
     items: CellElement[];
     cellId: number; // ✅ Ajoute cellId à l'état

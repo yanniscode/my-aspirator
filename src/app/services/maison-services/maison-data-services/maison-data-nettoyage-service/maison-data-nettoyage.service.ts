@@ -26,31 +26,14 @@ export class MaisonDataNettoyageService extends MaisonDataService<MaisonConfig> 
 
   // TODO: EVOL - possible refactoring de méthode dans un service API (récupération des données dans des objets JSON / appels HTTP)
   /**
-   * Appel des paramètres de la Maison (datas)
+   * Configuration (set) des paramètres de la Maison (datas)
    *
    * @returns
    */
   public override setMaisonParams(maisonConfig: MaisonConfig): void {
     console.log("MaisonDataNettoyageService - setMaisonParams()");
 
-    const obstacleKeys = new Set(maisonConfig.obstacles.map(o => `${o.row},${o.col}`));
-
-    Array.from({ length: maisonConfig.rows }, (_, row) =>
-      Array.from({ length: maisonConfig.cols }, (_, col) => {
-        const cell: CellElement = newDefaultCell(
-          row,
-          col,
-          obstacleKeys.has(`${row},${col}`) ? 'X' : 'O'
-        );
-
-        const isObstacle = maisonConfig.obstacles.some(o => o.row === row && o.col === col);
-        cell.cellType = isObstacle ? 'X' : 'O';
-
-        cell.position = new GridPosition(row, col);
-
-        this.cellStore.addCell(cell.cellType, cell.position);
-      })
-    );
+    this.cellStore.initMaison(maisonConfig.rows, maisonConfig.cols, maisonConfig.obstacles);
   }
 
   /**
