@@ -3,12 +3,12 @@ import { GridPosition } from '../../../../classes/models/grid-position';
 import { PixelPosition } from '../../../../classes/models/pixel-position';
 import { RobotActionService } from '../robot-action.service';
 import { AlgoNettoyageService } from '../../robot-algos-deplacement-services/algo-nettoyage-service/algo-nettoyage.service';
-import { AspiromanModel } from '../../../../classes/models/robot-model/aspiroman-model/aspiroman-model';
+import { Aspiroman } from '../../../../data-access/robot-data-access/robot.model';
 
 @Injectable({
   providedIn: 'root'
 })
-export abstract class RobotActionAspiromanService extends RobotActionService<AspiromanModel> {
+export abstract class RobotActionAspiromanService extends RobotActionService<Aspiroman> {
 
   protected algoNettoyageService = inject(AlgoNettoyageService);
 

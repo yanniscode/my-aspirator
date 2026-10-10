@@ -1,16 +1,16 @@
 import { inject, Injectable, Signal, signal, WritableSignal } from '@angular/core';
 import { RobotDataService as RobotDataService } from '../robot-data.service';
-import { RobotAspiratorModel } from '../../../../classes/models/robot-model/robot-aspirator-model/robot-aspirator-model';
 import { GridPosition } from '../../../../classes/models/grid-position';
 import { LoggerService } from '../../../main-services/logger-service/logger.service';
 import { MaisonDataNettoyageService } from '../../../maison-services/maison-data-services/maison-data-nettoyage-service/maison-data-nettoyage.service';
 import { PixelPosition } from '../../../../classes/models/pixel-position';
 import { Observable } from 'rxjs';
+import { RobotAspirator } from '../../../../data-access/robot-data-access/robot.model';
 
 @Injectable({
   providedIn: 'root',
 })
-export abstract class RobotAspiratorDataService extends RobotDataService<RobotAspiratorModel> {
+export abstract class RobotAspiratorDataService extends RobotDataService<RobotAspirator> {
 
   private maisonDataNettoyageService = inject(MaisonDataNettoyageService);
   private loggerService = inject(LoggerService);
@@ -32,10 +32,10 @@ export abstract class RobotAspiratorDataService extends RobotDataService<RobotAs
     return this.httpClient.get(this.mockRobotDatasPath);
   }
 
-  public override setRobotAspiratorBases(robotModelTab: RobotAspiratorModel[]): void {
+  public override setRobotAspiratorBases(robotModelTab: RobotAspirator[]): void {
     console.log("RobotAspiratorDataService - setRobotAspiratorBases()");
 
-    robotModelTab.forEach((robotModel: RobotAspiratorModel) => {
+    robotModelTab.forEach((robotModel: RobotAspirator) => {
       const robotAspiratorModel = { ...robotModel };
 
       // Ajout de la base du robot dans la Maison
@@ -49,12 +49,12 @@ export abstract class RobotAspiratorDataService extends RobotDataService<RobotAs
    *
    * @param robotModel
    */
-  public override setRobotSignalsList(robotAspiratorModelTab: RobotAspiratorModel[]): void {
+  public override setRobotSignalsList(robotAspiratorModelTab: RobotAspirator[]): void {
     console.log("RobotAspiratorDataService - setRobotSignalsList()");
 
-    robotAspiratorModelTab.forEach((robotModel: RobotAspiratorModel) => {
+    robotAspiratorModelTab.forEach((robotModel: RobotAspirator) => {
       // 1/ ajout du robot à la liste:
-      const robotAspiratorModel: RobotAspiratorModel = { ...robotModel };
+      const robotAspiratorModel: RobotAspirator = { ...robotModel };
       this.registerRobotInList(robotAspiratorModel);
 
       // 2/ enregistrer le nom de chaque robot dans la liste de robotNames pour le template binding:
@@ -65,7 +65,7 @@ export abstract class RobotAspiratorDataService extends RobotDataService<RobotAs
   /**
   * Enregistre un nouveau robot dans la liste de son type spécifique
   */
-  protected registerRobotInList(robotModel: RobotAspiratorModel): void {
+  protected registerRobotInList(robotModel: RobotAspirator): void {
     console.log("RobotAspiratorDataService - registerRobotInList()");
 
     if (!this.robotSignals.has(robotModel.robotName)) {
@@ -80,7 +80,7 @@ export abstract class RobotAspiratorDataService extends RobotDataService<RobotAs
  *
  * @returns
  */
-  public override getRobotSignalsList(): Map<string, Signal<RobotAspiratorModel>> {
+  public override getRobotSignalsList(): Map<string, Signal<RobotAspirator>> {
     console.log("RobotAspiratorDataService - getRobotSignalsList()");
     return this._robotSignals;
   }
@@ -99,12 +99,12 @@ export abstract class RobotAspiratorDataService extends RobotDataService<RobotAs
   public override updateCurrentCoordinates(name: string): PixelPosition {
     console.log("RobotDataService - updateCurrentCoordinates()");
 
-    let robotAspiratorSignal = this._robotSignals.get(name) as Signal<RobotAspiratorModel | undefined>;
+    let robotAspiratorSignal = this._robotSignals.get(name) as Signal<RobotAspirator | undefined>;
     console.log("robotAspiratorSignal = " + robotAspiratorSignal);
     if (!robotAspiratorSignal) return new PixelPosition(-50, -50);
     console.log(robotAspiratorSignal);
 
-    const robot: RobotAspiratorModel | undefined = robotAspiratorSignal();
+    const robot: RobotAspirator | undefined = robotAspiratorSignal();
     if (!robot) return new PixelPosition(-50, -50);
 
     // calcul de la position actuelle en pixels du robot en fonction de son index dans le tableau représentant l'espace en 2D (la maison)
@@ -139,7 +139,7 @@ export abstract class RobotAspiratorDataService extends RobotDataService<RobotAs
   public override moveRobotCoordinates(robotName: string, position: GridPosition, nextPosition: GridPosition): void {
     console.log("RobotDataService - moveRobotCoordinates()");
 
-    const robotSignal: WritableSignal<RobotAspiratorModel> | undefined = this._robotSignals.get(robotName);
+    const robotSignal: WritableSignal<RobotAspirator> | undefined = this._robotSignals.get(robotName);
     if (!robotSignal) return;
 
     const robot = robotSignal();
@@ -165,7 +165,7 @@ export abstract class RobotAspiratorDataService extends RobotDataService<RobotAs
   public override moveRobot(robotName: string, nextPosition: GridPosition): void {
     console.log("RobotActionAspiratorService - moveRobot()");
 
-    const robotSignal: WritableSignal<RobotAspiratorModel> | undefined = this._robotSignals.get(robotName);
+    const robotSignal: WritableSignal<RobotAspirator> | undefined = this._robotSignals.get(robotName);
     if (!robotSignal) return;
 
     const robot = robotSignal();
@@ -196,7 +196,7 @@ export abstract class RobotAspiratorDataService extends RobotDataService<RobotAs
   public moveRobotReturningToBase(robotName: string, position: GridPosition, nextPosition: GridPosition): void {
     console.log("RobotActionAspiratorService - moveRobotReturningToBase()");
 
-    const robotSignal: WritableSignal<RobotAspiratorModel> | undefined = this._robotSignals.get(robotName);
+    const robotSignal: WritableSignal<RobotAspirator> | undefined = this._robotSignals.get(robotName);
     if (!robotSignal) return;
 
     const robot = robotSignal();
@@ -235,7 +235,7 @@ export abstract class RobotAspiratorDataService extends RobotDataService<RobotAs
   public override stopRobot(robotName: string): void {
     console.log("RobotActionAspiratorService - stopRobot()");
 
-    const robotSignal: WritableSignal<RobotAspiratorModel> | undefined = this._robotSignals.get(robotName);
+    const robotSignal: WritableSignal<RobotAspirator> | undefined = this._robotSignals.get(robotName);
     if (!robotSignal) return;
 
     robotSignal.update(robot => ({
@@ -251,7 +251,7 @@ export abstract class RobotAspiratorDataService extends RobotDataService<RobotAs
     console.log("RobotActionAspiratorService - updateRobotsVisitedCells()");
 
     this.robotSignals.forEach((robotSignal) => {
-      const robot: RobotAspiratorModel = robotSignal();
+      const robot: RobotAspirator = robotSignal();
       this.maisonDataNettoyageService.updateVisitedCell(robot.lastPosition, true);
     });
   }

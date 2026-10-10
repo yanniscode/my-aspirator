@@ -1,10 +1,9 @@
 import { inject, Injectable } from '@angular/core';
-import { MaisonDataNettoyageService } from '../../maison-data-services/maison-data-nettoyage-service/maison-data-nettoyage.service';
 import { AssetMaisonService } from '../asset-maison-service/asset-maison.service';
 import { RenderAnimationService } from '../../../main-services/graphics-services/render-animation-service/render-animation.service';
-import { RobotAspiratorModel } from '../../../../classes/models/robot-model/robot-aspirator-model/robot-aspirator-model';
 import { CellStore } from '../../../../maison.signal-store';
-import { CellsStateModel } from '../../../../data-access/maison.model';
+import { CellsStateModel } from '../../../../data-access/maison-data-access/maison.model';
+import { RobotAspirator } from '../../../../data-access/robot-data-access/robot.model';
 
 @Injectable({
   providedIn: 'root',
@@ -79,7 +78,7 @@ export abstract class MaisonRenderAnimationService extends RenderAnimationServic
    *
    * @param robot
    */
-  protected abstract override getRobotCtxFrame(robot: RobotAspiratorModel): HTMLImageElement;
+  protected abstract override getRobotCtxFrame(robot: RobotAspirator): HTMLImageElement;
 
   /**
    * @override
@@ -88,5 +87,5 @@ export abstract class MaisonRenderAnimationService extends RenderAnimationServic
    * @param x
    * @param y
    */
-  protected abstract override drawRobotLabels(robot: RobotAspiratorModel, x: number, y: number): void;
+  protected abstract override drawRobotLabels(robot: RobotAspirator, x: number, y: number): void;
 }

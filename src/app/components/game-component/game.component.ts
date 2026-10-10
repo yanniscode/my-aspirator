@@ -4,9 +4,9 @@ import { FormsModule } from '@angular/forms';
 import { AnimationFactoryService } from '../../services/main-services/graphics-services/animation-factory-service/animation-factory.service';
 import { MaisonDataFactoryService } from '../../services/maison-services/maison-data-factory-service/maison-data-factory.service';
 import { RobotDataFactoryService } from '../../services/robot-services/robot-data-factory-service/robot-data-factory.service';
-import { RobotModel } from '../../classes/models/robot-model/robot-model';
 import { firstValueFrom, Subject, takeUntil } from 'rxjs';
 import { CellStore } from '../../maison.signal-store';
+import { Robot } from '../../data-access/robot-data-access/robot.model';
 
 
 @Component({
@@ -38,7 +38,7 @@ export class GameComponent implements AfterViewInit, OnDestroy {
   // on récupère la liste de signaux à partir de la factory de robots dans un type générique (RobotModel)
   public robotNames: Signal<string[]> = this.robotDataFactoryService.robotNames;
 
-  public robotSignal(name: string): Signal<RobotModel | undefined> {
+  public robotSignal(name: string): Signal<Robot | undefined> {
     return this.robotDataFactoryService.getRobotSignal(name);
   }
 

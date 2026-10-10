@@ -1,13 +1,13 @@
 import { signalStore, withComputed, withHooks, withMethods } from '@ngrx/signals';
 import { withActions, withSelectors } from '../shared/ngxs.utils';
-import { AddCell, GetCellAtPosition, InitMaison, UpdateCellByItsPosition as UpdateCellByItsPosition, UpdateCellReserved, UpdateCellType, UpdateCellVisited } from './data-access/maison.actions';
-import { CellSelectors } from './data-access/maison.selector';
 import { DestroyRef, computed, inject } from '@angular/core';
 import { Actions, ofActionSuccessful } from '@ngxs/store';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { tap } from 'rxjs';
 import { GridPosition } from './classes/models/grid-position';
-import { CellElement, newDefaultCell } from './data-access/maison.model';
+import { CellElement, newDefaultCell } from './data-access/maison-data-access/maison.model';
+import { CellSelectors } from './data-access/maison-data-access/maison.selector';
+import { InitMaison, AddCell, GetCellAtPosition, UpdateCellByItsPosition, UpdateCellType, UpdateCellVisited, UpdateCellReserved } from './data-access/maison-data-access/maison.actions';
 
 export const CellStore = signalStore(
     { providedIn: 'root' },

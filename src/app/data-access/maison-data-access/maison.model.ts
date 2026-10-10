@@ -1,4 +1,4 @@
-import { GridPosition } from "../classes/models/grid-position";
+import { GridPosition } from "../../classes/models/grid-position";
 
 export interface CellElement {
     cellId: number,

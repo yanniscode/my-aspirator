@@ -2,7 +2,7 @@ import { inject, Injectable, OnDestroy } from '@angular/core';
 import { MaisonDataService } from '../maison-data-services/maison-data.service';
 import { MaisonDataNettoyageService } from '../maison-data-services/maison-data-nettoyage-service/maison-data-nettoyage.service';
 import { forkJoin, map, Observable, Subject, takeUntil, tap } from 'rxjs';
-import { MaisonConfig } from '../../../classes/config/maison.config';
+import { MaisonConfig } from '../../../classes/config/maison-config/maison.config';
 
 @Injectable({
   providedIn: 'root',

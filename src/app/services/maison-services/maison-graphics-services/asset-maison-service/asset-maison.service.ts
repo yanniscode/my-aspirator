@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { AssetService } from '../../../main-services/graphics-services/asset-service/asset.service';
-import { CellsStateModel } from '../../../../data-access/maison.model';
+import { CellsStateModel } from '../../../../data-access/maison-data-access/maison.model';
 
 @Injectable({
   providedIn: 'root',

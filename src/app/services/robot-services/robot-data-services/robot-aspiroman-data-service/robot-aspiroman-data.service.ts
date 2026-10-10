@@ -1,19 +1,19 @@
-import { computed, inject, Injectable, Signal, signal, WritableSignal } from '@angular/core';
+import { inject, Injectable, Signal, signal, WritableSignal } from '@angular/core';
 import { RobotDataService as RobotDataService } from '../robot-data.service';
 import { GridPosition } from '../../../../classes/models/grid-position';
 import { LoggerService } from '../../../main-services/logger-service/logger.service';
 import { MaisonDataNettoyageService } from '../../../maison-services/maison-data-services/maison-data-nettoyage-service/maison-data-nettoyage.service';
 import { Direction } from '../../../../classes/utils/direction';
-import { AspiromanModel } from '../../../../classes/models/robot-model/aspiroman-model/aspiroman-model';
 import { PixelPosition } from '../../../../classes/models/pixel-position';
 import { Observable } from 'rxjs';
 import { AlgoNettoyageService } from '../../robot-algos-deplacement-services/algo-nettoyage-service/algo-nettoyage.service';
 import { CellStore } from '../../../../maison.signal-store';
+import { Aspiroman } from '../../../../data-access/robot-data-access/robot.model';
 
 @Injectable({
   providedIn: 'root',
 })
-export class RobotAspiromanDataService extends RobotDataService<AspiromanModel> {
+export class RobotAspiromanDataService extends RobotDataService<Aspiroman> {
 
   private cellStore = inject(CellStore);
   private maisonDataNettoyageService = inject(MaisonDataNettoyageService);
@@ -62,10 +62,10 @@ export class RobotAspiromanDataService extends RobotDataService<AspiromanModel> 
    *
    * @param robotModelTab
    */
-  public override setRobotAspiratorBases(robotModelTab: AspiromanModel[]): void {
+  public override setRobotAspiratorBases(robotModelTab: Aspiroman[]): void {
     console.log("RobotAspiromanDataService - setRobotAspiratorBases()");
 
-    robotModelTab.forEach((robotModel: AspiromanModel) => {
+    robotModelTab.forEach((robotModel: Aspiroman) => {
       const aspiromanModel = { ...robotModel };
 
       // Ajout de la base du robot dans la Maison
@@ -80,10 +80,10 @@ export class RobotAspiromanDataService extends RobotDataService<AspiromanModel> 
    *
    * @param robotModelTab
    */
-  public setAspiromenBases(robotModelTab: AspiromanModel[]): void {
+  public setAspiromenBases(robotModelTab: Aspiroman[]): void {
     console.log("RobotAspiromanDataService - setAspiromenBases()");
 
-    robotModelTab.forEach((robotModel: AspiromanModel) => {
+    robotModelTab.forEach((robotModel: Aspiroman) => {
       const aspiromanModel = { ...robotModel };
 
       const robotBasePosition: GridPosition = { ...aspiromanModel.basePosition };
@@ -96,12 +96,12 @@ export class RobotAspiromanDataService extends RobotDataService<AspiromanModel> 
    *
    * @param robotModel
    */
-  public override setRobotSignalsList(robotModelTab: AspiromanModel[]): void {
+  public override setRobotSignalsList(robotModelTab: Aspiroman[]): void {
     console.log("RobotAspiromanDataService - setRobotSignalsList()");
 
-    robotModelTab.forEach((robotModel: AspiromanModel) => {
+    robotModelTab.forEach((robotModel: Aspiroman) => {
       // 1/ ajout du robot à la liste:
-      const robotAspiratorModel: AspiromanModel = { ...robotModel };
+      const robotAspiratorModel: Aspiroman = { ...robotModel };
       this.registerRobotInList(robotAspiratorModel);
 
       // 2/ enregistrer le nom de chaque robot dans la liste de robotNames pour le template binding:
@@ -112,7 +112,7 @@ export class RobotAspiromanDataService extends RobotDataService<AspiromanModel> 
   /**
   * Enregistre un nouveau robot dans la liste de son type spécifique
   */
-  protected registerRobotInList(robotModel: AspiromanModel): void {
+  protected registerRobotInList(robotModel: Aspiroman): void {
     console.log("RobotAspiromanDataService - registerRobotInList()");
 
     if (!this.robotSignals.has(robotModel.robotName)) {
@@ -127,7 +127,7 @@ export class RobotAspiromanDataService extends RobotDataService<AspiromanModel> 
    *
    * @returns
    */
-  public override getRobotSignalsList(): Map<string, Signal<AspiromanModel>> {
+  public override getRobotSignalsList(): Map<string, Signal<Aspiroman>> {
     console.log("RobotAspiromanDataService - getRobotSignalsList()");
 
     // TODO: revoir appel de params spés
@@ -144,11 +144,11 @@ export class RobotAspiromanDataService extends RobotDataService<AspiromanModel> 
   public override updateCurrentCoordinates(name: string, progress: number): PixelPosition {
     console.log("RobotDataService - updateCurrentCoordinates()");
 
-    let aspiromanSignal = this.robotSignals.get(name) as Signal<AspiromanModel | undefined>;
+    let aspiromanSignal = this.robotSignals.get(name) as Signal<Aspiroman | undefined>;
     if (!aspiromanSignal) return new PixelPosition(-50, -50);
     console.log(aspiromanSignal);
 
-    const robot: AspiromanModel | undefined = aspiromanSignal();
+    const robot: Aspiroman | undefined = aspiromanSignal();
     if (!robot) return new PixelPosition(-50, -50);
 
     // calcul de la nouvelle position en pixels du robot en fonction de son index (numéro de case dans le tableau représentant l'espace en 2D - la maison)
@@ -185,7 +185,7 @@ export class RobotAspiromanDataService extends RobotDataService<AspiromanModel> 
   public override moveRobotCoordinates(robotName: string, position: GridPosition, nextPosition: GridPosition): void {
     console.log("RobotDataService - moveRobotCoordinates()");
 
-    const robotSignal: WritableSignal<AspiromanModel> | undefined = this._robotSignals.get(robotName);
+    const robotSignal: WritableSignal<Aspiroman> | undefined = this._robotSignals.get(robotName);
     if (!robotSignal) return;
 
     const robot = robotSignal();
@@ -232,7 +232,7 @@ export class RobotAspiromanDataService extends RobotDataService<AspiromanModel> 
   public override moveRobot(robotName: string): void {
     console.log("RobotActionAspiromanService - moveRobot()");
 
-    const robotSignal: WritableSignal<AspiromanModel> | undefined = this._robotSignals.get(robotName);
+    const robotSignal: WritableSignal<Aspiroman> | undefined = this._robotSignals.get(robotName);
     if (!robotSignal) return;
 
     const robot = robotSignal();
@@ -300,7 +300,7 @@ export class RobotAspiromanDataService extends RobotDataService<AspiromanModel> 
   public override stopRobot(robotName: string): void {
     console.log("RobotActionAspiratorService - stopRobot()");
 
-    const robotSignal: WritableSignal<AspiromanModel> | undefined = this._robotSignals.get(robotName);
+    const robotSignal: WritableSignal<Aspiroman> | undefined = this._robotSignals.get(robotName);
     if (!robotSignal) return;
 
     robotSignal.update(robot => ({
@@ -316,7 +316,7 @@ export class RobotAspiromanDataService extends RobotDataService<AspiromanModel> 
     console.log("RobotActionAspiratorService - updateRobotsVisitedCells()");
 
     this.robotSignals.forEach((robotSignal) => {
-      const robot: AspiromanModel = robotSignal();
+      const robot: Aspiroman = robotSignal();
       this.maisonDataNettoyageService.updateVisitedCell(robot.lastPosition, true);
     });
   }

@@ -1,18 +1,18 @@
 import { inject, Injectable, Signal } from '@angular/core';
 import { GridPosition } from '../../../../classes/models/grid-position';
 import { PixelPosition } from '../../../../classes/models/pixel-position';
-import { RobotAspiratorModel } from '../../../../classes/models/robot-model/robot-aspirator-model/robot-aspirator-model';
 import { RobotActionService } from '../robot-action.service';
 import { AlgoNettoyageService } from '../../robot-algos-deplacement-services/algo-nettoyage-service/algo-nettoyage.service';
 import { MaisonDataNettoyageService } from '../../../maison-services/maison-data-services/maison-data-nettoyage-service/maison-data-nettoyage.service';
 import { RobotAspiratorDataService } from '../../robot-data-services/robot-aspirator-data-service/robot-aspirator-data.service';
 import { CellStore } from '../../../../maison.signal-store';
-import { CellElement } from '../../../../data-access/maison.model';
+import { CellElement } from '../../../../data-access/maison-data-access/maison.model';
+import { RobotAspirator } from '../../../../data-access/robot-data-access/robot.model';
 
 @Injectable({
   providedIn: 'root'
 })
-export class RobotActionAspiratorService extends RobotActionService<RobotAspiratorModel> {
+export class RobotActionAspiratorService extends RobotActionService<RobotAspirator> {
 
   private algoNettoyageService = inject(AlgoNettoyageService);
   private robotAspiratorDataService = inject(RobotAspiratorDataService);
@@ -21,7 +21,7 @@ export class RobotActionAspiratorService extends RobotActionService<RobotAspirat
   private cellStore = inject(CellStore);
 
   // Map en lecture seule pour stocker les signaux computed de chaque robot à afficher
-  private readonly robotAspiratorSignals: Map<string, Signal<RobotAspiratorModel>>
+  private readonly robotAspiratorSignals: Map<string, Signal<RobotAspirator>>
     = this.robotAspiratorDataService.robotSignals;
 
   // Configuration de l'animation
@@ -43,7 +43,7 @@ export class RobotActionAspiratorService extends RobotActionService<RobotAspirat
     if (this.robotAspiratorSignals.size <= 0) return;
 
     // Parcourt tous les robots
-    this.robotAspiratorSignals.forEach((robotSignal: Signal<RobotAspiratorModel>, robotName) => {
+    this.robotAspiratorSignals.forEach((robotSignal: Signal<RobotAspirator>, robotName) => {
 
       const robot = robotSignal();
       if (!robot) return;
@@ -131,7 +131,7 @@ export class RobotActionAspiratorService extends RobotActionService<RobotAspirat
   /** Méthodes propres au robot Aspirateur: */
 
   // Fonction principale pour nettoyer la maison
-  private nettoyer(robotModelInput: RobotAspiratorModel): GridPosition {
+  private nettoyer(robotModelInput: RobotAspirator): GridPosition {
     console.log("RobotActionAspiratorService - nettoyer()");
 
     const maisonModel: CellElement[][] = this.cellStore.maisonGrid();
@@ -197,7 +197,7 @@ export class RobotActionAspiratorService extends RobotActionService<RobotAspirat
     return nextPositionNettoyage;
   }
 
-  private activateReturnToBase(robot: RobotAspiratorModel): void {
+  private activateReturnToBase(robot: RobotAspirator): void {
     console.log("RobotActionAspiratorService - activateReturnToBase()");
 
     const nextPosition = this.retournerALaBase(robot);
@@ -213,7 +213,7 @@ export class RobotActionAspiratorService extends RobotActionService<RobotAspirat
   }
 
   // Retourner à la base de charge
-  private retournerALaBase(robotModelInput: RobotAspiratorModel): GridPosition {
+  private retournerALaBase(robotModelInput: RobotAspirator): GridPosition {
     console.log("RobotActionAspiratorService - retournerALaBase()");
     console.log("Retour à la base de charge");
 

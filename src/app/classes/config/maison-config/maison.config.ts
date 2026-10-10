@@ -1,4 +1,4 @@
-import { GridPosition } from "../models/grid-position";
+import { GridPosition } from "../../models/grid-position";
 
 export class MaisonConfig {
     constructor(
@@ -10,9 +10,9 @@ export class MaisonConfig {
     public static logger(maisonConfig: MaisonConfig): void {
         console.debug("*******************");
         console.debug("MaisonConfig - logger()");
-        console.debug("MaisonConfig.rows = " + maisonConfig.rows);
-        console.debug("MaisonConfig.cols = " + maisonConfig.cols);
-        console.debug("MaisonConfig.obstacles = " + maisonConfig.obstacles);
+        console.debug("maisonConfig.rows = " + maisonConfig.rows);
+        console.debug("maisonConfig.cols = " + maisonConfig.cols);
+        console.debug("maisonConfig.obstacles = " + maisonConfig.obstacles);
         console.debug("*******************");
     }
 }

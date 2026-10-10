@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { GridPosition } from '../../../classes/models/grid-position';
-import { CellElement, newDefaultCell } from '../../../data-access/maison.model';
+import { CellElement } from '../../../data-access/maison-data-access/maison.model';
 
 @Injectable({
   providedIn: 'root'

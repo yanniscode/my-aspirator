@@ -22,7 +22,7 @@ export class CellState {
     }
 
     @Action(AddCell)
-    addCell(ctx: StateContext<CellsStateModel>, action: AddCell) {
+    addCell(ctx: StateContext<CellsStateModel>, action: AddCell): void {
         const state = ctx.getState();
 
         const newItem: CellElement = {
@@ -51,7 +51,7 @@ export class CellState {
     }
 
     @Action(UpdateCellType)
-    updateCellType(ctx: StateContext<CellsStateModel>, action: UpdateCellType) {
+    updateCellType(ctx: StateContext<CellsStateModel>, action: UpdateCellType): void {
         const state: CellsStateModel = ctx.getState();
 
         const items: CellElement[] = state.items.map(item =>
@@ -65,7 +65,7 @@ export class CellState {
     }
 
     @Action(UpdateCellVisited)
-    updateCellVisited(ctx: StateContext<CellsStateModel>, action: UpdateCellVisited) {
+    updateCellVisited(ctx: StateContext<CellsStateModel>, action: UpdateCellVisited): void {
         const state: CellsStateModel = ctx.getState();
 
         const items: CellElement[] = state.items.map(item =>
@@ -79,7 +79,7 @@ export class CellState {
     }
 
     @Action(UpdateCellReserved)
-    updateCellReserved(ctx: StateContext<CellsStateModel>, action: UpdateCellReserved) {
+    updateCellReserved(ctx: StateContext<CellsStateModel>, action: UpdateCellReserved): void {
         const state: CellsStateModel = ctx.getState();
 
         const items: CellElement[] = state.items.map(item =>
@@ -93,7 +93,7 @@ export class CellState {
     }
 
     @Action(UpdateCellByItsPosition)
-    updateCellByPosition(ctx: StateContext<CellsStateModel>, action: UpdateCellByItsPosition) {
+    updateCellByPosition(ctx: StateContext<CellsStateModel>, action: UpdateCellByItsPosition): void {
         const state: CellsStateModel = ctx.getState();
 
         const items: CellElement[] = state.items.map(item =>

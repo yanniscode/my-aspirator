@@ -1,15 +1,15 @@
 import { inject, Injectable, Signal, signal, WritableSignal } from '@angular/core';
-import { RobotModel } from '../../../classes/models/robot-model/robot-model';
 import { PixelPosition } from '../../../classes/models/pixel-position';
 import { GridPosition } from '../../../classes/models/grid-position';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Direction } from '../../../classes/utils/direction';
+import { Robot } from '../../../data-access/robot-data-access/robot.model';
 
 @Injectable({
   providedIn: 'root',
 })
-export abstract class RobotDataService<T extends RobotModel = RobotModel> {
+export abstract class RobotDataService<T extends Robot = Robot> {
 
   public serviceName = "";
 

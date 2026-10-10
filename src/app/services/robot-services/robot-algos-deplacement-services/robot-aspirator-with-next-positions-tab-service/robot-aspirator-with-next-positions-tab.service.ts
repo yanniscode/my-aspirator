@@ -2,10 +2,12 @@ import { inject, Injectable } from "@angular/core";
 import { Subscription, Observable, Subscriber, Subject, takeUntil, tap, finalize, timer, map, takeWhile } from "rxjs";
 import { RobotServiceDtoOut } from "../../../../classes/dtos/robot-service-dto-out";
 import { GridPosition } from "../../../../classes/models/grid-position";
-import { RobotAspiratorModel } from "../../../../classes/models/robot-model/robot-aspirator-model/robot-aspirator-model";
 import { LoggerService } from "../../../main-services/logger-service/logger.service";
 import { AlgoCheminOptimalService } from "../../../main-services/algos-deplacement-services/algo-chemin-optimal.service";
 import { CellStore } from "../../../../maison.signal-store";
+import { RobotAspirator } from "../../../../data-access/robot-data-access/robot.model";
+import { Direction } from "../../../../classes/utils/direction";
+import { PixelPosition } from "../../../../classes/models/pixel-position";
 
 @Injectable() // Pas de providedIn: 'root' car on veut une instance du service par composant appelant RobotAspiratorComponent, pas un singleton
 export class RobotAspiratorWithNextPositionsTabService {
@@ -13,7 +15,7 @@ export class RobotAspiratorWithNextPositionsTabService {
   // Nécessaire pour l'animation (écoute d'observable avec rxjs)
   private subscription?: Subscription;
 
-  private robot: RobotAspiratorModel;
+  private robot: RobotAspirator;
   private robotServiceDtoOut: RobotServiceDtoOut;
 
   private cellStore = inject(CellStore);
@@ -21,11 +23,34 @@ export class RobotAspiratorWithNextPositionsTabService {
   constructor(private loggerService: LoggerService, private algoCheminOptimalService: AlgoCheminOptimalService) {
     console.log("RobotAspiratorWithNextPositionsTabService - constructor()");
 
-    this.robot = new RobotAspiratorModel();
+    this.robot = {
+      robotId: "1",
+
+      robotName: "Theodule",
+      robotType: "aspirator",
+      // Positions précédente et actuelle
+      robotDirection: Direction.EAST,
+      lastPosition: new GridPosition(),
+      position: new GridPosition(),
+      startCoordinate: new PixelPosition(),
+      targetCoordinate: new PixelPosition(),
+
+      isRobotStarted: false,
+      robotWidth: 0,
+      labelColor: "",
+
+      // Position de la base de charge du robot
+      basePosition: new GridPosition(),
+      // Niveau de batterie (en pourcentage)
+      batterie: -1,
+      // Combien d'énergie est consommée par mouvement
+      consommationParMouvement: 0.5,
+      isRobotReturningToBase: false,
+    }
     this.robotServiceDtoOut = new RobotServiceDtoOut();
   }
 
-  public onPauseRobotService(): RobotAspiratorModel {
+  public onPauseRobotService(): RobotAspirator {
     console.log("RobotAspiratorWithNextPositionsTabService - onPauseRobotService()");
 
     this.subscription?.unsubscribe();
@@ -36,14 +61,14 @@ export class RobotAspiratorWithNextPositionsTabService {
   }
 
   // Fonction principale pour nettoyer la maison
-  public onStartNettoyer(robotInput: RobotAspiratorModel): Observable<RobotServiceDtoOut> {
+  public onStartNettoyer(robotInput: RobotAspirator): Observable<RobotServiceDtoOut> {
     console.log("RobotAspiratorWithNextPositionsTabService - onStartNettoyer()");
 
     console.log("robot datas:");
-    RobotAspiratorModel.logger(robotInput);
+    // RobotAspiratorModel.logger(robotInput);
     this.robot = { ...robotInput };
     console.log("this.robot datas:");
-    RobotAspiratorModel.logger(this.robot);
+    // RobotAspiratorModel.logger(this.robot);
 
     return new Observable<RobotServiceDtoOut>((observer) => {
       // console.log(this.subscription);
@@ -121,7 +146,7 @@ export class RobotAspiratorWithNextPositionsTabService {
           this.robot.isRobotReturningToBase = this.robotServiceDtoOut.isRobotReturningToBase;
 
           console.log("nettoyerAvecControle() - this.robot après modif datas:");
-          RobotAspiratorModel.logger(this.robot);
+          // RobotAspiratorModel.logger(this.robot);
 
           console.log("Energie nécessaire au retour =" + this.energieNecessairePourRetour(this.robot.position));
         }
@@ -136,7 +161,7 @@ export class RobotAspiratorWithNextPositionsTabService {
         // Ce bloc s'exécute UNE SEULE FOIS à la fin
         console.log('complete nettoyerAvecControleSouscription: Nettoyage ok ou batterie insuffisante !');
         console.log("nettoyerAvecControle() - this.robot finalize() datas:");
-        RobotAspiratorModel.logger(this.robot);
+        // RobotAspiratorModel.logger(this.robot);
 
         console.log("*** Retour à la base ***");
 
@@ -157,7 +182,7 @@ export class RobotAspiratorWithNextPositionsTabService {
   private retournerALaBaseSouscription(observer: Subscriber<RobotServiceDtoOut>): void {
     console.log("RobotAspiratorWithNextPositionsTabService - retournerALaBaseSouscription()");
     console.log("this.robot datas début:");
-    RobotAspiratorModel.logger(this.robot);
+    // RobotAspiratorModel.logger(this.robot);
 
     // On n'active pas ici le flag annulant la recherche d'un nouveau chemin
     // Donc, si le robot n'a pas l'énergie nécessaire pour continuer, on recherche quand même le chemin du retour
@@ -193,7 +218,7 @@ export class RobotAspiratorWithNextPositionsTabService {
         this.robot.batterie = this.robotServiceDtoOut!.batterie;
 
         console.log("nettoyerAvecControle() - next: this.robot datas début");
-        RobotAspiratorModel.logger(this.robot);
+        // RobotAspiratorModel.logger(this.robot);
 
         console.log("Energie nécessaire au retour =" + this.energieNecessairePourRetour(this.robot.position));
 
@@ -260,7 +285,7 @@ export class RobotAspiratorWithNextPositionsTabService {
     console.log(cheminRestant[0]?.row);
 
     console.log("this.robot :");
-    RobotAspiratorModel.logger(this.robot);
+    // RobotAspiratorModel.logger(this.robot);
 
     this.robotServiceDtoOut = {
       // on actualise ici le niveau de batterie

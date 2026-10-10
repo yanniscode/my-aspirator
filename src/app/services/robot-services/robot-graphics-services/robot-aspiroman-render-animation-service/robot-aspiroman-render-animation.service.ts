@@ -1,14 +1,13 @@
 import { inject, Injectable, Signal } from '@angular/core';
-import { PixelPosition } from '../../../../classes/models/pixel-position';
 import { AssetRobotService } from '../asset-robot-service/asset-robot.service';
 import { RenderAnimationService } from '../../../main-services/graphics-services/render-animation-service/render-animation.service';
 import { RobotAspiromanDataService } from '../../robot-data-services/robot-aspiroman-data-service/robot-aspiroman-data.service';
-import { AspiromanModel } from '../../../../classes/models/robot-model/aspiroman-model/aspiroman-model';
+import { Aspiroman } from '../../../../data-access/robot-data-access/robot.model';
 
 @Injectable({
   providedIn: 'root',
 })
-export class RobotAspiromanRenderAnimationService extends RenderAnimationService<AspiromanModel> {
+export class RobotAspiromanRenderAnimationService extends RenderAnimationService<Aspiroman> {
 
   private robotAspiromanDataService = inject(RobotAspiromanDataService);
   private assetRobotService = inject(AssetRobotService);
@@ -18,7 +17,7 @@ export class RobotAspiromanRenderAnimationService extends RenderAnimationService
   private readonly CELL_SIZE = 50;  // largeur d'une cellule de la maison
   private readonly HEIGHT = 400;    // hauteur de la maison
 
-  protected readonly aspiromanSignals: Map<string, Signal<AspiromanModel>>
+  protected readonly aspiromanSignals: Map<string, Signal<Aspiroman>>
     = this.robotAspiromanDataService.robotSignals;
 
   public override drawObject(ctx: CanvasRenderingContext2D): CanvasRenderingContext2D {
@@ -27,7 +26,7 @@ export class RobotAspiromanRenderAnimationService extends RenderAnimationService
     this.ctx = ctx;
 
     for (const [robotName, robotSignal] of this.aspiromanSignals) {
-      const robot: AspiromanModel | undefined = robotSignal();
+      const robot: Aspiroman | undefined = robotSignal();
       if (!robot) continue;
 
       this.ctx.save();
@@ -67,7 +66,7 @@ export class RobotAspiromanRenderAnimationService extends RenderAnimationService
    * @param robot
    * @returns
    */
-  protected override getRobotCtxFrame(robot: AspiromanModel): HTMLImageElement | undefined {
+  protected override getRobotCtxFrame(robot: Aspiroman): HTMLImageElement | undefined {
     console.log("RobotAspiromanRenderAnimationService - getRobotCtxFrame()");
 
     if (robot.robotType !== "player") return;
@@ -106,7 +105,7 @@ export class RobotAspiromanRenderAnimationService extends RenderAnimationService
    * @param y
    * @returns
    */
-  protected override drawRobotLabels(robot: AspiromanModel, x: number, y: number): void {
+  protected override drawRobotLabels(robot: Aspiroman, x: number, y: number): void {
     // console.log("RobotAspiromanRenderAnimationService - drawRobotLabels()");
 
     const LABEL_HEIGHT = 28;  // hauteur totale des deux labels (12 + 16)
@@ -132,7 +131,7 @@ export class RobotAspiromanRenderAnimationService extends RenderAnimationService
     );
 
     // utilisation du type de RobotModel, pour checker si c'est aspirateur ou autre type
-    const robotAspirator: AspiromanModel = robot as AspiromanModel;
+    const robotAspirator: Aspiroman = robot as Aspiroman;
     if (!robotAspirator) return;
 
     // Label batterie (spécifique aux robots avec batteries - ex: aspirateur...)

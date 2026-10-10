@@ -1,9 +1,9 @@
 import { computed, inject, Injectable, OnDestroy, signal, Signal, WritableSignal } from '@angular/core';
-import { RobotModel } from '../../../classes/models/robot-model/robot-model';
 import { RobotAspiratorDataService } from '../robot-data-services/robot-aspirator-data-service/robot-aspirator-data.service';
 import { RobotDataService } from '../robot-data-services/robot-data.service';
 import { RobotAspiromanDataService } from '../robot-data-services/robot-aspiroman-data-service/robot-aspiroman-data.service';
 import { forkJoin, map, Observable, Subject, takeUntil, tap } from 'rxjs';
+import { Robot } from '../../../data-access/robot-data-access/robot.model';
 
 @Injectable({
   providedIn: 'root',
@@ -27,8 +27,8 @@ export class RobotDataFactoryService implements OnDestroy {
  * Note: pas réactive (Map brute) — utiliser robotNames() + getRobotSignal()
  * pour le template binding. Ici c'est suffisant pour l'animation.
  */
-  public get robotSignals(): Map<string, Signal<RobotModel>> {
-    const mergedMap = new Map<string, Signal<RobotModel>>();
+  public get robotSignals(): Map<string, Signal<Robot>> {
+    const mergedMap = new Map<string, Signal<Robot>>();
     this.robotDataServicesTab.forEach(robotDataService => {
       robotDataService.robotSignals.forEach((signal, name) => mergedMap.set(name, signal));
     });
@@ -38,7 +38,7 @@ export class RobotDataFactoryService implements OnDestroy {
   /**
  * Recherche le signal d'un robot par son nom, en cherchant dans chaque service.
  */
-  public getRobotSignal(robotName: string): Signal<RobotModel | undefined> {
+  public getRobotSignal(robotName: string): Signal<Robot | undefined> {
     for (const robotDataService of this.robotDataServicesTab) {
       const robotSignal = robotDataService.getRobotSignal(robotName);
       if (robotSignal) return robotSignal;
@@ -112,7 +112,7 @@ export class RobotDataFactoryService implements OnDestroy {
     console.log("RobotDataFactoryService - createRobotsParams()");
 
     // initialisation des paramètres des robots
-    const requests$: Observable<RobotModel[]>[] = this.robotDataServicesTab.map(robotDataService =>
+    const requests$: Observable<Robot[]>[] = this.robotDataServicesTab.map(robotDataService =>
 
       robotDataService.getJsonData().pipe(
         tap(data => {
@@ -120,7 +120,7 @@ export class RobotDataFactoryService implements OnDestroy {
           console.log(data);
           if (!data) return;
 
-          let robotModelsTab: RobotModel[] = [...data];
+          let robotModelsTab: Robot[] = [...data];
 
           robotDataService.setRobotSignalsList(robotModelsTab);
           robotDataService.setRobotAspiratorBases(robotModelsTab);

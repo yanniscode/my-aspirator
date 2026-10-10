@@ -3,7 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { CellStore } from '../../../maison.signal-store';
-import { MaisonConfig } from '../../../classes/config/maison.config';
+import { MaisonConfig } from '../../../classes/config/maison-config/maison.config';
 
 @Injectable({
   providedIn: 'root'

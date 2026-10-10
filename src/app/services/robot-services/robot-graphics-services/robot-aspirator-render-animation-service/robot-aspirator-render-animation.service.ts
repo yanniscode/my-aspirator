@@ -1,14 +1,14 @@
 import { inject, Injectable, Signal } from '@angular/core';
 import { PixelPosition } from '../../../../classes/models/pixel-position';
-import { RobotAspiratorModel } from '../../../../classes/models/robot-model/robot-aspirator-model/robot-aspirator-model';
 import { AssetRobotService } from '../asset-robot-service/asset-robot.service';
 import { RenderAnimationService } from '../../../main-services/graphics-services/render-animation-service/render-animation.service';
 import { RobotAspiratorDataService } from '../../robot-data-services/robot-aspirator-data-service/robot-aspirator-data.service';
+import { RobotAspirator } from '../../../../data-access/robot-data-access/robot.model';
 
 @Injectable({
   providedIn: 'root',
 })
-export class RobotAspiratorRenderAnimationService extends RenderAnimationService<RobotAspiratorModel> {
+export class RobotAspiratorRenderAnimationService extends RenderAnimationService<RobotAspirator> {
 
   private robotAspiratorDataService = inject(RobotAspiratorDataService);
   private assetRobotService = inject(AssetRobotService);
@@ -18,7 +18,7 @@ export class RobotAspiratorRenderAnimationService extends RenderAnimationService
   private readonly CELL_SIZE = 50;  // largeur d'une cellule de la maison
   private readonly HEIGHT = 400;    // hauteur de la maison
 
-  protected readonly robotAspiratorSignals: Map<string, Signal<RobotAspiratorModel>>
+  protected readonly robotAspiratorSignals: Map<string, Signal<RobotAspirator>>
     = this.robotAspiratorDataService.robotSignals;
 
   /**
@@ -32,7 +32,7 @@ export class RobotAspiratorRenderAnimationService extends RenderAnimationService
     this.ctx = ctx;
 
     for (const [robotName, robotSignal] of this.robotAspiratorSignals) {
-      const robot: RobotAspiratorModel | undefined = robotSignal();
+      const robot: RobotAspirator | undefined = robotSignal();
       if (!robot) continue;
 
       // save() AVANT toute modification — isole complètement chaque robot
@@ -75,7 +75,7 @@ export class RobotAspiratorRenderAnimationService extends RenderAnimationService
    * @param robot
    * @returns
    */
-  protected override getRobotCtxFrame(robot: RobotAspiratorModel): HTMLImageElement | undefined {
+  protected override getRobotCtxFrame(robot: RobotAspirator): HTMLImageElement | undefined {
     console.log("RobotAspiratorRenderAnimationService - getRobotCtxFrame()");
     console.log("animationProgress = " + this.robotAspiratorDataService._animationBotsProgSignal());
 
@@ -111,7 +111,7 @@ export class RobotAspiratorRenderAnimationService extends RenderAnimationService
    * @param y
    * @returns
    */
-  protected override drawRobotLabels(robot: RobotAspiratorModel, x: number, y: number): void {
+  protected override drawRobotLabels(robot: RobotAspirator, x: number, y: number): void {
     // console.log("RobotAspiratorRenderAnimationService - drawRobotLabels()");
 
     const LABEL_HEIGHT = 28;  // hauteur totale des deux labels (12 + 16)
@@ -136,7 +136,7 @@ export class RobotAspiratorRenderAnimationService extends RenderAnimationService
       labelBaseY
     );
 
-    const robotAspirator: RobotAspiratorModel = robot;
+    const robotAspirator: RobotAspirator = robot;
     if (!robotAspirator) return;
 
     // Label batterie (spécifique aux robots avec batteries - ex: aspirateur...)

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { RobotAspiratorModel } from '../../../../classes/models/robot-model/robot-aspirator-model/robot-aspirator-model';
 import { AbstractModel } from '../../../../classes/models/abstract-model';
+import { RobotAspirator } from '../../../../data-access/robot-data-access/robot.model';
 
 @Injectable({
   providedIn: 'root',
@@ -20,7 +20,7 @@ export abstract class RenderAnimationService<T extends AbstractModel = AbstractM
    * @param robot
    * @returns
    */
-  protected abstract getRobotCtxFrame(robot: RobotAspiratorModel): HTMLImageElement | undefined;
+  protected abstract getRobotCtxFrame(robot: RobotAspirator): HTMLImageElement | undefined;
 
   /**
    * Dessine un label près du robot (ex: nom, niveau de batterie...)
@@ -30,5 +30,5 @@ export abstract class RenderAnimationService<T extends AbstractModel = AbstractM
    * @param y
    * @returns
    */
-  protected abstract drawRobotLabels(robot: RobotAspiratorModel, x: number, y: number): void;
+  protected abstract drawRobotLabels(robot: RobotAspirator, x: number, y: number): void;
 }

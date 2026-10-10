@@ -2,12 +2,12 @@ import { inject, Injectable } from '@angular/core';
 import { GridPosition } from '../../../classes/models/grid-position';
 import { PixelPosition } from '../../../classes/models/pixel-position';
 import { LoggerService } from '../../main-services/logger-service/logger.service';
-import { RobotModel } from '../../../classes/models/robot-model/robot-model';
+import { Robot } from '../../../data-access/robot-data-access/robot.model';
 
 @Injectable({
   providedIn: 'root'
 })
-export abstract class RobotActionService<T extends RobotModel = RobotModel> {
+export abstract class RobotActionService<T extends Robot = Robot> {
 
   public serviceName = "";
 

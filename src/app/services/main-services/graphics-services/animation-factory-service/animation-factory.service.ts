@@ -1,6 +1,5 @@
 import { inject, Injectable, signal, Signal, WritableSignal } from '@angular/core';
 import { AssetService } from '../asset-service/asset.service';
-import { RobotModel } from '../../../../classes/models/robot-model/robot-model';
 
 import { RenderAnimationService } from '../render-animation-service/render-animation.service';
 import { RobotActionService } from '../../../robot-services/robot-action-services/robot-action.service';
@@ -9,6 +8,7 @@ import { ActionFactoryService } from '../action-factory-service/action-factory.s
 import { AssetFactoryService } from '../asset-factory-service/asset-factory.service';
 import { RobotDataFactoryService } from '../../../robot-services/robot-data-factory-service/robot-data-factory.service';
 import { RobotDataService } from '../../../robot-services/robot-data-services/robot-data.service';
+import { Robot } from '../../../../data-access/robot-data-access/robot.model';
 
 @Injectable({
   providedIn: 'root',
@@ -49,7 +49,7 @@ export class AnimationFactoryService {
 
   // Map de robots (type générique utilisé par la factory)
   // Au lieu d'assigner une fois au constructeur...
-  public get robotSignals(): Map<string, Signal<RobotModel>> {
+  public get robotSignals(): Map<string, Signal<Robot>> {
     return this.robotDataFactoryService.robotSignals; // recalculé à chaque accès
   }
 
