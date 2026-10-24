@@ -1,4 +1,4 @@
-import { inject, Injectable, signal, Signal, WritableSignal } from '@angular/core';
+import { inject, Injectable, signal, WritableSignal } from '@angular/core';
 import { AssetService } from '../asset-service/asset.service';
 
 import { RenderAnimationService } from '../render-animation-service/render-animation.service';
@@ -8,7 +8,8 @@ import { ActionFactoryService } from '../action-factory-service/action-factory.s
 import { AssetFactoryService } from '../asset-factory-service/asset-factory.service';
 import { RobotDataFactoryService } from '../../../robot-services/robot-data-factory-service/robot-data-factory.service';
 import { RobotDataService } from '../../../robot-services/robot-data-services/robot-data.service';
-import { Robot } from '../../../../data-access/robot-data-access/robot.model';
+import { RobotStore } from '../../../../data-stores/robot.signal-store';
+import { isAspiroman } from '../../../../data-access/robot-data-access/robot.model';
 
 @Injectable({
   providedIn: 'root',
@@ -30,6 +31,8 @@ export class AnimationFactoryService {
 
   private renderAllAnimationServicesTab: RenderAnimationService[] = this.renderFactoryService.getAllRenderAnimationServicesTab();
 
+  private robotStore = inject(RobotStore);
+
   // ─── Canvas ─────────────────────────────────────────────────────────────────
 
   protected ctx!: CanvasRenderingContext2D;
@@ -49,9 +52,10 @@ export class AnimationFactoryService {
 
   // Map de robots (type générique utilisé par la factory)
   // Au lieu d'assigner une fois au constructeur...
-  public get robotSignals(): Map<string, Signal<Robot>> {
-    return this.robotDataFactoryService.robotSignals; // recalculé à chaque accès
-  }
+  // public get robotSignals(): Signal<RobotStateItem[] | undefined> {
+  //   return this.robotStore.robots; // recalculé à chaque accès
+  //   // return this.robotDataFactoryService.robotSignals; // recalculé à chaque accès
+  // }
 
   // ─── État boucle bots (maîtresse du canvas) ──────────────────────────────────
   protected areBotsRunning = false;
@@ -85,11 +89,11 @@ export class AnimationFactoryService {
   public createRobotPlayersAnimationParams() {
     console.log("AnimationFactoryService - createRobotPlayersAnimationParams");
 
-    this.robotSignals.forEach(robotSignal => {
-      if (robotSignal().robotType === "player") {
-        this._isPlayerRunningSignals.set(robotSignal().robotName, signal(false));
-        this.lastPlayerStepTimeSignals.set(robotSignal().robotName, signal(0));
-        this.playerAnimationFrameId.set(robotSignal().robotName, signal(0));
+    this.robotStore.players().forEach(player => {
+      if (player.robotType === "player") {
+        this._isPlayerRunningSignals.set(player.robotName, signal(false));
+        this.lastPlayerStepTimeSignals.set(player.robotName, signal(0));
+        this.playerAnimationFrameId.set(player.robotName, signal(0));
       }
     });
   }
@@ -117,7 +121,7 @@ export class AnimationFactoryService {
   public async loadCanvasImages(): Promise<void> {
     console.log('AnimationFactoryService - loadCanvasImages()');
     await Promise.all(
-      this.assetServicesTab.map(assetService => assetService.loadAssets()) // ✅ parallèle
+      this.assetServicesTab.map(assetService => assetService.loadAssets()) // parallèle
     );
   }
 
@@ -157,8 +161,9 @@ export class AnimationFactoryService {
     console.log('AnimationFactoryService - startBotsAnimation()');
     this.ctx = ctx;
 
-    if (this.robotSignals.size <= 0) return this.ctx;
-    if (this.areBotsRunning) return this.ctx;
+    const robots = this.robotStore?.robots();
+    if (!robots || (robots && robots?.length <= 0) || this.areBotsRunning) return this.ctx;
+
     this.areBotsRunning = true;
 
     this.lastBotsStepTime = performance.now();
@@ -180,7 +185,7 @@ export class AnimationFactoryService {
       }
 
       if (sequenceEnded) {
-        if (!this.robotDataFactoryService.hasActiveRobots()) {
+        if (!this.robotStore.hasActiveRobots()) {
           console.log('AnimationFactoryService - bots : plus de robots actifs, arrêt');
           this.stopBotsAnimation();
           return;
@@ -243,7 +248,14 @@ export class AnimationFactoryService {
     this.ctx = ctx;
     if (!this.ctx) return;
 
-    if (this.robotSignals.size <= 0) return;
+    const robots = this.robotStore?.robots();
+    if (!robots || (robots && robots?.length <= 0)) return;
+
+    const robot = robots.find(r => r.robotName === playerName);
+    if (!robot) return;
+
+    // ✅ Garde AVANT tout : joueur éliminé → ni dispatch, ni animation
+    if (isAspiroman(robot) && robot.isEliminated) return;
 
     // Mise à jour du modèle (déplacement + cellules visitées)
     this.actionServicesTab.forEach(actionService => {

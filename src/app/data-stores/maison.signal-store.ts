@@ -1,13 +1,14 @@
 import { signalStore, withComputed, withHooks, withMethods } from '@ngrx/signals';
-import { withActions, withSelectors } from '../shared/ngxs.utils';
+import { withActions, withSelectors } from '../../shared/ngxs.utils';
 import { DestroyRef, computed, inject } from '@angular/core';
 import { Actions, ofActionSuccessful } from '@ngxs/store';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { tap } from 'rxjs';
-import { GridPosition } from './classes/models/grid-position';
-import { CellElement, newDefaultCell } from './data-access/maison-data-access/maison.model';
-import { CellSelectors } from './data-access/maison-data-access/maison.selector';
-import { InitMaison, AddCell, GetCellAtPosition, UpdateCellByItsPosition, UpdateCellType, UpdateCellVisited, UpdateCellReserved } from './data-access/maison-data-access/maison.actions';
+import { GridPosition } from '../classes/models/grid-position';
+import { CellElement, newDefaultCell } from '../data-access/maison-data-access/maison.model';
+import { CellSelectors } from '../data-access/maison-data-access/maison.selector';
+import { InitMaison, AddCell, UpdateCellByItsPosition, UpdateCellType, UpdateCellVisited, UpdateCellReserved } from '../data-access/maison-data-access/maison.actions';
+import { PixelPosition } from '../classes/models/pixel-position';
 
 export const CellStore = signalStore(
     { providedIn: 'root' },
@@ -15,57 +16,42 @@ export const CellStore = signalStore(
         cells: CellSelectors.items,
         rows: CellSelectors.rows,
         cols: CellSelectors.cols,
-        obstacles: CellSelectors.obstacles
-    }),
-    withSelectors({
-        cellByPosition: CellSelectors.cellByPosition,
-    }),
-    withSelectors({
-        floorItems: CellSelectors.floorItems,
-    }),
-    withSelectors({
-        unVisitedCells: CellSelectors.unVisitedItems,
-    }),
-    withSelectors({
-        visitedCells: CellSelectors.visitedItems,
-    }),
-    withSelectors({
-        reservedCells: CellSelectors.reservedItems,
+        obstacles: CellSelectors.obstacles,
+        floorItems: CellSelectors.floorItems ?? [],
+        unVisitedCells: CellSelectors.unVisitedItems ?? [],
+        visitedCells: CellSelectors.visitedItems ?? [],
+        reservedCells: CellSelectors.reservedItems ?? [],
     }),
     withMethods((store) => ({
         cellAtPosition(position: GridPosition): CellElement | undefined {
-            return store.cells()?.find(
+            return store.cells().find(
                 (cell) =>
                     cell.position.col === position.col &&
                     cell.position.row === position.row
+            );
+        },
+        calculatePixelCoordinates(gridPosition: GridPosition): PixelPosition {
+            const PIXELS_PER_STEP: number = 50; // Pixels à parcourir dans un intervale donné
+            return new PixelPosition(
+                gridPosition.col * PIXELS_PER_STEP,  // col → x (left)
+                gridPosition.row * PIXELS_PER_STEP   // row → y (top)
             );
         },
     })),
     withActions({
         initMaison: InitMaison,
         addCell: AddCell,
-        getCellAtPosition: GetCellAtPosition,
         updateCellByItsPosition: UpdateCellByItsPosition,
         updateCellType: UpdateCellType,
         updateCellVisited: UpdateCellVisited,
         updateCellReserved: UpdateCellReserved,
     }),
     withComputed((store) => ({
-        cellsCount: computed(() => store.cells()?.length),
-    })),
-    withComputed((store) => ({
-        floorCellsCount: computed(() => store?.floorItems()?.length),
-    })),
-    withComputed((store) => ({
-        unVisitedCellsCount: computed(() => store?.unVisitedCells()?.length),
-    })),
-    withComputed((store) => ({
-        visitedCellsCount: computed(() => store?.visitedCells()?.length),
-    })),
-    withComputed((store) => ({
-        reservedCellsCount: computed(() => store?.reservedCells()?.length),
-    })),
-    withComputed((store) => ({
+        cellsCount: computed(() => store.cells().length),
+        floorCellsCount: computed(() => store.floorItems().length),
+        unVisitedCellsCount: computed(() => store.unVisitedCells().length),
+        visitedCellsCount: computed(() => store.visitedCells().length),
+        reservedCellsCount: computed(() => store.reservedCells().length),
         // Grille 2D : grid [row][col]
         maisonGrid: computed(() => {
             const cells = store.cells();
@@ -94,6 +80,16 @@ export const CellStore = signalStore(
                 grid[cell.position.row][cell.position.col] = cell;
             }
             return grid;
+        }),
+        visitedCountByVisitor: computed(() => {
+            // Map<robotName, nombre de cases visitées> — recalculée seulement si les cellules changent
+            const counts = new Map<string, number>();
+            for (const cell of store.visitedCells()) {
+                if (cell.visitorName != null) {
+                    counts.set(cell.visitorName, (counts.get(cell.visitorName) ?? 0) + 1);
+                }
+            }
+            return counts;
         }),
     })),
     withHooks({

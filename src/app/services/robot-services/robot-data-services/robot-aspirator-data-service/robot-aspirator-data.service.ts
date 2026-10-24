@@ -1,4 +1,4 @@
-import { inject, Injectable, Signal, signal, WritableSignal } from '@angular/core';
+import { computed, inject, Injectable, Signal, signal, WritableSignal } from '@angular/core';
 import { RobotDataService as RobotDataService } from '../robot-data.service';
 import { GridPosition } from '../../../../classes/models/grid-position';
 import { LoggerService } from '../../../main-services/logger-service/logger.service';
@@ -40,49 +40,37 @@ export abstract class RobotAspiratorDataService extends RobotDataService<RobotAs
 
       // Ajout de la base du robot dans la Maison
       const robotBasePosition: GridPosition = { ...robotAspiratorModel.basePosition };
-      this.maisonDataNettoyageService.updateMaisonRobotBase(robotBasePosition);
+      this.maisonDataNettoyageService.updateMaisonRobotBase(robotBasePosition, robotAspiratorModel.robotName);
     });
   }
 
+  robots: RobotAspirator[] = [];
+
   /**
-   * Enregistre les signaux des robots dans une liste de son type spécifique (pour synchroniser les données)
-   *
-   * @param robotModel
+   *  Init : dispatche simplement l'action
    */
-  public override setRobotSignalsList(robotAspiratorModelTab: RobotAspirator[]): void {
+  public override setRobotSignalsList(robotAspiratorTab: RobotAspirator[]): void {
     console.log("RobotAspiratorDataService - setRobotSignalsList()");
 
-    robotAspiratorModelTab.forEach((robotModel: RobotAspirator) => {
-      // 1/ ajout du robot à la liste:
-      const robotAspiratorModel: RobotAspirator = { ...robotModel };
-      this.registerRobotInList(robotAspiratorModel);
-
-      // 2/ enregistrer le nom de chaque robot dans la liste de robotNames pour le template binding:
-      this._robotNames.update(robotNames => [...robotNames, robotModel.robotName]);
-    });
+    this.robotStore.addRobots(robotAspiratorTab);
   }
 
-  /**
-  * Enregistre un nouveau robot dans la liste de son type spécifique
-  */
-  protected registerRobotInList(robotModel: RobotAspirator): void {
-    console.log("RobotAspiratorDataService - registerRobotInList()");
-
-    if (!this.robotSignals.has(robotModel.robotName)) {
-      this._robotSignals.set(robotModel.robotName, signal(robotModel));
-    } else {
-      console.warn(`Robot ${robotModel.robotName} déjà enregistré`);
-    }
-  }
 
   /**
- * Méthode de factory qui récupère les signaux des robots selon le type spécifié dans une liste (pour synchroniser les données)
- *
- * @returns
- */
+   *  Vue Map dérivée, reconstruite à la demande, jamais stockée :
+   */
   public override getRobotSignalsList(): Map<string, Signal<RobotAspirator>> {
     console.log("RobotAspiratorDataService - getRobotSignalsList()");
-    return this._robotSignals;
+
+    const map = new Map<string, Signal<RobotAspirator>>();
+    console.log('robots RobotAspirator:', this.robotStore.aspirators());
+
+    return map;
+  }
+
+  // Accès à UN robot, réactif :
+  public robotSignalByName(name: string): Signal<RobotAspirator | undefined> {
+    return computed(() => this.robotStore.robotByName(name) as RobotAspirator | undefined);
   }
 
   /**
@@ -99,18 +87,15 @@ export abstract class RobotAspiratorDataService extends RobotDataService<RobotAs
   public override updateCurrentCoordinates(name: string): PixelPosition {
     console.log("RobotDataService - updateCurrentCoordinates()");
 
-    let robotAspiratorSignal = this._robotSignals.get(name) as Signal<RobotAspirator | undefined>;
-    console.log("robotAspiratorSignal = " + robotAspiratorSignal);
-    if (!robotAspiratorSignal) return new PixelPosition(-50, -50);
-    console.log(robotAspiratorSignal);
+    const robot = this.robotStore.robotByName(name);
 
-    const robot: RobotAspirator | undefined = robotAspiratorSignal();
+    // const robot: RobotAspirator | undefined = robotAspiratorSignal();
     if (!robot) return new PixelPosition(-50, -50);
 
     // calcul de la position actuelle en pixels du robot en fonction de son index dans le tableau représentant l'espace en 2D (la maison)
     // (nécessaire sinon bug au retour à la base)
-    const x = this.calculatePixelCoordinates(robot.position).x;
-    const y = this.calculatePixelCoordinates(robot.position).y;
+    const x = this.cellStore.calculatePixelCoordinates(robot.position).x;
+    const y = this.cellStore.calculatePixelCoordinates(robot.position).y;
     if (!robot.isRobotStarted) return new PixelPosition(x, y);
 
     this.moveRobotCoordinates(name, robot.lastPosition, robot.position);
@@ -139,22 +124,15 @@ export abstract class RobotAspiratorDataService extends RobotDataService<RobotAs
   public override moveRobotCoordinates(robotName: string, position: GridPosition, nextPosition: GridPosition): void {
     console.log("RobotDataService - moveRobotCoordinates()");
 
-    const robotSignal: WritableSignal<RobotAspirator> | undefined = this._robotSignals.get(robotName);
-    if (!robotSignal) return;
-
-    const robot = robotSignal();
+    const robot: RobotAspirator | undefined = this.robotStore.aspiratorByName(robotName);
     if (!robot) return;
 
-    const newStartCoordinate: PixelPosition = this.calculatePixelCoordinates(position);
-    const newTargetCoordinate: PixelPosition = this.calculatePixelCoordinates(nextPosition);
+    const newStartCoordinate: PixelPosition = this.cellStore.calculatePixelCoordinates(position);
+    const newTargetCoordinate: PixelPosition = this.cellStore.calculatePixelCoordinates(nextPosition);
 
     if (newStartCoordinate.x !== newTargetCoordinate.x || newStartCoordinate.y !== newTargetCoordinate.y) {
 
-      robotSignal.update(robot => ({
-        ...robot,
-        startCoordinate: { ...newStartCoordinate }, // la précédente coordonnée est modifiée avec l'actuelle
-        targetCoordinate: { ...newTargetCoordinate }, // la nouvelle coordonnée prend sa valeur suivante
-      }));
+      this.robotStore.moveRobotCoordinates(robotName, newStartCoordinate, newTargetCoordinate);
     }
     console.log(`### ${robotName}: tableau[${nextPosition.col},${nextPosition.row}] → pixels(${newTargetCoordinate.x}, ${newTargetCoordinate.y})`);
   }
@@ -165,30 +143,32 @@ export abstract class RobotAspiratorDataService extends RobotDataService<RobotAs
   public override moveRobot(robotName: string, nextPosition: GridPosition): void {
     console.log("RobotActionAspiratorService - moveRobot()");
 
-    const robotSignal: WritableSignal<RobotAspirator> | undefined = this._robotSignals.get(robotName);
-    if (!robotSignal) return;
-
-    const robot = robotSignal();
+    const robot: RobotAspirator | undefined = this.robotStore.aspiratorByName(robotName);
     if (!robot) return;
 
-    // targetCoordinate = la destination en pixels de la nouvelle séquence de déplacement du robot (nouveau step)
-    const targetX = robot.targetCoordinate.x;
-    const targetY = robot.targetCoordinate.y;
+    const robotDirection = this.getRobotDirectionByPosition(robot.position, nextPosition);
+    const lastPosition = { ...robot.position };
+    const position = { ...nextPosition };
+    const batterie = robot.batterie;
+    const consommationParMouvement = robot.consommationParMouvement;
 
-    robotSignal.update(robot => ({
-      ...robot,
-      isRobotStarted: true,
-      isRobotReturningToBase: false,        // le robot ne rentre pas à la base
-      robotDirection: this.getRobotDirectionByPosition(robot.position, nextPosition),
-      lastPosition: { ...robot.position },  // la précédente position est modifiée avec l'actuelle
-      position: { ...nextPosition },        // la nouvelle position prend sa valeur suivante
-      batterie: robot.batterie - robot.consommationParMouvement,
-      // Coordonnées en pixel pour l'interpolation dans drawObject:
-      // Attention: ici seule startCoordinate est mise à jour car en cas de mise en pause,
-      // on peut avoir des bugs d'affichage au nouveau départ des bots
-      // la première trame serait positionnée sur la case précédente sans setter startCoordinate sur robot.targetCoordinate ici:
-      startCoordinate: { x: targetX, y: targetY },
-    }));
+    // targetCoordinate = la destination en pixels de la nouvelle séquence de déplacement du robot (nouveau step)
+    const startCoordinate: PixelPosition = { ...robot.targetCoordinate };
+    const targetCoordinate: PixelPosition = { ...robot.targetCoordinate };
+
+    this.robotStore.moveRobot(
+      robotName,
+      false,
+      robotDirection,
+      lastPosition,
+      position,
+      batterie,
+      consommationParMouvement,
+      startCoordinate,
+      targetCoordinate
+    );
+
+    this.robotStore.checkCollisions();
 
     console.log(`### ${robotName}: tableau[${nextPosition.col},${nextPosition.row}]- batterie(${robot.batterie})`);
   }
@@ -196,28 +176,25 @@ export abstract class RobotAspiratorDataService extends RobotDataService<RobotAs
   public moveRobotReturningToBase(robotName: string, position: GridPosition, nextPosition: GridPosition): void {
     console.log("RobotActionAspiratorService - moveRobotReturningToBase()");
 
-    const robotSignal: WritableSignal<RobotAspirator> | undefined = this._robotSignals.get(robotName);
-    if (!robotSignal) return;
+    const robot: RobotAspirator | undefined = this.robotStore.aspiratorByName(robotName);
+    if (!robot) return;
 
-    const robot = robotSignal();
-
-    const newStartCoordinate: PixelPosition = this.calculatePixelCoordinates(position);
-    const newTargetCoordinate: PixelPosition = this.calculatePixelCoordinates(nextPosition);
+    const newStartCoordinate: PixelPosition = this.cellStore.calculatePixelCoordinates(position);
+    const newTargetCoordinate: PixelPosition = this.cellStore.calculatePixelCoordinates(nextPosition);
 
     if (newStartCoordinate.x !== newTargetCoordinate.x || newStartCoordinate.y !== newTargetCoordinate.y) {
-      const targetX = robot.targetCoordinate.x;
-      const targetY = robot.targetCoordinate.y;
 
-      robotSignal.update(robot => ({
-        ...robot,
-        isRobotStarted: true,
-        isRobotReturningToBase: true,
-        robotDirection: this.getRobotDirectionByPosition(robot.position, nextPosition),
-        lastPosition: { ...robot.position },  // la précédente position est modifiée avec l'actuelle
-        position: { ...nextPosition },        // la nouvelle position prend sa valeur suivante
-        batterie: robot.batterie - robot.consommationParMouvement,
-        startCoordinate: { x: targetX, y: targetY },
-      }));
+      const robotDirection = this.getRobotDirectionByPosition(robot.position, nextPosition);
+      const position = { ...robot.position };
+      const batterie = robot.batterie;
+      const consommationParMouvement = robot.consommationParMouvement;
+
+      // targetCoordinate = la destination en pixels de la nouvelle séquence de déplacement du robot (nouveau step)
+      const startCoordinate: PixelPosition = { ...robot.targetCoordinate };
+      const targetCoordinate: PixelPosition = { ...robot.targetCoordinate };
+
+      this.robotStore.moveRobot(robotName, true, robotDirection, position, nextPosition, batterie, consommationParMouvement, startCoordinate, targetCoordinate);
+
       console.log(`### ${robotName}: tableau [${nextPosition.col},${nextPosition.row}] → pixels (${newTargetCoordinate.x}, ${newTargetCoordinate.y}) - batterie (${robot.batterie})`);
     } else {
       this.stopRobot(robotName);
@@ -235,13 +212,10 @@ export abstract class RobotAspiratorDataService extends RobotDataService<RobotAs
   public override stopRobot(robotName: string): void {
     console.log("RobotActionAspiratorService - stopRobot()");
 
-    const robotSignal: WritableSignal<RobotAspirator> | undefined = this._robotSignals.get(robotName);
-    if (!robotSignal) return;
+    const robot: RobotAspirator | undefined = this.robotStore.aspiratorByName(robotName);
+    if (!robot) return;
 
-    robotSignal.update(robot => ({
-      ...robot,
-      isRobotStarted: false,
-    }));
+    this.robotStore.stopRobot(robotName);
   }
 
   /**
@@ -249,10 +223,11 @@ export abstract class RobotAspiratorDataService extends RobotDataService<RobotAs
    */
   public override updateRobotsVisitedCells(): void {
     console.log("RobotActionAspiratorService - updateRobotsVisitedCells()");
+    const robots: RobotAspirator[] = this.robotStore.aspirators();
+    if (!robots || (robots && robots?.length <= 0)) return;
 
-    this.robotSignals.forEach((robotSignal) => {
-      const robot: RobotAspirator = robotSignal();
-      this.maisonDataNettoyageService.updateVisitedCell(robot.lastPosition, true);
+    robots.forEach((robot: RobotAspirator) => {
+      this.maisonDataNettoyageService.updateVisitedCell(robot.lastPosition, robot.robotName);
     });
   }
 

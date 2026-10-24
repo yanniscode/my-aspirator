@@ -13,13 +13,6 @@ export class AddCell {
     ) { }
 }
 
-export class GetCellAtPosition {
-    static readonly type = '[Cell] Get cell by position';
-    constructor(
-        public readonly position: GridPosition,
-    ) { }
-}
-
 export class UpdateCellByItsPosition {
     static readonly type = '[Cell] Update cell by position';
     constructor(
@@ -41,6 +34,7 @@ export class UpdateCellVisited {
     constructor(
         public readonly cellId: number,
         public readonly visited: boolean,
+        public readonly robotName: string,
     ) { }
 }
 

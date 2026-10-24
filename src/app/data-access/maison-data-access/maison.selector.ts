@@ -8,25 +8,25 @@ export class CellSelectors {
     // Sélecteur principal : toutes les cellules
     @Selector([CellState])
     static items(state: CellsStateModel): CellElement[] {
-        return state?.items;
+        return state?.items ?? [];
     }
 
     // Sélecteur principal : toutes les lignes du tableau de cellules (maison)
     @Selector([CellState])
     static rows(state: CellsStateModel): number {
-        return state.rows;
+        return state?.rows;
     }
 
     // Sélecteur principal : toutes les colonnes du tableau de cellules (maison)
     @Selector([CellState])
     static cols(state: CellsStateModel): number {
-        return state.cols;
+        return state?.cols;
     }
 
     // Sélecteur principal : tous les obstacles du tableau de cellules (maison)
     @Selector([CellState])
     static obstacles(state: CellsStateModel): GridPosition[] {
-        return state.obstacles;
+        return state?.obstacles;
     }
 
     // Sélecteur : cellules de type sol ('O' ou '_')
@@ -51,19 +51,5 @@ export class CellSelectors {
     @Selector([CellSelectors.floorItems])
     static reservedItems(floorItems: CellElement[]): CellElement[] {
         return floorItems?.filter(it => it.reserved);
-    }
-
-    // Sélecteur paramétré : cellule par position
-    // Utilise `createSelector` car `@Selector` ne gère pas les paramètres
-    static cellByPosition(position: GridPosition) {
-        return createSelector(
-            [CellSelectors.items],
-            (items: CellElement[]) => {
-                return items.find(cell =>
-                    cell.position.col === position.col &&
-                    cell.position.row === position.row
-                );
-            }
-        );
     }
 }

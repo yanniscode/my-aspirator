@@ -11,7 +11,7 @@ export class RenderFactoryService {
 
     private maisonRenderAnimationService = inject(MaisonRenderAnimationService) as RenderAnimationService;
     private robotAspiratorRenderAnimationService = inject(RobotAspiratorRenderAnimationService) as RenderAnimationService;
-    private robotAspiromanRenderAnimationService = inject(RobotAspiromanRenderAnimationService);
+    private robotAspiromanRenderAnimationService = inject(RobotAspiromanRenderAnimationService) as RenderAnimationService;
 
     /**
      * Pattern factory: tableau général de Render Animation Services de leur type spécifique vers un type générique

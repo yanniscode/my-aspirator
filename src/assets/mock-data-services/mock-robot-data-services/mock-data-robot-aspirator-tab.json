@@ -1,5 +1,6 @@
 [
     {
+        "robotId": "bot-1",
         "robotName": "Aspiroman 1",
         "robotType": "aspirator",
         "robotDirection": "EAST",
@@ -21,7 +22,7 @@
         },
         "isRobotStarted": false,
         "robotWidth": 42,
-        "labelColor": "#E969E6",
+        "labelColor": "",
         "basePosition": {
             "row": 0,
             "col": 0
@@ -31,6 +32,7 @@
         "isRobotReturningToBase": false
     },
     {
+        "robotId": "bot-2",
         "robotName": "Aspiroman 2",
         "robotType": "aspirator",
         "robotDirection": "WEST",
@@ -52,7 +54,7 @@
         },
         "isRobotStarted": false,
         "robotWidth": 42,
-        "labelColor": "#E969E6",
+        "labelColor": "",
         "basePosition": {
             "row": 0,
             "col": 9
@@ -62,6 +64,7 @@
         "isRobotReturningToBase": false
     },
     {
+        "robotId": "bot-3",
         "robotName": "Aspiroman 3",
         "robotType": "aspirator",
         "robotDirection": "WEST",
@@ -83,7 +86,7 @@
         },
         "isRobotStarted": false,
         "robotWidth": 42,
-        "labelColor": "#E969E6",
+        "labelColor": "",
         "basePosition": {
             "row": 7,
             "col": 9
@@ -93,6 +96,7 @@
         "isRobotReturningToBase": false
     },
     {
+        "robotId": "bot-4",
         "robotName": "Aspiroman 4",
         "robotType": "aspirator",
         "robotDirection": "EAST",
@@ -114,7 +118,7 @@
         },
         "isRobotStarted": false,
         "robotWidth": 42,
-        "labelColor": "#E969E6",
+        "labelColor": "",
         "basePosition": {
             "row": 7,
             "col": 0

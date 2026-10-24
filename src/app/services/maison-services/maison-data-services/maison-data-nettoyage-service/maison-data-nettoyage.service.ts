@@ -5,6 +5,7 @@ import { LoggerService } from '../../../main-services/logger-service/logger.serv
 import { Observable } from 'rxjs';
 import { MaisonConfig } from '../../../../classes/config/maison-config/maison.config';
 import { CellElement, newDefaultCell } from '../../../../data-access/maison-data-access/maison.model';
+import { RobotAspirator, RobotStateItem } from '../../../../data-access/robot-data-access/robot.model';
 
 @Injectable({
   providedIn: 'root',
@@ -41,14 +42,14 @@ export class MaisonDataNettoyageService extends MaisonDataService<MaisonConfig> 
    *
    * @param robotBasePosition
    */
-  public updateMaisonRobotBase(robotBasePosition: GridPosition): void {
+  public updateMaisonRobotBase(robotBasePosition: GridPosition, robotName: string): void {
     console.log("MaisonDataNettoyageService - updateMaisonRobotsBase()");
     console.log("base position:", robotBasePosition);
 
     // On ajoute la base de chaque robot:
 
     // TODO: remplacer updateMaisonCell() par:
-    // ✅ computed : réactif, recalculé seulement si cells ou targetPosition changent
+    // computed : réactif, recalculé seulement si cells ou targetPosition changent
     const cellAtTarget: Signal<CellElement | undefined> = computed(() => {
       const items = this.cellStore.cells();
       const pos = robotBasePosition;
@@ -61,7 +62,7 @@ export class MaisonDataNettoyageService extends MaisonDataService<MaisonConfig> 
 
     this.cellStore.updateCellType(cellAtTarget()!.cellId, "B");
     this.cellStore.updateCellReserved(cellAtTarget()!.cellId, true);
-    this.cellStore.updateCellVisited(cellAtTarget()!.cellId, true);
+    this.cellStore.updateCellVisited(cellAtTarget()!.cellId, true, robotName);
     this.cellStore.updateCellByItsPosition(cellAtTarget()!.cellId, robotBasePosition);
   }
 
@@ -103,7 +104,7 @@ export class MaisonDataNettoyageService extends MaisonDataService<MaisonConfig> 
    * @param visitedStatus
    * @returns
    */
-  public updateVisitedCell(lastPosition: GridPosition, visitedStatus: boolean): void {
+  public updateVisitedCell(lastPosition: GridPosition, robotName: string): void {
     console.log("MaisonDataNettoyageService - updateVisitedCell()");
 
     const maisonModel = this.cellStore.maisonGrid();
@@ -118,13 +119,12 @@ export class MaisonDataNettoyageService extends MaisonDataService<MaisonConfig> 
 
     // On ne veut pas que le status de la base soit modifiée
     if (lastVisitedCell.cellType !== 'B') {
-      lastVisitedCell.visited = visitedStatus;
-      if (lastVisitedCell.visited) {
-        lastVisitedCell.cellType = '_';
-      }
+      lastVisitedCell.visited = true;
+      lastVisitedCell.cellType = '_';
+      lastVisitedCell.visitorName = robotName;
     }
 
-    this.cellStore.updateCellVisited(lastVisitedCell.cellId, lastVisitedCell.visited);
+    this.cellStore.updateCellVisited(lastVisitedCell.cellId, lastVisitedCell.visited, robotName);
   }
 
   private log(message: string) {

@@ -1,5 +1,6 @@
 [
     {
+        "robotId": "player-1",
         "robotName": "Player 1",
         "robotType": "player",
         "robotDirection": "EAST",
@@ -28,9 +29,12 @@
         },
         "batterie": 45,
         "consommationParMouvement": 0.5,
-        "isRobotReturningToBase": false
+        "isRobotReturningToBase": false,
+        "life": 1,
+        "isEliminated": false
     },
     {
+        "robotId": "player-2",
         "robotName": "Player 2",
         "robotType": "player",
         "robotDirection": "WEST",
@@ -59,6 +63,8 @@
         },
         "batterie": 45,
         "consommationParMouvement": 0.5,
-        "isRobotReturningToBase": false
+        "isRobotReturningToBase": false,
+        "life": 1,
+        "isEliminated": false
     }
 ]

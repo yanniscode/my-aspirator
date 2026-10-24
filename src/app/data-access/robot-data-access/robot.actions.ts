@@ -1,38 +1,54 @@
+import { GridPosition } from "../../classes/models/grid-position";
+import { PixelPosition } from "../../classes/models/pixel-position";
+import { Direction } from "../../classes/utils/direction";
 import { RobotStateItem } from "./robot.model";
 
 // cf: setRobotSignalsList()
 export class InitRobotsList {
     static readonly type = '[Robots] Init Robots List';
-    constructor(public items: RobotStateItem[]) { }
+    constructor(public robots: RobotStateItem[]) { }
+}
+export class AddRobots {
+    static readonly type = '[Robots] Add Robots';
+    constructor(public robots: RobotStateItem[]) { }
 }
 
-// TODO:
-// cf: getRobotSignalsList()
-// export class GetRobotsList {
-//     static readonly type = '[Robots] Get Robots List';
-//     constructor() { }
-// }
+export class RemoveRobots {
+    static readonly type = '[Robots] Remove Robots';
+    constructor() { }
+}
 
-// cf: registerRobotInList()
+export class MoveRobotCoordinates {
+    static readonly type = '[Robots] Move Robot Coordinates';
+    constructor(public robotName: string, public newStartCoordinate: PixelPosition, public newTargetCoordinate: PixelPosition) { }
+}
 
-// cf: clearAllRobotsList()
+export class MoveRobot {
+    static readonly type = '[Robots] Move Robot';
+    constructor(
+        public robotName: string,
+        public isRobotReturningToBase: boolean,
+        public robotDirection: Direction,
+        public lastPosition: GridPosition,  // la précédente position est modifiée avec l'actuelle
+        public nextPosition: GridPosition,        // la nouvelle position prend sa valeur suivante
+        public batterie: number,
+        public consommationParMouvement: number,
+        public startCoordinate: PixelPosition,
+        public targetCoordinate: PixelPosition,
+    ) { }
+}
 
-// cf: updateCurrentCoordinates()
+export class StopRobot {
+    static readonly type = '[Robots] Stop Robot';
+    constructor(public robotName: string) { }
+}
 
-// cf: moveRobotCoordinates()
+export class EliminatePlayer {
+    static readonly type = '[Robots] Eliminate Player';
+    constructor(public robotName: string) { }
+}
 
-// cf: calculatePixelCoordinates()
+export class CheckCollisions {
+    static readonly type = '[Robots] Check Collisions';
+}
 
-// cf: moveRobot()
-
-// cf: stopRobot()
-
-// cf: updateRobotsVisitedCells()
-
-// cf: createPlayersActionParams()
-
-// cf: getJsonData()
-
-// cf: setRobotAspiratorBases()
-
-// cf: getRobotDirectionByPosition()

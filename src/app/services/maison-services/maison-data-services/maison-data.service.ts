@@ -2,7 +2,7 @@ import { inject, Injectable } from '@angular/core';
 
 import { Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
-import { CellStore } from '../../../maison.signal-store';
+import { CellStore } from '../../../data-stores/maison.signal-store';
 import { MaisonConfig } from '../../../classes/config/maison-config/maison.config';
 
 @Injectable({

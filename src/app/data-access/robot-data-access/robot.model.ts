@@ -9,8 +9,7 @@ export interface Robot {
     robotId: string;
 
     robotName: string;
-    robotType: string;
-    // Positions précédente et actuelle
+    robotType: 'aspirator' | 'player';
     robotDirection: Direction;
     lastPosition: GridPosition;
     position: GridPosition;
@@ -20,35 +19,35 @@ export interface Robot {
     isRobotStarted: boolean;
     robotWidth: number;
     labelColor: string;
+    basePosition: GridPosition;
+    batterie: number;
+    consommationParMouvement: number;
 }
 
 // Bot aspirateur (ex-RobotAspiratorModel)
 export interface RobotAspirator extends Robot {
-    // robotType: 'aspirator';  // ← discriminant
-
-    // Position de la base de charge du robot
-    basePosition: GridPosition;
-    // Niveau de batterie (en pourcentage)
-    batterie: number;
-    // Combien d'énergie est consommée par mouvement
-    consommationParMouvement: number;
     isRobotReturningToBase: boolean;
 }
 
 // Joueur manuel (ex-AspiromanModel)
 export interface Aspiroman extends Robot {
-    // spécificités du joueur humain (aucune variable isReturningToBase)
-
-    // robotType: 'player';     // ← discriminant
-
-    basePosition: GridPosition;
-    batterie: number;
-    consommationParMouvement: number;
+    life: number;
+    isEliminated: boolean; // false par défaut
 }
 
 // Union = "la classe générique" du store
 export type RobotStateItem = RobotAspirator | Aspiroman;
 
 export interface RobotsStateModel {
-    items: RobotStateItem[];
+    robots: RobotStateItem[];
 }
+
+// robot.model.ts
+export function isAspiroman(robot: RobotStateItem): robot is Aspiroman {
+    return robot.robotType === 'player';
+}
+
+export function isRobotAspirator(robot: RobotStateItem): robot is RobotAspirator {
+    return robot.robotType === 'aspirator';
+}
+

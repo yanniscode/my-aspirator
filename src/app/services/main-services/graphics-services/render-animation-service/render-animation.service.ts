@@ -1,12 +1,14 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { AbstractModel } from '../../../../classes/models/abstract-model';
-import { RobotAspirator } from '../../../../data-access/robot-data-access/robot.model';
+import { RobotStateItem } from '../../../../data-access/robot-data-access/robot.model';
+import { RobotStore } from '../../../../data-stores/robot.signal-store';
 
 @Injectable({
   providedIn: 'root',
 })
 export abstract class RenderAnimationService<T extends AbstractModel = AbstractModel> {
 
+  protected robotStore = inject(RobotStore);
   /**
    * Méthode générique de dessin d'objet sur le Canvas (ex: Maison, Robot...)
    *
@@ -20,7 +22,7 @@ export abstract class RenderAnimationService<T extends AbstractModel = AbstractM
    * @param robot
    * @returns
    */
-  protected abstract getRobotCtxFrame(robot: RobotAspirator): HTMLImageElement | undefined;
+  protected abstract getRobotCtxFrame(robot: RobotStateItem): HTMLImageElement | undefined;
 
   /**
    * Dessine un label près du robot (ex: nom, niveau de batterie...)
@@ -30,5 +32,5 @@ export abstract class RenderAnimationService<T extends AbstractModel = AbstractM
    * @param y
    * @returns
    */
-  protected abstract drawRobotLabels(robot: RobotAspirator, x: number, y: number): void;
+  protected abstract drawRobotLabels(robot: RobotStateItem, x: number, y: number): void;
 }

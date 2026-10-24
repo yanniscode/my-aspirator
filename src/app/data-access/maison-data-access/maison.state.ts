@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Action, State, StateContext } from '@ngxs/store';
-import { CellElement, CellsStateModel, newCell, newDefaultCell } from './maison.model';
-import { AddCell, GetCellAtPosition, InitMaison, UpdateCellByItsPosition, UpdateCellReserved, UpdateCellType, UpdateCellVisited } from './maison.actions';
+import { CellElement, CellsStateModel, newCell } from './maison.model';
+import { AddCell, InitMaison, UpdateCellByItsPosition, UpdateCellReserved, UpdateCellType, UpdateCellVisited } from './maison.actions';
 import { GridPosition } from '../../classes/models/grid-position';
 
 @State<CellsStateModel>({
@@ -36,11 +36,11 @@ export class CellState {
 
         ctx.setState({
             ...state,
-            items,                                   // remplace, pas de concat successifs
+            items,                                // remplace, pas de concat successifs
             rows: action.rows,
             cols: action.cols,
             obstacles: action.obstacles,
-            cellId: state.cellId + items.length,      // avancer le compteur d'ID
+            cellId: state.cellId + items.length,  // avancer le compteur d'ID
         });
     }
 
@@ -55,16 +55,6 @@ export class CellState {
         });
     }
 
-    @Action(GetCellAtPosition)
-    getCellAtPosition(ctx: StateContext<CellsStateModel>, action: GetCellAtPosition): CellElement | undefined {
-        const state = ctx.getState();
-
-        return state.items.find(cell =>
-            cell.position.col === action.position.col &&
-            cell.position.row === action.position.row
-        );
-    }
-
     @Action(UpdateCellType)
     updateCellType(ctx: StateContext<CellsStateModel>, action: UpdateCellType): void {
         const state: CellsStateModel = ctx.getState();
@@ -75,7 +65,7 @@ export class CellState {
 
         ctx.setState({
             ...state,
-            items, // ✅ Immutabilité
+            items, // Immutabilité
         });
     }
 
@@ -89,7 +79,7 @@ export class CellState {
 
         ctx.setState({
             ...state,
-            items, // ✅ Immutabilité
+            items, // Immutabilité
         });
     }
 
@@ -103,7 +93,7 @@ export class CellState {
 
         ctx.setState({
             ...state,
-            items, // ✅ Immutabilité
+            items, // Immutabilité
         });
     }
 
@@ -117,7 +107,7 @@ export class CellState {
 
         ctx.setState({
             ...state,
-            items, // ✅ Immutabilité
+            items, // Immutabilité
         });
     }
 }

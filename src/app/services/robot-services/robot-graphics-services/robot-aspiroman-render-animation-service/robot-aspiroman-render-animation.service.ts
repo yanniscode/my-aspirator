@@ -1,4 +1,4 @@
-import { inject, Injectable, Signal } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { AssetRobotService } from '../asset-robot-service/asset-robot.service';
 import { RenderAnimationService } from '../../../main-services/graphics-services/render-animation-service/render-animation.service';
 import { RobotAspiromanDataService } from '../../robot-data-services/robot-aspiroman-data-service/robot-aspiroman-data.service';
@@ -17,46 +17,50 @@ export class RobotAspiromanRenderAnimationService extends RenderAnimationService
   private readonly CELL_SIZE = 50;  // largeur d'une cellule de la maison
   private readonly HEIGHT = 400;    // hauteur de la maison
 
-  protected readonly aspiromanSignals: Map<string, Signal<Aspiroman>>
-    = this.robotAspiromanDataService.robotSignals;
-
   public override drawObject(ctx: CanvasRenderingContext2D): CanvasRenderingContext2D {
     //     console.log("RobotAspiromanRenderAnimationService - drawObject()");
 
     this.ctx = ctx;
 
-    for (const [robotName, robotSignal] of this.aspiromanSignals) {
-      const robot: Aspiroman | undefined = robotSignal();
-      if (!robot) continue;
+    const playersTab: Aspiroman[] = this.robotStore.players();
+
+    if (!playersTab) return this.ctx;
+
+    playersTab.forEach(player => {
 
       this.ctx.save();
 
       let x: number;
       let y: number;
 
-      const animationPlayerProgSignal = this.robotAspiromanDataService?._animationPlayerProgSignals?.get(robot.robotName);
-      if (!animationPlayerProgSignal) continue;
+      const animationPlayerProgSignal = this.robotAspiromanDataService?._animationPlayerProgSignals?.get(player.robotName);
+      if (!animationPlayerProgSignal) return this.ctx;
+
       const animationPlayerProgress = animationPlayerProgSignal();
 
       const progress: number = animationPlayerProgress;
 
-      const interpX = robot.startCoordinate.x + (robot.targetCoordinate.x - robot.startCoordinate.x) * progress;
-      const interpY = robot.startCoordinate.y + (robot.targetCoordinate.y - robot.startCoordinate.y) * progress;
+      const interpX = player.startCoordinate.x + (player.targetCoordinate.x - player.startCoordinate.x) * progress;
+      const interpY = player.startCoordinate.y + (player.targetCoordinate.y - player.startCoordinate.y) * progress;
 
-      x = interpX + (this.CELL_SIZE - robot.robotWidth) / 2;
-      y = interpY + (this.CELL_SIZE - robot.robotWidth) / 2;
+      x = interpX + (this.CELL_SIZE - player.robotWidth) / 2;
+      y = interpY + (this.CELL_SIZE - player.robotWidth) / 2;
 
-      const robotImage: HTMLImageElement | undefined = this.getRobotCtxFrame(robot);
+      const robotImage: HTMLImageElement | undefined = this.getRobotCtxFrame(player);
       if (!robotImage) {
         console.warn('Image robot non chargée');
         this.ctx.restore();
         return this.ctx;
       }
 
-      this.ctx.drawImage(robotImage, x, y, robot.robotWidth, robot.robotWidth);
-      this.drawRobotLabels(robot, x, y);
+      this.ctx.drawImage(robotImage, x, y, player.robotWidth, player.robotWidth);
+      this.drawRobotLabels(player, x, y);
+
       this.ctx.restore();
-    }
+
+      // TODO: RETURN ICI ??
+      return this.ctx;
+    });
 
     return this.ctx;
   }

@@ -22,21 +22,6 @@ export abstract class RobotActionAspiromanService extends RobotActionService<Asp
     this.PIXELS_PER_STEP = 50;
   }
 
-  /**
-   * Conversion de l'index dans le tableau (GridPosition) en Coordonnée en Pixels (PixelPosition) pour l'affichage CSS
-   *
-   * @param grid
-   * @returns
-   */
-  public override calculatePixelCoordinates(grid: GridPosition): PixelPosition {
-    // console.log("RobotActionAspiromanService - calculatePixelCoordinates()");
-
-    return new PixelPosition(
-      grid.col * this.PIXELS_PER_STEP,  // col → x (left)
-      grid.row * this.PIXELS_PER_STEP   // row → y (top)
-    );
-  }
-
   // TODO: revoir CSS de la maison si on affiche ces logs dans l'ihm
   /**
    * Méthode de logs(affichables)

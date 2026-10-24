@@ -16,7 +16,7 @@
 </div>
 
 <div class=" infos-container">
-  <h2>Main Test Signaux avec {{ robotNames().length }} robots</h2>
+  <h2>Main Test Signaux avec {{ robotStore.robotNames().length }} robots</h2>
   <p>Nombre total de cases : {{ cellStore.cellsCount() }}</p>
   <p>Nombre de cases à nettoyer : {{ cellStore.floorCellsCount() }}</p>
   <p>Nombre de cases non-nettoyées : {{ cellStore.unVisitedCellsCount() }}</p>
@@ -24,19 +24,34 @@
   <p>Nombre de cases réservées : {{ cellStore.reservedCellsCount() }}</p>
   <!-- Note: accès uniquement aux infos génériques des robots (ex: pas le niveau de batterie, spécifique au robot de type spirateur et robot Joueur dans notre cas) -->
   <div class="robot-liste-infos">
-    @for (name of robotNames(); track name) {
+    @for (name of robotStore.robotNames(); track name) {
     <div class="robot-card">
-      @if (robotSignal(name)(); as robot) {
-      <h3>🤖 {{ robot.robotName }}</h3>
+      @if (robotStore.robotByName(name); as robot) {
+      <h3>🤖 {{ name }}</h3>
       <div class="robot-info">
-        <!-- <p>🔋 Batterie: {{ robot.batterie }}%</p> -->
+        <p>📍 Nombre de cases nettoyées: {{ cellStore.visitedCountByVisitor().get(name) ?? 0 }}</p>
+        <p>🔋 Batterie: {{ robot.batterie }}%</p>
+        <!-- Champs spécifiques au joueur manuel -->
+        @if (isAspiroman(robot)) {
+        @if (robot.isEliminated) {
+        <p>💀 Éliminé... (score final conservé)</p>
+        }
+        @else {
+        <p>❤️ Life: {{ robot.life }}%</p>
+        <p>⚡ Status: {{ robot.batterie > 0 && robot.isEliminated === false ? 'Actif' : 'Inactif' }}</p>
+        }
+        }
+        <!-- Champs spécifiques au bot aspirateur -->
+        @if (isRobotAspirator(robot)) {
+        <p>🏠 Retour base: {{ robot.isRobotReturningToBase ? 'Oui' : 'Non' }}</p>
+        <p>⚡ Status: {{ robot.batterie > 0 ? 'Actif' : 'Inactif' }}</p>
+        }
         <p>📍 Last Position: ({{ robot.lastPosition.col }}, {{ robot.lastPosition.row }})
         <p>📍 Position: ({{ robot.position.col }}, {{ robot.position.row }})
         </p>
         <p>📍 StartCoordinate: ({{ robot.startCoordinate.x }}, {{ robot.startCoordinate.y }})
         <p>📍 TargetCoordinate: ({{ robot.targetCoordinate.x }}, {{ robot.targetCoordinate.y }})
         </p>
-        <!-- <p>⚡ Status: {{ robot.batterie > 0 ? 'Actif' : 'Inactif' }}</p> -->
       </div>
       } @else {
       <p>⚠️ Robot {{ name }} non trouvé</p>

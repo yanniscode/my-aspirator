@@ -1,13 +1,13 @@
-import { Component, ChangeDetectionStrategy, inject, ViewChild, ElementRef, AfterViewInit, HostListener, Signal, OnDestroy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, ViewChild, ElementRef, AfterViewInit, HostListener, OnDestroy } from '@angular/core';
 import { LoggerService } from '../../services/main-services/logger-service/logger.service';
 import { FormsModule } from '@angular/forms';
 import { AnimationFactoryService } from '../../services/main-services/graphics-services/animation-factory-service/animation-factory.service';
 import { MaisonDataFactoryService } from '../../services/maison-services/maison-data-factory-service/maison-data-factory.service';
 import { RobotDataFactoryService } from '../../services/robot-services/robot-data-factory-service/robot-data-factory.service';
 import { firstValueFrom, Subject, takeUntil } from 'rxjs';
-import { CellStore } from '../../maison.signal-store';
-import { Robot } from '../../data-access/robot-data-access/robot.model';
-
+import { CellStore } from '../../data-stores/maison.signal-store';
+import { RobotStore } from '../../data-stores/robot.signal-store';
+import { isAspiroman, isRobotAspirator } from '../../data-access/robot-data-access/robot.model';
 
 @Component({
   selector: 'app-game',
@@ -21,13 +21,13 @@ import { Robot } from '../../data-access/robot-data-access/robot.model';
 export class GameComponent implements AfterViewInit, OnDestroy {
   @ViewChild('gameCanvas', { static: true }) gameCanvas!: ElementRef<HTMLCanvasElement>;
 
-
   private maisonDataFactoryService = inject(MaisonDataFactoryService);
   // Appel du Service dans le template, donc public:
   public robotDataFactoryService = inject(RobotDataFactoryService);
   private animationFactoryService = inject(AnimationFactoryService);
 
   public readonly cellStore = inject(CellStore);
+  public readonly robotStore = inject(RobotStore);
 
   private loggerService = inject(LoggerService);
 
@@ -35,12 +35,8 @@ export class GameComponent implements AfterViewInit, OnDestroy {
 
   private readonly CELL_SIZE = 50;        // td-maison: width / height: 50px
 
-  // on récupère la liste de signaux à partir de la factory de robots dans un type générique (RobotModel)
-  public robotNames: Signal<string[]> = this.robotDataFactoryService.robotNames;
-
-  public robotSignal(name: string): Signal<Robot | undefined> {
-    return this.robotDataFactoryService.getRobotSignal(name);
-  }
+  protected readonly isAspiroman = isAspiroman;
+  protected readonly isRobotAspirator = isRobotAspirator;
 
   private isRobotMapStarted: boolean = false;
 
@@ -57,15 +53,15 @@ export class GameComponent implements AfterViewInit, OnDestroy {
     // initialisation des paramètres de la maison et des robots
     this.maisonDataFactoryService.createMaisonParams().pipe(takeUntil(this.endedSubscription$))
       .subscribe(() => {
-        this.maisonReady$.next();    // ✅ notifie que les robots sont prêts
+        this.maisonReady$.next();    // notifie que les robots sont prêts
         this.maisonReady$.complete();
       });
 
     this.robotDataFactoryService.createRobotsParams().pipe(takeUntil(this.endedSubscription$))
       .subscribe(() => {
-        this.robotDataFactoryService.createPlayersActionParams();
+        // this.robotDataFactoryService.createPlayersActionParams();
         this.animationFactoryService.createRobotPlayersAnimationParams();
-        this.robotsReady$.next();    // ✅ notifie que les robots sont prêts
+        this.robotsReady$.next();    // notifie que les robots sont prêts
         this.robotsReady$.complete();
       });
   }
@@ -104,7 +100,7 @@ export class GameComponent implements AfterViewInit, OnDestroy {
     // on doit assigner la valeur du ctx pour le Canvas
     this.ctx = this.animationFactoryService.initCanvasContext(canvas);
 
-    // ✅ dessine la première frame immédiatement sans démarrer la boucle
+    // dessine la première frame immédiatement sans démarrer la boucle
     // Note: Firefox a besoin d'un tick supplémentaire avant de rendre
     // Firefox maintient le canvas en état "lazy" jusqu'au premier cycle de rendu du navigateur (paint).
     // Le fillRect dans initCanvasContext() force bien un premier dessin synchrone (d'où le fond jaune visible),

@@ -4,7 +4,7 @@ import { RobotServiceDtoOut } from "../../../../classes/dtos/robot-service-dto-o
 import { GridPosition } from "../../../../classes/models/grid-position";
 import { LoggerService } from "../../../main-services/logger-service/logger.service";
 import { AlgoCheminOptimalService } from "../../../main-services/algos-deplacement-services/algo-chemin-optimal.service";
-import { CellStore } from "../../../../maison.signal-store";
+import { CellStore } from "../../../../data-stores/maison.signal-store";
 import { RobotAspirator } from "../../../../data-access/robot-data-access/robot.model";
 import { Direction } from "../../../../classes/utils/direction";
 import { PixelPosition } from "../../../../classes/models/pixel-position";
@@ -24,7 +24,7 @@ export class RobotAspiratorWithNextPositionsTabService {
     console.log("RobotAspiratorWithNextPositionsTabService - constructor()");
 
     this.robot = {
-      robotId: "1",
+      robotId: "0",
 
       robotName: "Theodule",
       robotType: "aspirator",

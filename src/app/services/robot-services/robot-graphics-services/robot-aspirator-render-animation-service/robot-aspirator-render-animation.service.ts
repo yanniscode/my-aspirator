@@ -1,9 +1,9 @@
-import { inject, Injectable, Signal } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { PixelPosition } from '../../../../classes/models/pixel-position';
 import { AssetRobotService } from '../asset-robot-service/asset-robot.service';
 import { RenderAnimationService } from '../../../main-services/graphics-services/render-animation-service/render-animation.service';
 import { RobotAspiratorDataService } from '../../robot-data-services/robot-aspirator-data-service/robot-aspirator-data.service';
-import { RobotAspirator } from '../../../../data-access/robot-data-access/robot.model';
+import { isAspiroman, RobotAspirator } from '../../../../data-access/robot-data-access/robot.model';
 
 @Injectable({
   providedIn: 'root',
@@ -18,9 +18,6 @@ export class RobotAspiratorRenderAnimationService extends RenderAnimationService
   private readonly CELL_SIZE = 50;  // largeur d'une cellule de la maison
   private readonly HEIGHT = 400;    // hauteur de la maison
 
-  protected readonly robotAspiratorSignals: Map<string, Signal<RobotAspirator>>
-    = this.robotAspiratorDataService.robotSignals;
-
   /**
    *
    * @param ctx
@@ -31,16 +28,15 @@ export class RobotAspiratorRenderAnimationService extends RenderAnimationService
 
     this.ctx = ctx;
 
-    for (const [robotName, robotSignal] of this.robotAspiratorSignals) {
-      const robot: RobotAspirator | undefined = robotSignal();
-      if (!robot) continue;
+    const robots: RobotAspirator[] = this.robotStore.aspirators();
+    if (!robots) return this.ctx;
 
+    robots.forEach(robot => {
       // save() AVANT toute modification — isole complètement chaque robot
       this.ctx.save();
 
       // trame d'animation du robot adaptée à sa direction (nord, sud, est, ouest)
       let robotImage: HTMLImageElement | undefined = this.getRobotCtxFrame(robot);
-
       //  Guard clause — on ne dessine pas si l'image n'est pas chargée
       if (!robotImage) {
         console.warn('Image robot non chargée');
@@ -48,7 +44,7 @@ export class RobotAspiratorRenderAnimationService extends RenderAnimationService
       }
 
       // mise à jour des coordonnées du robot dans l'espace (en pixels), pour la vue
-      const pixelPosition: PixelPosition = this.robotAspiratorDataService.updateCurrentCoordinates(robotName);
+      const pixelPosition: PixelPosition = this.robotAspiratorDataService.updateCurrentCoordinates(robot.robotName);
       console.log("aspirator - pixelPosition = " + pixelPosition.x + " - " + pixelPosition.y);
       // recentrage du robot dans la cellule
       const x = pixelPosition.x + (this.CELL_SIZE - robot.robotWidth) / 2;
@@ -66,7 +62,11 @@ export class RobotAspiratorRenderAnimationService extends RenderAnimationService
 
       // restore() APRÈS tout le rendu du robot
       this.ctx.restore();
-    }
+
+      // TODO: RETURN ICI ??
+      return this.ctx;
+    });
+
     return this.ctx;
   }
 

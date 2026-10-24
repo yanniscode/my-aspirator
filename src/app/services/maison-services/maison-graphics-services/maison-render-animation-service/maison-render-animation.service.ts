@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { AssetMaisonService } from '../asset-maison-service/asset-maison.service';
 import { RenderAnimationService } from '../../../main-services/graphics-services/render-animation-service/render-animation.service';
-import { CellStore } from '../../../../maison.signal-store';
+import { CellStore } from '../../../../data-stores/maison.signal-store';
 import { CellsStateModel } from '../../../../data-access/maison-data-access/maison.model';
 import { RobotAspirator } from '../../../../data-access/robot-data-access/robot.model';
 

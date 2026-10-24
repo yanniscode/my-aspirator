@@ -5,7 +5,7 @@ import { RobotActionService } from '../robot-action.service';
 import { AlgoNettoyageService } from '../../robot-algos-deplacement-services/algo-nettoyage-service/algo-nettoyage.service';
 import { MaisonDataNettoyageService } from '../../../maison-services/maison-data-services/maison-data-nettoyage-service/maison-data-nettoyage.service';
 import { RobotAspiratorDataService } from '../../robot-data-services/robot-aspirator-data-service/robot-aspirator-data.service';
-import { CellStore } from '../../../../maison.signal-store';
+import { CellStore } from '../../../../data-stores/maison.signal-store';
 import { CellElement } from '../../../../data-access/maison-data-access/maison.model';
 import { RobotAspirator } from '../../../../data-access/robot-data-access/robot.model';
 
@@ -21,8 +21,7 @@ export class RobotActionAspiratorService extends RobotActionService<RobotAspirat
   private cellStore = inject(CellStore);
 
   // Map en lecture seule pour stocker les signaux computed de chaque robot à afficher
-  private readonly robotAspiratorSignals: Map<string, Signal<RobotAspirator>>
-    = this.robotAspiratorDataService.robotSignals;
+  private readonly robotAspiratorsSignal: Signal<RobotAspirator[]> = this.robotStore.aspirators;
 
   // Configuration de l'animation
   private PIXELS_PER_STEP: number = 0; // Pixels à parcourir dans un intervale donné
@@ -40,92 +39,78 @@ export class RobotActionAspiratorService extends RobotActionService<RobotAspirat
   public override calculateNewDirectionsForAllRobots(): void {
     console.log("RobotActionAspiratorService - calculateNewDirectionsForAllRobots()");
 
-    if (this.robotAspiratorSignals.size <= 0) return;
+    const aspirators: RobotAspirator[] = this.robotAspiratorsSignal();
+    if (!aspirators || (aspirators && aspirators?.length <= 0)) return;
 
     // Parcourt tous les robots
-    this.robotAspiratorSignals.forEach((robotSignal: Signal<RobotAspirator>, robotName) => {
+    aspirators.forEach((aspirator: RobotAspirator) => {
 
-      const robot = robotSignal();
-      if (!robot) return;
-      console.log(robot);
+      if (!aspirator) return;
 
-      let nextPosition: GridPosition = robot.position;
+      let nextPosition: GridPosition = aspirator.position;
       if (!nextPosition) return;
 
-      if (robot.batterie <= 0) {
-        if (robot!.position.col === robot!.basePosition.col && robot!.position.row === robot!.basePosition.row
+      if (aspirator.batterie <= 0) {
+        if (aspirator!.position.col === aspirator!.basePosition.col && aspirator!.position.row === aspirator!.basePosition.row
         ) {
-          console.log(`### Le robot est à sa base et ne peut démarrer - Batterie: ${robot.batterie}%`);
+          console.log(`### Le robot est à sa base et ne peut démarrer - Batterie: ${aspirator.batterie}%`);
         }
         else {
-          console.log(`### Le robot est à l'arrêt en cours de parcours et ne peut redémarrer - Batterie: ${robot.batterie}%`);
+          console.log(`### Le robot est à l'arrêt en cours de parcours et ne peut redémarrer - Batterie: ${aspirator.batterie}%`);
         }
 
-        this.robotAspiratorDataService.stopRobot(robotName);
+        this.robotAspiratorDataService.stopRobot(aspirator.robotName);
         return;
       }
-      else if (robot.batterie > 0) {
+      else if (aspirator.batterie > 0) {
 
-        if (robot.isRobotReturningToBase) {
+        if (aspirator.isRobotReturningToBase) {
 
-          if (robot.position.col === robot.basePosition.col && robot.position.row === robot.basePosition.row) {
-            this.robotAspiratorDataService.stopRobot(robotName);
+          if (aspirator.position.col === aspirator.basePosition.col && aspirator.position.row === aspirator.basePosition.row) {
+            this.robotAspiratorDataService.stopRobot(aspirator.robotName);
             console.log("Arrêt effectué - retour à la base accomplit !");
             return;
           }
 
-          this.activateReturnToBase(robot);
+          this.activateReturnToBase(aspirator);
           return;
         }
         else if (this.cellStore.unVisitedCellsCount() === 0) {
 
-          console.log(`### updateAllRobots() - Maison entièrement nettoyée ou bien: limite de batterie atteinte : le robot doit rentrer à la base - Batterie: ${robot.batterie}%`);
+          console.log(`### Maison entièrement nettoyée ou bien: limite de batterie atteinte : le robot doit rentrer à la base - Batterie: ${aspirator.batterie}%`);
 
-          this.activateReturnToBase(robot);
+          this.activateReturnToBase(aspirator);
           return;
 
         } else { // si la maison n'est pas totalement nettoyée
 
           // Dans cette version de l'algo de nettoyage: on prend la première position du chemin à chaque tour de boucle
           // (permet de vérifier le chemin à chaque pas, si plusieurs robots sont présents)
-          nextPosition = this.nettoyer(robot);
+          nextPosition = this.nettoyer(aspirator);
 
           const batteryLimitExceeded: boolean = this.robotDoitRentrerALaBase(
-            robot.batterie,
+            aspirator.batterie,
             nextPosition,
-            robot.basePosition,
-            robot.consommationParMouvement
+            aspirator.basePosition,
+            aspirator.consommationParMouvement
           );
           if (batteryLimitExceeded) {
             console.log("batteryLimitExceeded !");
-            console.log(`### Limite de batterie dépassée pour le Robot ${robot.robotName} : row = ${robot.position.row}, col = ${robot.position.col} - Batterie: ${robot.batterie}%`);
-            this.activateReturnToBase(robot);
+            console.log(`### Limite de batterie dépassée pour le Robot ${aspirator.robotName} : row = ${aspirator.position.row}, col = ${aspirator.position.col} - Batterie: ${aspirator.batterie}%`);
+            this.activateReturnToBase(aspirator);
             return;
           }
 
-          console.log(`### Nouvelle position de nettoyage trouvée pour le Robot ${robot.robotName} : row = ${nextPosition.row}, col = ${nextPosition.col} - Batterie: ${robot.batterie}%`);
+          console.log(`### Nouvelle position de nettoyage trouvée pour le Robot ${aspirator.robotName} : row = ${nextPosition.row}, col = ${nextPosition.col} - Batterie: ${aspirator.batterie}%`);
 
           // Réservation de la position suivante trouvée (pour éviter la concurrence d'autres bots)
           this.maisonDataNettoyageService.updateReservedCell(nextPosition, true);
 
           // MAJ du robot: déplacement normal
-          this.robotAspiratorDataService.moveRobot(robotName, nextPosition);
+          this.robotAspiratorDataService.moveRobot(aspirator.robotName, nextPosition);
         }
       }
     });
-  }
-
-  /**
- * Conversion de l'index dans le tableau (GridPosition) en Coordonnée en Pixels (PixelPosition) pour l'affichage CSS
- *
- * @param grid
- * @returns
- */
-  public override calculatePixelCoordinates(grid: GridPosition): PixelPosition {
-    return new PixelPosition(
-      grid.col * this.PIXELS_PER_STEP,  // col → x (left)
-      grid.row * this.PIXELS_PER_STEP   // row → y (top)
-    );
   }
 
   /** Méthodes propres au robot Aspirateur: */
