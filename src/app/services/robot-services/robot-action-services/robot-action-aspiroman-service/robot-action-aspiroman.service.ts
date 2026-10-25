@@ -1,6 +1,4 @@
 import { inject, Injectable } from '@angular/core';
-import { GridPosition } from '../../../../classes/models/grid-position';
-import { PixelPosition } from '../../../../classes/models/pixel-position';
 import { RobotActionService } from '../robot-action.service';
 import { AlgoNettoyageService } from '../../robot-algos-deplacement-services/algo-nettoyage-service/algo-nettoyage.service';
 import { Aspiroman } from '../../../../data-access/robot-data-access/robot.model';
@@ -12,14 +10,10 @@ export abstract class RobotActionAspiromanService extends RobotActionService<Asp
 
   protected algoNettoyageService = inject(AlgoNettoyageService);
 
-  // Configuration de l'animation
-  private PIXELS_PER_STEP: number = 0; // Pixels à parcourir dans un intervale donné
-
   constructor() {
     console.log("RobotActionAspiromanService - constructor()");
     super();
     this.serviceName = "RobotActionAspiromanService";
-    this.PIXELS_PER_STEP = 50;
   }
 
   // TODO: revoir CSS de la maison si on affiche ces logs dans l'ihm

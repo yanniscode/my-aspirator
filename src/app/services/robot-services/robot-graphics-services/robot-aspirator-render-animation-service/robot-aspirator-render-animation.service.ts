@@ -3,7 +3,7 @@ import { PixelPosition } from '../../../../classes/models/pixel-position';
 import { AssetRobotService } from '../asset-robot-service/asset-robot.service';
 import { RenderAnimationService } from '../../../main-services/graphics-services/render-animation-service/render-animation.service';
 import { RobotAspiratorDataService } from '../../robot-data-services/robot-aspirator-data-service/robot-aspirator-data.service';
-import { isAspiroman, RobotAspirator } from '../../../../data-access/robot-data-access/robot.model';
+import { RobotAspirator } from '../../../../data-access/robot-data-access/robot.model';
 
 @Injectable({
   providedIn: 'root',

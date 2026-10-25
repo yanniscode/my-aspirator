@@ -59,6 +59,7 @@ export class GameComponent implements AfterViewInit, OnDestroy {
 
     this.robotDataFactoryService.createRobotsParams().pipe(takeUntil(this.endedSubscription$))
       .subscribe(() => {
+        // TODO: laisser ici ?
         // this.robotDataFactoryService.createPlayersActionParams();
         this.animationFactoryService.createRobotPlayersAnimationParams();
         this.robotsReady$.next();    // notifie que les robots sont prêts

@@ -76,11 +76,9 @@ export class RobotState {
         console.log("State - moveRobot");
         const state: RobotsStateModel = ctx.getState();
 
-        // Garde : joueur éliminé → mouvement refusé
         // Attention ! Updates purs — PAS de ...robot ici
         const robot = state.robots.find(r => r.robotId === action.robotId);
         if (!robot) return;
-        if (isAspiroman(robot) && robot.isEliminated) return;
 
         const robots: RobotStateItem[] = state.robots.map((robot): RobotStateItem => {
             if (robot.robotId !== action.robotId) return robot;

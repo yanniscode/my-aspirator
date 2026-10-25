@@ -34,7 +34,7 @@
         <!-- Champs spécifiques au joueur manuel -->
         @if (isAspiroman(robot)) {
         @if (robot.isEliminated) {
-        <p>💀 Éliminé... (score final conservé)</p>
+        <p>💀 Éliminé...</p>
         }
         @else {
         <p>❤️ Life: {{ robot.life }}%</p>
@@ -43,7 +43,7 @@
         }
         <!-- Champs spécifiques au bot aspirateur -->
         @if (isRobotAspirator(robot)) {
-        <p>🏠 Retour base: {{ robot.isRobotReturningToBase ? 'Oui' : 'Non' }}</p>
+        <p>🏠 Retour à la base: {{ robot.isRobotReturningToBase ? 'Oui' : 'Non' }}</p>
         <p>⚡ Status: {{ robot.batterie > 0 ? 'Actif' : 'Inactif' }}</p>
         }
         <p>📍 Last Position: ({{ robot.lastPosition.col }}, {{ robot.lastPosition.row }})

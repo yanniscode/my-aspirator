@@ -4,8 +4,7 @@ import { GridPosition } from '../../../../classes/models/grid-position';
 import { LoggerService } from '../../../main-services/logger-service/logger.service';
 import { Observable } from 'rxjs';
 import { MaisonConfig } from '../../../../classes/config/maison-config/maison.config';
-import { CellElement, newDefaultCell } from '../../../../data-access/maison-data-access/maison.model';
-import { RobotAspirator, RobotStateItem } from '../../../../data-access/robot-data-access/robot.model';
+import { CellElement } from '../../../../data-access/maison-data-access/maison.model';
 
 @Injectable({
   providedIn: 'root',

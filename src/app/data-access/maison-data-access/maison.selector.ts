@@ -1,7 +1,7 @@
 import { GridPosition } from '../../classes/models/grid-position';
 import { CellElement, CellsStateModel } from './maison.model';
 import { CellState } from './maison.state';
-import { createSelector, Selector } from '@ngxs/store';
+import { Selector } from '@ngxs/store';
 
 export class CellSelectors {
 

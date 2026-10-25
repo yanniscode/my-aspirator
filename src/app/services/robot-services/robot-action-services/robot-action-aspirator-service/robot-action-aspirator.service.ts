@@ -1,6 +1,5 @@
 import { inject, Injectable, Signal } from '@angular/core';
 import { GridPosition } from '../../../../classes/models/grid-position';
-import { PixelPosition } from '../../../../classes/models/pixel-position';
 import { RobotActionService } from '../robot-action.service';
 import { AlgoNettoyageService } from '../../robot-algos-deplacement-services/algo-nettoyage-service/algo-nettoyage.service';
 import { MaisonDataNettoyageService } from '../../../maison-services/maison-data-services/maison-data-nettoyage-service/maison-data-nettoyage.service';
@@ -23,14 +22,10 @@ export class RobotActionAspiratorService extends RobotActionService<RobotAspirat
   // Map en lecture seule pour stocker les signaux computed de chaque robot à afficher
   private readonly robotAspiratorsSignal: Signal<RobotAspirator[]> = this.robotStore.aspirators;
 
-  // Configuration de l'animation
-  private PIXELS_PER_STEP: number = 0; // Pixels à parcourir dans un intervale donné
-
   constructor() {
     console.log("RobotActionAspiratorService - constructor()");
     super();
     this.serviceName = "RobotActionAspiratorService";
-    this.PIXELS_PER_STEP = 50;
   }
 
   /**

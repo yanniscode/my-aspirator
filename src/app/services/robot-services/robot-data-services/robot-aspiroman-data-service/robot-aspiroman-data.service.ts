@@ -1,4 +1,4 @@
-import { inject, Injectable, Signal, signal, WritableSignal } from '@angular/core';
+import { inject, Injectable, signal, WritableSignal } from '@angular/core';
 import { RobotDataService as RobotDataService } from '../robot-data.service';
 import { GridPosition } from '../../../../classes/models/grid-position';
 import { LoggerService } from '../../../main-services/logger-service/logger.service';
@@ -7,7 +7,7 @@ import { Direction } from '../../../../classes/utils/direction';
 import { PixelPosition } from '../../../../classes/models/pixel-position';
 import { Observable } from 'rxjs';
 import { AlgoNettoyageService } from '../../robot-algos-deplacement-services/algo-nettoyage-service/algo-nettoyage.service';
-import { Aspiroman, isAspiroman } from '../../../../data-access/robot-data-access/robot.model';
+import { Aspiroman } from '../../../../data-access/robot-data-access/robot.model';
 
 @Injectable({
   providedIn: 'root',
@@ -199,13 +199,11 @@ export class RobotAspiromanDataService extends RobotDataService<Aspiroman> {
     console.log("mouvement = " + mouvement);
 
     let nextPosition: GridPosition = new GridPosition();
-    let isRobotStarted = true;
     let robotDirection = "";
     let batterie = robot.batterie;
 
     if (robot.batterie <= 0) {
       nextPosition = { ...robot.position };
-      isRobotStarted = false;
     } else {
       nextPosition = this.algoNettoyageService.obtenirPositionSuivanteManuelle(mouvement, robot.position, this.cellStore.maisonGrid());
       robotDirection = this.getRobotDirectionByDirection(mouvement);

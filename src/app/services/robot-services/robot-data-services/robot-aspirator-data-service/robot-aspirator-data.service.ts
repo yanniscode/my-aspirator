@@ -1,4 +1,4 @@
-import { computed, inject, Injectable, Signal, signal, WritableSignal } from '@angular/core';
+import { inject, Injectable, signal, WritableSignal } from '@angular/core';
 import { RobotDataService as RobotDataService } from '../robot-data.service';
 import { GridPosition } from '../../../../classes/models/grid-position';
 import { LoggerService } from '../../../main-services/logger-service/logger.service';

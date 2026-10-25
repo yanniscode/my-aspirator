@@ -50,13 +50,6 @@ export class AnimationFactoryService {
   // État du jeu (start / pause)
   private isGameStarted = false;
 
-  // Map de robots (type générique utilisé par la factory)
-  // Au lieu d'assigner une fois au constructeur...
-  // public get robotSignals(): Signal<RobotStateItem[] | undefined> {
-  //   return this.robotStore.robots; // recalculé à chaque accès
-  //   // return this.robotDataFactoryService.robotSignals; // recalculé à chaque accès
-  // }
-
   // ─── État boucle bots (maîtresse du canvas) ──────────────────────────────────
   protected areBotsRunning = false;
   private botsAnimationFrameId?: number;
