@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, inject, ViewChild, ElementRef, AfterViewInit, HostListener, OnDestroy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, ViewChild, ElementRef, AfterViewInit, HostListener, OnDestroy, WritableSignal } from '@angular/core';
 import { LoggerService } from '../../services/main-services/logger-service/logger.service';
 import { FormsModule } from '@angular/forms';
 import { AnimationFactoryService } from '../../services/main-services/graphics-services/animation-factory-service/animation-factory.service';
@@ -46,6 +46,19 @@ export class GameComponent implements AfterViewInit, OnDestroy {
   private robotsReady$ = new Subject<void>();
 
   private endedSubscription$ = new Subject<void>();
+
+  private static readonly PLAYER_KEYS: Record<string, { playerId: string; direction: string }> = {
+    // Joueur 1 (ZQSD sur clavier US)
+    KeyW: { playerId: 'player-1', direction: 'ArrowUp' },
+    KeyD: { playerId: 'player-1', direction: 'ArrowRight' },
+    KeyS: { playerId: 'player-1', direction: 'ArrowDown' },
+    KeyA: { playerId: 'player-1', direction: 'ArrowLeft' },
+    // Joueur 2 (IJKL sur clavier US)
+    KeyI: { playerId: 'player-2', direction: 'ArrowUp' },
+    KeyL: { playerId: 'player-2', direction: 'ArrowRight' },
+    KeyK: { playerId: 'player-2', direction: 'ArrowDown' },
+    KeyJ: { playerId: 'player-2', direction: 'ArrowLeft' },
+  };
 
   constructor() {
     console.log("GameComponent - constructor()");
@@ -147,7 +160,6 @@ export class GameComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-
   /**
    * Ecoute des actions utilisateur (Attention ! touches pour clavier américain)
    *
@@ -156,66 +168,6 @@ export class GameComponent implements AfterViewInit, OnDestroy {
    */
   @HostListener('body:keydown', ['$event'])
   public keyDown(event: KeyboardEvent) {
-    // Joueur 1:
-    const player1MoveDirectionSignal = this.robotDataFactoryService.getPlayerMoveDirectionSignals("player-1");
-    if (!player1MoveDirectionSignal) return;
-
-    const isPlayer1RunningSignal = this.animationFactoryService.isPlayerRunningSignals.get("player-1");
-
-    if (event.code === 'KeyW') {
-      player1MoveDirectionSignal.set("ArrowUp");
-      if (isPlayer1RunningSignal && isPlayer1RunningSignal() === false) {
-        this.animationFactoryService.onPlayerAction('player-1');
-      }
-    }
-    if (event.code === 'KeyD') {
-      player1MoveDirectionSignal.set("ArrowRight");
-      if (isPlayer1RunningSignal && isPlayer1RunningSignal() === false) {
-        this.animationFactoryService.onPlayerAction('player-1');
-      }
-    }
-    if (event.code === 'KeyS') {
-      player1MoveDirectionSignal.set("ArrowDown");
-      if (isPlayer1RunningSignal && isPlayer1RunningSignal() === false) {
-        this.animationFactoryService.onPlayerAction('player-1');
-      }
-    }
-    if (event.code === 'KeyA') {
-      player1MoveDirectionSignal.set("ArrowLeft");
-      if (isPlayer1RunningSignal && isPlayer1RunningSignal() === false) {
-        this.animationFactoryService.onPlayerAction('player-1');
-      }
-    }
-    // Joueur 2:
-    const player2MoveDirectionSignal = this.robotDataFactoryService.getPlayerMoveDirectionSignals("player-2");
-    if (!player2MoveDirectionSignal) return;
-
-    const isPlayer2RunningSignal = this.animationFactoryService.isPlayerRunningSignals.get("player-2");
-
-    if (event.code === 'KeyI') {
-      player2MoveDirectionSignal.set("ArrowUp");
-      if (isPlayer2RunningSignal && isPlayer2RunningSignal() === false) {
-        this.animationFactoryService.onPlayerAction('player-2');
-      }
-    }
-    if (event.code === 'KeyL') {
-      player2MoveDirectionSignal.set("ArrowRight");
-      if (isPlayer2RunningSignal && isPlayer2RunningSignal() === false) {
-        this.animationFactoryService.onPlayerAction('player-2');
-      }
-    }
-    if (event.code === 'KeyK') {
-      player2MoveDirectionSignal.set("ArrowDown");
-      if (isPlayer2RunningSignal && isPlayer2RunningSignal() === false) {
-        this.animationFactoryService.onPlayerAction('player-2');
-      }
-    }
-    if (event.code === 'KeyJ') {
-      player2MoveDirectionSignal.set("ArrowLeft");
-      if (isPlayer2RunningSignal && isPlayer2RunningSignal() === false) {
-        this.animationFactoryService.onPlayerAction('player-2');
-      }
-    }
 
     // TODO: revoir ici: cas ou clics répétés sur Enter > bugs animation
     if (event.code === 'Enter' && !this.isRobotMapStarted) {
@@ -229,6 +181,27 @@ export class GameComponent implements AfterViewInit, OnDestroy {
         console.log("Enter pause()");
         this.pause();
       }, 500);
+    }
+
+    const binding = GameComponent.PLAYER_KEYS[event.code];
+    if (!binding) return;
+
+    // ✅ Garde centralisée : joueur éliminé → input ignoré
+    const robot = this.robotStore.playerById(binding.playerId);
+    if (!robot) return;
+
+    if (isAspiroman(robot) && robot.isEliminated) return;
+
+    const directionSignal = this.robotDataFactoryService.getPlayerMoveDirectionSignals(binding.playerId);
+    if (!directionSignal) return;
+
+    directionSignal.set(binding.direction);
+
+    const runningSignal: WritableSignal<boolean> | undefined = this.animationFactoryService.isPlayerRunningSignals.get(binding.playerId);
+    if (!runningSignal) return;
+
+    if (runningSignal() === false) {
+      this.animationFactoryService.onPlayerAction(binding.playerId);
     }
   }
 

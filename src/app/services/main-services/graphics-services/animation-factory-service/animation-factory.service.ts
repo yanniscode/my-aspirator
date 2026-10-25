@@ -247,9 +247,6 @@ export class AnimationFactoryService {
     const robot = robots.find(r => r.robotId === robotId);
     if (!robot) return;
 
-    // ✅ Garde AVANT tout : joueur éliminé → ni dispatch, ni animation
-    if (isAspiroman(robot) && robot.isEliminated) return;
-
     // Mise à jour du modèle (déplacement + cellules visitées)
     this.actionServicesTab.forEach(actionService => {
       if (actionService.serviceName === "RobotActionAspiromanService") {

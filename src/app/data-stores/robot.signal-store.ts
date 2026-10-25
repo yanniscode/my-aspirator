@@ -103,8 +103,8 @@ export const RobotStore = signalStore(
         playerNames(): String[] {
             return store.players().map((r) => r.robotName);
         },
-        playerById(name: string): Aspiroman | undefined {
-            return store.playersById().get(name);
+        playerById(id: string): Aspiroman | undefined {
+            return store.playersById().get(id);
         },
         // Déclenche la vérification → c'est le handler NGXS qui élimine
         checkCollisions(): void {
