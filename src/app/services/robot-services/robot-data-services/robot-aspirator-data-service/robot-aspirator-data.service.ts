@@ -40,7 +40,7 @@ export abstract class RobotAspiratorDataService extends RobotDataService<RobotAs
 
       // Ajout de la base du robot dans la Maison
       const robotBasePosition: GridPosition = { ...robotAspiratorModel.basePosition };
-      this.maisonDataNettoyageService.updateMaisonRobotBase(robotBasePosition, robotAspiratorModel.robotName);
+      this.maisonDataNettoyageService.updateMaisonRobotBase(robotBasePosition, robotAspiratorModel.robotId);
     });
   }
 
@@ -55,24 +55,6 @@ export abstract class RobotAspiratorDataService extends RobotDataService<RobotAs
     this.robotStore.addRobots(robotAspiratorTab);
   }
 
-
-  /**
-   *  Vue Map dérivée, reconstruite à la demande, jamais stockée :
-   */
-  public override getRobotSignalsList(): Map<string, Signal<RobotAspirator>> {
-    console.log("RobotAspiratorDataService - getRobotSignalsList()");
-
-    const map = new Map<string, Signal<RobotAspirator>>();
-    console.log('robots RobotAspirator:', this.robotStore.aspirators());
-
-    return map;
-  }
-
-  // Accès à UN robot, réactif :
-  public robotSignalByName(name: string): Signal<RobotAspirator | undefined> {
-    return computed(() => this.robotStore.robotByName(name) as RobotAspirator | undefined);
-  }
-
   /**
    * Création des paramètres d'animation (appelé après l'instanciation des robots dans GameComponent)
    * (abstract car pas implémentée pour les bots)
@@ -84,10 +66,10 @@ export abstract class RobotAspiratorDataService extends RobotDataService<RobotAs
    * @param name
    * @returns
    */
-  public override updateCurrentCoordinates(name: string): PixelPosition {
+  public override updateCurrentCoordinates(id: string): PixelPosition {
     console.log("RobotDataService - updateCurrentCoordinates()");
 
-    const robot = this.robotStore.robotByName(name);
+    const robot = this.robotStore.robotById(id);
 
     // const robot: RobotAspirator | undefined = robotAspiratorSignal();
     if (!robot) return new PixelPosition(-50, -50);
@@ -98,7 +80,7 @@ export abstract class RobotAspiratorDataService extends RobotDataService<RobotAs
     const y = this.cellStore.calculatePixelCoordinates(robot.position).y;
     if (!robot.isRobotStarted) return new PixelPosition(x, y);
 
-    this.moveRobotCoordinates(name, robot.lastPosition, robot.position);
+    this.moveRobotCoordinates(id, robot.lastPosition, robot.position);
 
     const startCoordinate = { ...robot.startCoordinate };
     const targetCoordinate = { ...robot.targetCoordinate };
@@ -116,15 +98,15 @@ export abstract class RobotAspiratorDataService extends RobotDataService<RobotAs
 
   /**
    *
-   * @param robotName
+   * @param robotId
    * @param position
    * @param nextPosition
    * @returns
    */
-  public override moveRobotCoordinates(robotName: string, position: GridPosition, nextPosition: GridPosition): void {
+  public override moveRobotCoordinates(robotId: string, position: GridPosition, nextPosition: GridPosition): void {
     console.log("RobotDataService - moveRobotCoordinates()");
 
-    const robot: RobotAspirator | undefined = this.robotStore.aspiratorByName(robotName);
+    const robot: RobotAspirator | undefined = this.robotStore.aspiratorById(robotId);
     if (!robot) return;
 
     const newStartCoordinate: PixelPosition = this.cellStore.calculatePixelCoordinates(position);
@@ -132,18 +114,18 @@ export abstract class RobotAspiratorDataService extends RobotDataService<RobotAs
 
     if (newStartCoordinate.x !== newTargetCoordinate.x || newStartCoordinate.y !== newTargetCoordinate.y) {
 
-      this.robotStore.moveRobotCoordinates(robotName, newStartCoordinate, newTargetCoordinate);
+      this.robotStore.moveRobotCoordinates(robotId, newStartCoordinate, newTargetCoordinate);
     }
-    console.log(`### ${robotName}: tableau[${nextPosition.col},${nextPosition.row}] → pixels(${newTargetCoordinate.x}, ${newTargetCoordinate.y})`);
+    console.log(`### ${robotId}: tableau[${nextPosition.col},${nextPosition.row}] → pixels(${newTargetCoordinate.x}, ${newTargetCoordinate.y})`);
   }
 
   /**
    * Déplace manuellement un robot à une position pour le nettoyage
    */
-  public override moveRobot(robotName: string, nextPosition: GridPosition): void {
+  public override moveRobot(robotId: string, nextPosition: GridPosition): void {
     console.log("RobotActionAspiratorService - moveRobot()");
 
-    const robot: RobotAspirator | undefined = this.robotStore.aspiratorByName(robotName);
+    const robot: RobotAspirator | undefined = this.robotStore.aspiratorById(robotId);
     if (!robot) return;
 
     const robotDirection = this.getRobotDirectionByPosition(robot.position, nextPosition);
@@ -157,7 +139,7 @@ export abstract class RobotAspiratorDataService extends RobotDataService<RobotAs
     const targetCoordinate: PixelPosition = { ...robot.targetCoordinate };
 
     this.robotStore.moveRobot(
-      robotName,
+      robotId,
       false,
       robotDirection,
       lastPosition,
@@ -170,13 +152,13 @@ export abstract class RobotAspiratorDataService extends RobotDataService<RobotAs
 
     this.robotStore.checkCollisions();
 
-    console.log(`### ${robotName}: tableau[${nextPosition.col},${nextPosition.row}]- batterie(${robot.batterie})`);
+    console.log(`### ${robotId}: tableau[${nextPosition.col},${nextPosition.row}]- batterie(${robot.batterie})`);
   }
 
-  public moveRobotReturningToBase(robotName: string, position: GridPosition, nextPosition: GridPosition): void {
+  public moveRobotReturningToBase(robotId: string, position: GridPosition, nextPosition: GridPosition): void {
     console.log("RobotActionAspiratorService - moveRobotReturningToBase()");
 
-    const robot: RobotAspirator | undefined = this.robotStore.aspiratorByName(robotName);
+    const robot: RobotAspirator | undefined = this.robotStore.aspiratorById(robotId);
     if (!robot) return;
 
     const newStartCoordinate: PixelPosition = this.cellStore.calculatePixelCoordinates(position);
@@ -193,29 +175,29 @@ export abstract class RobotAspiratorDataService extends RobotDataService<RobotAs
       const startCoordinate: PixelPosition = { ...robot.targetCoordinate };
       const targetCoordinate: PixelPosition = { ...robot.targetCoordinate };
 
-      this.robotStore.moveRobot(robotName, true, robotDirection, position, nextPosition, batterie, consommationParMouvement, startCoordinate, targetCoordinate);
+      this.robotStore.moveRobot(robotId, true, robotDirection, position, nextPosition, batterie, consommationParMouvement, startCoordinate, targetCoordinate);
 
-      console.log(`### ${robotName}: tableau [${nextPosition.col},${nextPosition.row}] → pixels (${newTargetCoordinate.x}, ${newTargetCoordinate.y}) - batterie (${robot.batterie})`);
+      console.log(`### ${robotId}: tableau [${nextPosition.col},${nextPosition.row}] → pixels (${newTargetCoordinate.x}, ${newTargetCoordinate.y}) - batterie (${robot.batterie})`);
     } else {
-      this.stopRobot(robotName);
+      this.stopRobot(robotId);
     }
   }
 
   /**
    * Arrêt d'un robot à une position
    *
-   * @param robotName
+   * @param robotId
    * @param position
    * @param nextPosition
    * @returns
    */
-  public override stopRobot(robotName: string): void {
+  public override stopRobot(robotId: string): void {
     console.log("RobotActionAspiratorService - stopRobot()");
 
-    const robot: RobotAspirator | undefined = this.robotStore.aspiratorByName(robotName);
+    const robot: RobotAspirator | undefined = this.robotStore.aspiratorById(robotId);
     if (!robot) return;
 
-    this.robotStore.stopRobot(robotName);
+    this.robotStore.stopRobot(robotId);
   }
 
   /**
@@ -227,7 +209,7 @@ export abstract class RobotAspiratorDataService extends RobotDataService<RobotAs
     if (!robots || (robots && robots?.length <= 0)) return;
 
     robots.forEach((robot: RobotAspirator) => {
-      this.maisonDataNettoyageService.updateVisitedCell(robot.lastPosition, robot.robotName);
+      this.maisonDataNettoyageService.updateVisitedCell(robot.lastPosition, robot.robotId);
     });
   }
 

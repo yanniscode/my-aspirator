@@ -22,16 +22,11 @@ export const RobotStore = signalStore(
     withComputed((store) => ({
         // Méthodes computed des robots génériques:
         robotsCount: computed(() => store.robots().length),
-        robotNames: computed(() =>
-            store.robots().map((r) => r.robotName)
+        robotIds: computed(() =>
+            store.robots().map((r) => r.robotId)
         ),
         hasActiveRobots: computed(() => store.robots().some(r => r.isRobotStarted)),
         // Remplace la Map : accès par nom, réactif et toujours à jour
-        robotsByName: computed(() => {
-            const map = new Map<string, RobotStateItem>();
-            for (const r of store.robots()) map.set(r.robotName, r);
-            return map;
-        }),
         // Accès par id (recommandé : le nom peut changer, pas l'id)
         robotsById: computed(() => {
             const map = new Map<string, RobotStateItem>();
@@ -41,31 +36,26 @@ export const RobotStore = signalStore(
         // Méthodes computed des robots aspirateurs (bots):
         // Filtres par type (si on active le discriminant)
         aspirators: computed(() => store.robots().filter((r): r is RobotAspirator => r.robotType === 'aspirator')),
+        aspiratorsById: computed(() => {
+            const map = new Map<string, RobotAspirator>();
+            // TODO: améliorer écriture ??
+            for (const r of store.robots().filter((r): r is RobotAspirator => r.robotType === 'aspirator')) map.set(r.robotId, r);
+            return map;
+        }),
         aspiratorsByName: computed(() => {
             const map = new Map<string, RobotAspirator>();
             // TODO: améliorer écriture ??
             for (const r of store.robots().filter((r): r is RobotAspirator => r.robotType === 'aspirator')) map.set(r.robotName, r);
             return map;
         }),
-        aspiratorsNames: computed(() => {
-            const namesList: string[] = [];
-            let i = 0;
-            for (const r of store.robots().filter((r): r is Aspiroman => r.robotType === 'player')) {
-                namesList[i] = r.robotName;
-                i++;
-            }
-            return namesList;
-        }),
         // Méthodes computed des robots joueurs:
         players: computed(() => store.robots().filter((r): r is Aspiroman => r.robotType === 'player')),
-        playersNames: computed(() => {
-            const namesList: string[] = [];
-            let i = 0;
+        playersById: computed(() => {
+            const map = new Map<string, Aspiroman>();
             for (const r of store.robots().filter((r): r is Aspiroman => r.robotType === 'player')) {
-                namesList[i] = r.robotName;
-                i++;
+                map.set(r.robotId, r);
             }
-            return namesList;
+            return map;
         }),
         playersByName: computed(() => {
             const map = new Map<string, Aspiroman>();
@@ -90,20 +80,21 @@ export const RobotStore = signalStore(
     })),
     withMethods((store) => ({
         // Méthodes pour les robots génériques:
+
         // Lecture ponctuelle (remplace getRobotSignalsList)
-        robotByName(name: string): RobotStateItem | undefined {
-            return store.robotsByName().get(name);
+        robotById(id: string): RobotStateItem | undefined {
+            return store.robotsById().get(id);
         },
-        robotName(name: string): String | undefined {
+        robotId(id: string): String | undefined {
             // TODO: supprimer les '?'
-            return store.robotsByName().get(name)?.robotName;
+            return store.robotsById().get(id)?.robotId;
         },
         // Méthodes pour les robots aspirateurs (bots):
         aspiratorNames(): string[] {
             return store.aspirators().map((r) => r.robotName);
         },
-        aspiratorByName(name: string): RobotAspirator | undefined {
-            return store.aspiratorsByName().get(name);
+        aspiratorById(id: string): RobotAspirator | undefined {
+            return store.aspiratorsById().get(id);
         },
         aspiratorName(name: string): String | undefined {
             return store.playersByName().get(name)?.robotName;
@@ -112,11 +103,8 @@ export const RobotStore = signalStore(
         playerNames(): String[] {
             return store.players().map((r) => r.robotName);
         },
-        playerByName(name: string): Aspiroman | undefined {
-            return store.playersByName().get(name);
-        },
-        playerName(name: string): String | undefined {
-            return store.playersByName().get(name)?.robotName;
+        playerById(name: string): Aspiroman | undefined {
+            return store.playersById().get(name);
         },
         // Déclenche la vérification → c'est le handler NGXS qui élimine
         checkCollisions(): void {

@@ -16,7 +16,7 @@
 </div>
 
 <div class=" infos-container">
-  <h2>Main Test Signaux avec {{ robotStore.robotNames().length }} robots</h2>
+  <h2>Main Test Signaux avec {{ robotStore.robotIds().length }} robots</h2>
   <p>Nombre total de cases : {{ cellStore.cellsCount() }}</p>
   <p>Nombre de cases à nettoyer : {{ cellStore.floorCellsCount() }}</p>
   <p>Nombre de cases non-nettoyées : {{ cellStore.unVisitedCellsCount() }}</p>
@@ -24,12 +24,12 @@
   <p>Nombre de cases réservées : {{ cellStore.reservedCellsCount() }}</p>
   <!-- Note: accès uniquement aux infos génériques des robots (ex: pas le niveau de batterie, spécifique au robot de type spirateur et robot Joueur dans notre cas) -->
   <div class="robot-liste-infos">
-    @for (name of robotStore.robotNames(); track name) {
+    @for (robotId of robotStore.robotIds(); track robotId) {
     <div class="robot-card">
-      @if (robotStore.robotByName(name); as robot) {
-      <h3>🤖 {{ name }}</h3>
+      @if (robotStore.robotById(robotId); as robot) {
+      <h3>🤖 {{ robotId }}</h3>
       <div class="robot-info">
-        <p>📍 Nombre de cases nettoyées: {{ cellStore.visitedCountByVisitor().get(name) ?? 0 }}</p>
+        <p>📍 Nombre de cases nettoyées: {{ cellStore.visitedCountByVisitor().get(robotId) ?? 0 }}</p>
         <p>🔋 Batterie: {{ robot.batterie }}%</p>
         <!-- Champs spécifiques au joueur manuel -->
         @if (isAspiroman(robot)) {
@@ -54,7 +54,7 @@
         </p>
       </div>
       } @else {
-      <p>⚠️ Robot {{ name }} non trouvé</p>
+      <p>⚠️ Robot {{ robotId }} non trouvé</p>
       }
     </div>
     }

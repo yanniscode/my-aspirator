@@ -40,7 +40,7 @@ export class RobotAspiromanDataService extends RobotDataService<Aspiroman> {
     if (!players) return;
 
     players.forEach(r => {
-      this.playerMoveDirectionSignals.set(r.robotName, signal(""));
+      this.playerMoveDirectionSignals.set(r.robotId, signal(""));
     });
   }
 
@@ -50,7 +50,7 @@ export class RobotAspiromanDataService extends RobotDataService<Aspiroman> {
   public override createPlayersActionParams(): void {
     this.robotStore.players().forEach(player => {
       if (player.robotType === "player") {
-        this.playerMoveDirectionSignals.set(player.robotName, signal(""));
+        this.playerMoveDirectionSignals.set(player.robotId, signal(""));
       }
     });
   }
@@ -71,7 +71,7 @@ export class RobotAspiromanDataService extends RobotDataService<Aspiroman> {
 
       // Ajout de la base du robot dans la Maison
       const robotBasePosition: GridPosition = { ...aspiromanModel.basePosition };
-      this.maisonDataNettoyageService.updateMaisonRobotBase(robotBasePosition, aspiromanModel.robotName);
+      this.maisonDataNettoyageService.updateMaisonRobotBase(robotBasePosition, aspiromanModel.robotId);
     });
   }
 
@@ -88,7 +88,7 @@ export class RobotAspiromanDataService extends RobotDataService<Aspiroman> {
       const aspiromanModel = { ...robotModel };
 
       const robotBasePosition: GridPosition = { ...aspiromanModel.basePosition };
-      this.maisonDataNettoyageService.updateMaisonRobotBase(robotBasePosition, aspiromanModel.robotName);
+      this.maisonDataNettoyageService.updateMaisonRobotBase(robotBasePosition, aspiromanModel.robotId);
     });
   }
 
@@ -104,17 +104,6 @@ export class RobotAspiromanDataService extends RobotDataService<Aspiroman> {
   }
 
   /**
-   * Vue Map dérivée, reconstruite à la demande, jamais stockée :
-   *
-   * @returns
-   */
-  // Vue Map dérivée, reconstruite à la demande, jamais stockée :
-  public override getRobotSignalsList(): Map<string, Signal<Aspiroman>> {
-    const map = new Map<string, Signal<Aspiroman>>();
-    return map;
-  }
-
-  /**
    * renvoie la position suivante (en pixels) du robot (pour le rendu en temps réel)
    *
    * @param name
@@ -124,7 +113,7 @@ export class RobotAspiromanDataService extends RobotDataService<Aspiroman> {
   public override updateCurrentCoordinates(name: string, progress: number): PixelPosition {
     console.log("RobotAspiromanDataService - updateCurrentCoordinates()");
 
-    const robot: Aspiroman | undefined = this.robotStore.playerByName(name);
+    const robot: Aspiroman | undefined = this.robotStore.playerById(name);
     if (!robot) return new PixelPosition(-50, -50);
 
     // calcul de la nouvelle position en pixels du robot en fonction de son index (numéro de case dans le tableau représentant l'espace en 2D - la maison)
@@ -153,15 +142,15 @@ export class RobotAspiromanDataService extends RobotDataService<Aspiroman> {
   /**
    * Mise à jour de données du signal d'un robot : coordonnées (en pixels) de sa position cible (pas forcément le pixel suivant)
    *
-   * @param robotName
+   * @param robotId
    * @param position
    * @param nextPosition
    * @returns
    */
-  public override moveRobotCoordinates(robotName: string, position: GridPosition, nextPosition: GridPosition): void {
+  public override moveRobotCoordinates(robotId: string, position: GridPosition, nextPosition: GridPosition): void {
     console.log("RobotDataService - moveRobotCoordinates()");
 
-    const robot: Aspiroman | undefined = this.robotStore.playerByName(robotName);
+    const robot: Aspiroman | undefined = this.robotStore.playerById(robotId);
     if (!robot) return;
 
     const newStartCoordinate: PixelPosition = this.cellStore.calculatePixelCoordinates(position);
@@ -169,9 +158,9 @@ export class RobotAspiromanDataService extends RobotDataService<Aspiroman> {
 
     if (newStartCoordinate.x !== newTargetCoordinate.x || newStartCoordinate.y !== newTargetCoordinate.y) {
 
-      this.robotStore.moveRobotCoordinates(robotName, newStartCoordinate, newTargetCoordinate);
+      this.robotStore.moveRobotCoordinates(robotId, newStartCoordinate, newTargetCoordinate);
     }
-    console.log(`### ${robotName}: tableau[${nextPosition.col},${nextPosition.row}] → pixels(${newTargetCoordinate.x}, ${newTargetCoordinate.y})`);
+    console.log(`### ${robotId}: tableau[${nextPosition.col},${nextPosition.row}] → pixels(${newTargetCoordinate.x}, ${newTargetCoordinate.y})`);
   }
 
   protected getRobotDirectionByDirection(mouvement: string): string {
@@ -198,13 +187,13 @@ export class RobotAspiromanDataService extends RobotDataService<Aspiroman> {
   /**
    * Déplace manuellement un robot à une position
    */
-  public override moveRobot(robotName: string): void {
+  public override moveRobot(robotId: string): void {
     console.log("RobotAspiromanDataService - moveRobot()");
 
-    const robot: Aspiroman | undefined = this.robotStore.playerByName(robotName);
+    const robot: Aspiroman | undefined = this.robotStore.playerById(robotId);
     if (!robot) return;
 
-    let playerMoveSignal = this.playerMoveDirectionSignals.get(robot.robotName);
+    let playerMoveSignal = this.playerMoveDirectionSignals.get(robot.robotId);
     if (!playerMoveSignal) return;
     const mouvement = playerMoveSignal();
     console.log("mouvement = " + mouvement);
@@ -244,7 +233,7 @@ export class RobotAspiromanDataService extends RobotDataService<Aspiroman> {
     const targetCoordinate: PixelPosition = { x: targetX, y: targetY };
 
     this.robotStore.moveRobot(
-      robotName,
+      robotId,
       false,
       robotDirection,
       lastPosition,
@@ -258,26 +247,26 @@ export class RobotAspiromanDataService extends RobotDataService<Aspiroman> {
     // Garde: vérifie si les collisions entre Joueurs et Bots
     this.robotStore.checkCollisions();
 
-    console.log(`### ${robotName}: moveRobot nextPosition[${nextPosition.col},${nextPosition.row}] - batterie(${robot.batterie})`);
+    console.log(`### ${robotId}: moveRobot nextPosition[${nextPosition.col},${nextPosition.row}] - batterie(${robot.batterie})`);
 
-    this.playerMoveDirectionSignals.set(robot.robotName, signal(""));
+    this.playerMoveDirectionSignals.set(robot.robotId, signal(""));
   }
 
   /**
  * Arrêt d'un robot à une position
  *
- * @param robotName
+ * @param robotId
  * @param position
  * @param nextPosition
  * @returns
  */
-  public override stopRobot(robotName: string): void {
+  public override stopRobot(robotId: string): void {
     console.log("RobotAspiromanDataService - stopRobot()");
 
-    const robotSignal: Aspiroman | undefined = this.robotStore.playerByName(robotName);
+    const robotSignal: Aspiroman | undefined = this.robotStore.playerById(robotId);
     if (!robotSignal) return;
 
-    this.robotStore.stopRobot(robotName);
+    this.robotStore.stopRobot(robotId);
   }
 
   /**
@@ -286,7 +275,7 @@ export class RobotAspiromanDataService extends RobotDataService<Aspiroman> {
   public override updateRobotsVisitedCells(): void {
     console.log("RobotActionAspiratorService - updateRobotsVisitedCells()");
     this.robotStore.players().forEach((robot) => {
-      this.maisonDataNettoyageService.updateVisitedCell(robot.lastPosition, robot.robotName);
+      this.maisonDataNettoyageService.updateVisitedCell(robot.lastPosition, robot.robotId);
     });
   }
 

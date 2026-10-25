@@ -33,7 +33,7 @@ export class RobotAspiromanRenderAnimationService extends RenderAnimationService
       let x: number;
       let y: number;
 
-      const animationPlayerProgSignal = this.robotAspiromanDataService?._animationPlayerProgSignals?.get(player.robotName);
+      const animationPlayerProgSignal = this.robotAspiromanDataService?._animationPlayerProgSignals?.get(player.robotId);
       if (!animationPlayerProgSignal) return this.ctx;
 
       const animationPlayerProgress = animationPlayerProgSignal();
@@ -58,7 +58,6 @@ export class RobotAspiromanRenderAnimationService extends RenderAnimationService
 
       this.ctx.restore();
 
-      // TODO: RETURN ICI ??
       return this.ctx;
     });
 
@@ -75,7 +74,7 @@ export class RobotAspiromanRenderAnimationService extends RenderAnimationService
 
     if (robot.robotType !== "player") return;
 
-    const animationPlayerProgSignal = this.robotAspiromanDataService?._animationPlayerProgSignals?.get(robot.robotName);
+    const animationPlayerProgSignal = this.robotAspiromanDataService?._animationPlayerProgSignals?.get(robot.robotId);
     if (!animationPlayerProgSignal) return this.assetRobotService.getRobotImageByFrameAndDirection(robot.robotDirection, 1);
     const animationPlayerProgress = animationPlayerProgSignal();
 
@@ -129,7 +128,7 @@ export class RobotAspiromanRenderAnimationService extends RenderAnimationService
     this.ctx.fillStyle = robot.labelColor;
     this.ctx.textAlign = 'center';
     this.ctx.fillText(
-      robot.robotName ?? 'Theodule',
+      robot.robotId ?? '-1',
       x + robot.robotWidth / 2,
       labelBaseY
     );

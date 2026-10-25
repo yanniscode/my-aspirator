@@ -20,13 +20,13 @@ export class RemoveRobots {
 
 export class MoveRobotCoordinates {
     static readonly type = '[Robots] Move Robot Coordinates';
-    constructor(public robotName: string, public newStartCoordinate: PixelPosition, public newTargetCoordinate: PixelPosition) { }
+    constructor(public robotId: string, public newStartCoordinate: PixelPosition, public newTargetCoordinate: PixelPosition) { }
 }
 
 export class MoveRobot {
     static readonly type = '[Robots] Move Robot';
     constructor(
-        public robotName: string,
+        public robotId: string,
         public isRobotReturningToBase: boolean,
         public robotDirection: Direction,
         public lastPosition: GridPosition,  // la précédente position est modifiée avec l'actuelle
@@ -40,12 +40,12 @@ export class MoveRobot {
 
 export class StopRobot {
     static readonly type = '[Robots] Stop Robot';
-    constructor(public robotName: string) { }
+    constructor(public robotId: string) { }
 }
 
 export class EliminatePlayer {
     static readonly type = '[Robots] Eliminate Player';
-    constructor(public robotName: string) { }
+    constructor(public robotId: string) { }
 }
 
 export class CheckCollisions {

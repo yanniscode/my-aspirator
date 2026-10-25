@@ -1,7 +1,8 @@
-import { Injectable } from "@angular/core";
+import { inject, Injectable } from "@angular/core";
 import { Action, State, StateContext } from "@ngxs/store";
-import { Aspiroman, isAspiroman, isRobotAspirator, RobotsStateModel, RobotStateItem } from "./robot.model";
+import { isAspiroman, isRobotAspirator, RobotAspirator, RobotsStateModel, RobotStateItem } from "./robot.model";
 import { AddRobots, CheckCollisions, EliminatePlayer, InitRobotsList, MoveRobot, MoveRobotCoordinates, RemoveRobots, StopRobot } from "./robot.actions";
+import { CellStore } from "../../data-stores/maison.signal-store";
 
 @State<RobotsStateModel>({
     name: 'robots', // Nom du slice dans le store
@@ -11,6 +12,8 @@ import { AddRobots, CheckCollisions, EliminatePlayer, InitRobotsList, MoveRobot,
 })
 @Injectable()
 export class RobotState {
+
+    private cellStore = inject(CellStore);
 
     @Action(InitRobotsList)
     initRobotsList(ctx: StateContext<RobotsStateModel>, action: InitRobotsList) {
@@ -55,7 +58,7 @@ export class RobotState {
         const state: RobotsStateModel = ctx.getState();
 
         const robots: RobotStateItem[] = state.robots.map(robot =>
-            robot.robotName === action.robotName ? {
+            robot.robotId === action.robotId ? {
                 ...robot,
                 startCoordinate: { ...action.newStartCoordinate },
                 targetCoordinate: { ...action.newTargetCoordinate },
@@ -75,12 +78,12 @@ export class RobotState {
 
         // Garde : joueur éliminé → mouvement refusé
         // Attention ! Updates purs — PAS de ...robot ici
-        const robot = state.robots.find(r => r.robotName === action.robotName);
+        const robot = state.robots.find(r => r.robotId === action.robotId);
         if (!robot) return;
         if (isAspiroman(robot) && robot.isEliminated) return;
 
         const robots: RobotStateItem[] = state.robots.map((robot): RobotStateItem => {
-            if (robot.robotName !== action.robotName) return robot;
+            if (robot.robotId !== action.robotId) return robot;
 
             // Champs communs
             const updates = {
@@ -119,7 +122,7 @@ export class RobotState {
         const state: RobotsStateModel = ctx.getState();
 
         const robots: RobotStateItem[] = state.robots.map(robot =>
-            robot.robotName === action.robotName ? {
+            robot.robotId === action.robotId ? {
                 ...robot,
                 isRobotStarted: false,
             } : robot
@@ -137,7 +140,7 @@ export class RobotState {
 
         ctx.patchState({
             robots: state.robots.map(robot =>
-                isAspiroman(robot) && robot.robotName === action.robotName
+                isAspiroman(robot) && robot.robotId === action.robotId
                     ? {
                         ...robot,
                         isEliminated: true,
@@ -153,29 +156,29 @@ export class RobotState {
     checkCollisions(ctx: StateContext<RobotsStateModel>) {
         const state = ctx.getState();
 
-        const aspirateurs = state.robots.filter(isRobotAspirator);
-        const joueursElimines = state.robots
+        const aspirateurs: RobotAspirator[] = state.robots.filter(isRobotAspirator);
+        const eliminatedAspiromanId: String[] = state.robots
             .filter(r => isAspiroman(r) && !r.isEliminated)
             .filter(j => aspirateurs.some(a =>
                 a.position.row === j.position.row &&
                 a.position.col === j.position.col
             ))
-            .map(j => j.robotName);
+            .map(j => j.robotId);
 
         // Rien à faire si aucune collision
-        if (joueursElimines.length === 0) return;
+        if (eliminatedAspiromanId.length === 0) return;
 
         // Sinon, si c'est un robot Joueur, il est éliminé et une vie lui est retranchée
         ctx.patchState({
             robots: state.robots.map(robot =>
-                isAspiroman(robot) && joueursElimines.includes(robot.robotName)
+                isAspiroman(robot) && eliminatedAspiromanId.includes(robot.robotId)
                     ? {
                         ...robot,
                         isEliminated: true,
                         isRobotStarted: false,
                         life: robot.life - 1,
-                        startCoordinate: { x: robot.basePosition.col * 50, y: robot.basePosition.row * 50 },
-                        targetCoordinate: { x: robot.basePosition.col * 50, y: robot.basePosition.row * 50 },
+                        startCoordinate: this.cellStore.calculatePixelCoordinates(robot.basePosition),
+                        targetCoordinate: this.cellStore.calculatePixelCoordinates(robot.basePosition),
                     }
                     : robot
             ),

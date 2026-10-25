@@ -34,7 +34,7 @@ export class UpdateCellVisited {
     constructor(
         public readonly cellId: number,
         public readonly visited: boolean,
-        public readonly robotName: string,
+        public readonly robotId: string,
     ) { }
 }
 

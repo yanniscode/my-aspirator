@@ -7,7 +7,6 @@ import { Direction } from "../../classes/utils/direction";
 // Base commune = l'ex "RobotConfig" > "RobotModel" (données pures, pas de classe)
 export interface Robot {
     robotId: string;
-
     robotName: string;
     robotType: 'aspirator' | 'player';
     robotDirection: Direction;

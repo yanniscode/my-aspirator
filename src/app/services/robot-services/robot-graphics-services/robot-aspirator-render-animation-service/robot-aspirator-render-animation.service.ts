@@ -44,7 +44,7 @@ export class RobotAspiratorRenderAnimationService extends RenderAnimationService
       }
 
       // mise à jour des coordonnées du robot dans l'espace (en pixels), pour la vue
-      const pixelPosition: PixelPosition = this.robotAspiratorDataService.updateCurrentCoordinates(robot.robotName);
+      const pixelPosition: PixelPosition = this.robotAspiratorDataService.updateCurrentCoordinates(robot.robotId);
       console.log("aspirator - pixelPosition = " + pixelPosition.x + " - " + pixelPosition.y);
       // recentrage du robot dans la cellule
       const x = pixelPosition.x + (this.CELL_SIZE - robot.robotWidth) / 2;
@@ -63,7 +63,6 @@ export class RobotAspiratorRenderAnimationService extends RenderAnimationService
       // restore() APRÈS tout le rendu du robot
       this.ctx.restore();
 
-      // TODO: RETURN ICI ??
       return this.ctx;
     });
 
@@ -131,7 +130,7 @@ export class RobotAspiratorRenderAnimationService extends RenderAnimationService
     this.ctx.fillStyle = robot.labelColor;
     this.ctx.textAlign = 'center';
     this.ctx.fillText(
-      robot.robotName ?? 'Theodule',
+      robot.robotId ?? '-1',
       x + robot.robotWidth / 2,
       labelBaseY
     );

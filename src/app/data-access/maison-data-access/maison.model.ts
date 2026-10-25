@@ -6,7 +6,7 @@ export interface CellElement {
     cellType: 'O' | 'X' | 'B' | '_'; // 'O' = non visitée, 'X' = mur, 'B' = base, '_' = visitée
     visited: boolean;
     reserved: boolean;
-    visitorName: string;
+    visitorId: string;
 }
 
 export function newDefaultCell(row: number, col: number, cellType: 'O' | 'X' | 'B' | '_'): CellElement {
@@ -16,7 +16,7 @@ export function newDefaultCell(row: number, col: number, cellType: 'O' | 'X' | '
         cellType,
         visited: false,
         reserved: false,
-        visitorName: "",
+        visitorId: "",
     };
 }
 
@@ -27,7 +27,7 @@ export function newCell(cellId: number, position: GridPosition, cellType: 'O' | 
         cellType,
         visited: false,
         reserved: false,
-        visitorName: "",
+        visitorId: "",
     };
 }
 

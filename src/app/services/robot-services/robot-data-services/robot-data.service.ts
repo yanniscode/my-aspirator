@@ -28,23 +28,10 @@ export abstract class RobotDataService<T extends Robot = Robot> {
   // readonly sur la déclaration TypeScript signifie que la référence au signal ne peut pas être réassignée — pas que le signal lui-même est immuable
   protected readonly robotSignals: Signal<RobotStateItem[]> = this.robotStore.robots;
 
-  protected _robotNames: WritableSignal<string[]> = signal<string[]>([]);
-  public readonly robotNames: Signal<string[]> = this._robotNames;
+  protected _robotIds: WritableSignal<string[]> = signal<string[]>([]);
+  public readonly robotIds: Signal<string[]> = this._robotIds;
 
   constructor() {
-  }
-
-  /**
-   *
-   *  Lecture directe (non-réactive) de l'état actuel du robot
-   *  Retourne le signal readonly du robot
-   *
-   * @param robotName
-   * @returns
-   */
-  public getRobotSignal(robotName: string): RobotStateItem | undefined {
-    console.log("RobotDataService - getRobotSignal()");
-    return this.robotStore.robotByName(robotName);
   }
 
   /**
@@ -53,11 +40,6 @@ export abstract class RobotDataService<T extends Robot = Robot> {
    * @param robotAspiratorModelTab
    */
   public abstract setRobotSignalsList(robotAspiratorModelTab: T[]): void;
-
-  /**
-   * Renvoie la map de signaux de robot selon le type spécifié dans la classe qui en hérite
-   */
-  public abstract getRobotSignalsList(): Map<string, Signal<T>>;
 
   /**
    * Renvoie les données mockées (fake database)
@@ -90,7 +72,7 @@ export abstract class RobotDataService<T extends Robot = Robot> {
   /**
   * Déplace manuellement un robot à une position pour le nettoyage
   */
-  public abstract moveRobotCoordinates(robotName: string, position: GridPosition, nextPosition: GridPosition): void;
+  public abstract moveRobotCoordinates(robotId: string, position: GridPosition, nextPosition: GridPosition): void;
 
   /**
    * Orientation dans l'espace 2D (cardinalité)
@@ -128,20 +110,20 @@ export abstract class RobotDataService<T extends Robot = Robot> {
   /**
  * Déplace manuellement un robot à une position pour le nettoyage
  *
- * @param robotName
+ * @param robotId
  * @param position
  * @param nextPosition
  */
-  public abstract moveRobot(robotName: string, position: GridPosition, nextPosition: GridPosition): void;
+  public abstract moveRobot(robotId: string, position: GridPosition, nextPosition: GridPosition): void;
 
 
   /**
    * Arrêt d'un robot à une position
    *
-   * @param robotName
+   * @param robotId
    * @param position
    * @param nextPosition
    * @returns
    */
-  public abstract stopRobot(robotName: string, position: GridPosition, nextPosition: GridPosition): void;
+  public abstract stopRobot(robotId: string, position: GridPosition, nextPosition: GridPosition): void;
 }

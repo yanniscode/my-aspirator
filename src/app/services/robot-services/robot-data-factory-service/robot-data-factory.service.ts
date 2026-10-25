@@ -119,7 +119,7 @@ export class RobotDataFactoryService implements OnDestroy {
 
     this.robotStore.players().forEach(player => {
       if (!player) return;
-      this.animationPlayerProgSignals.set(player.robotName, signal(0));
+      this.animationPlayerProgSignals.set(player.robotId, signal(0));
     });
   }
 

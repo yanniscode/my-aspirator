@@ -42,7 +42,7 @@ export class MaisonDataNettoyageService extends MaisonDataService<MaisonConfig> 
    *
    * @param robotBasePosition
    */
-  public updateMaisonRobotBase(robotBasePosition: GridPosition, robotName: string): void {
+  public updateMaisonRobotBase(robotBasePosition: GridPosition, robotId: string): void {
     console.log("MaisonDataNettoyageService - updateMaisonRobotsBase()");
     console.log("base position:", robotBasePosition);
 
@@ -62,7 +62,7 @@ export class MaisonDataNettoyageService extends MaisonDataService<MaisonConfig> 
 
     this.cellStore.updateCellType(cellAtTarget()!.cellId, "B");
     this.cellStore.updateCellReserved(cellAtTarget()!.cellId, true);
-    this.cellStore.updateCellVisited(cellAtTarget()!.cellId, true, robotName);
+    this.cellStore.updateCellVisited(cellAtTarget()!.cellId, true, robotId);
     this.cellStore.updateCellByItsPosition(cellAtTarget()!.cellId, robotBasePosition);
   }
 
@@ -104,7 +104,7 @@ export class MaisonDataNettoyageService extends MaisonDataService<MaisonConfig> 
    * @param visitedStatus
    * @returns
    */
-  public updateVisitedCell(lastPosition: GridPosition, robotName: string): void {
+  public updateVisitedCell(lastPosition: GridPosition, robotId: string): void {
     console.log("MaisonDataNettoyageService - updateVisitedCell()");
 
     const maisonModel = this.cellStore.maisonGrid();
@@ -121,10 +121,10 @@ export class MaisonDataNettoyageService extends MaisonDataService<MaisonConfig> 
     if (lastVisitedCell.cellType !== 'B') {
       lastVisitedCell.visited = true;
       lastVisitedCell.cellType = '_';
-      lastVisitedCell.visitorName = robotName;
+      lastVisitedCell.visitorId = robotId;
     }
 
-    this.cellStore.updateCellVisited(lastVisitedCell.cellId, lastVisitedCell.visited, robotName);
+    this.cellStore.updateCellVisited(lastVisitedCell.cellId, lastVisitedCell.visited, robotId);
   }
 
   private log(message: string) {

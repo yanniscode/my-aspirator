@@ -156,63 +156,63 @@ export class GameComponent implements AfterViewInit, OnDestroy {
   @HostListener('body:keydown', ['$event'])
   public keyDown(event: KeyboardEvent) {
     // Joueur 1:
-    const player1MoveDirectionSignal = this.robotDataFactoryService.getPlayerMoveDirectionSignals("Player 1");
+    const player1MoveDirectionSignal = this.robotDataFactoryService.getPlayerMoveDirectionSignals("player-1");
     if (!player1MoveDirectionSignal) return;
 
-    const isPlayer1RunningSignal = this.animationFactoryService.isPlayerRunningSignals.get("Player 1");
+    const isPlayer1RunningSignal = this.animationFactoryService.isPlayerRunningSignals.get("player-1");
 
     if (event.code === 'KeyW') {
       player1MoveDirectionSignal.set("ArrowUp");
       if (isPlayer1RunningSignal && isPlayer1RunningSignal() === false) {
-        this.animationFactoryService.onPlayerAction('Player 1');
+        this.animationFactoryService.onPlayerAction('player-1');
       }
     }
     if (event.code === 'KeyD') {
       player1MoveDirectionSignal.set("ArrowRight");
       if (isPlayer1RunningSignal && isPlayer1RunningSignal() === false) {
-        this.animationFactoryService.onPlayerAction('Player 1');
+        this.animationFactoryService.onPlayerAction('player-1');
       }
     }
     if (event.code === 'KeyS') {
       player1MoveDirectionSignal.set("ArrowDown");
       if (isPlayer1RunningSignal && isPlayer1RunningSignal() === false) {
-        this.animationFactoryService.onPlayerAction('Player 1');
+        this.animationFactoryService.onPlayerAction('player-1');
       }
     }
     if (event.code === 'KeyA') {
       player1MoveDirectionSignal.set("ArrowLeft");
       if (isPlayer1RunningSignal && isPlayer1RunningSignal() === false) {
-        this.animationFactoryService.onPlayerAction('Player 1');
+        this.animationFactoryService.onPlayerAction('player-1');
       }
     }
     // Joueur 2:
-    const player2MoveDirectionSignal = this.robotDataFactoryService.getPlayerMoveDirectionSignals("Player 2");
+    const player2MoveDirectionSignal = this.robotDataFactoryService.getPlayerMoveDirectionSignals("player-2");
     if (!player2MoveDirectionSignal) return;
 
-    const isPlayer2RunningSignal = this.animationFactoryService.isPlayerRunningSignals.get("Player 2");
+    const isPlayer2RunningSignal = this.animationFactoryService.isPlayerRunningSignals.get("player-2");
 
     if (event.code === 'KeyI') {
       player2MoveDirectionSignal.set("ArrowUp");
       if (isPlayer2RunningSignal && isPlayer2RunningSignal() === false) {
-        this.animationFactoryService.onPlayerAction('Player 2');
+        this.animationFactoryService.onPlayerAction('player-2');
       }
     }
     if (event.code === 'KeyL') {
       player2MoveDirectionSignal.set("ArrowRight");
       if (isPlayer2RunningSignal && isPlayer2RunningSignal() === false) {
-        this.animationFactoryService.onPlayerAction('Player 2');
+        this.animationFactoryService.onPlayerAction('player-2');
       }
     }
     if (event.code === 'KeyK') {
       player2MoveDirectionSignal.set("ArrowDown");
       if (isPlayer2RunningSignal && isPlayer2RunningSignal() === false) {
-        this.animationFactoryService.onPlayerAction('Player 2');
+        this.animationFactoryService.onPlayerAction('player-2');
       }
     }
     if (event.code === 'KeyJ') {
       player2MoveDirectionSignal.set("ArrowLeft");
       if (isPlayer2RunningSignal && isPlayer2RunningSignal() === false) {
-        this.animationFactoryService.onPlayerAction('Player 2');
+        this.animationFactoryService.onPlayerAction('player-2');
       }
     }
 

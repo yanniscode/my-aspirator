@@ -82,11 +82,11 @@ export const CellStore = signalStore(
             return grid;
         }),
         visitedCountByVisitor: computed(() => {
-            // Map<robotName, nombre de cases visitées> — recalculée seulement si les cellules changent
+            // Map<visitorId, nombre de cases visitées> — recalculée seulement si les cellules changent
             const counts = new Map<string, number>();
             for (const cell of store.visitedCells()) {
-                if (cell.visitorName != null) {
-                    counts.set(cell.visitorName, (counts.get(cell.visitorName) ?? 0) + 1);
+                if (cell.visitorId != null) {
+                    counts.set(cell.visitorId, (counts.get(cell.visitorId) ?? 0) + 1);
                 }
             }
             return counts;

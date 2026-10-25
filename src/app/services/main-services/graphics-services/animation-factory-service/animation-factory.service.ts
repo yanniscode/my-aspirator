@@ -91,9 +91,9 @@ export class AnimationFactoryService {
 
     this.robotStore.players().forEach(player => {
       if (player.robotType === "player") {
-        this._isPlayerRunningSignals.set(player.robotName, signal(false));
-        this.lastPlayerStepTimeSignals.set(player.robotName, signal(0));
-        this.playerAnimationFrameId.set(player.robotName, signal(0));
+        this._isPlayerRunningSignals.set(player.robotId, signal(false));
+        this.lastPlayerStepTimeSignals.set(player.robotId, signal(0));
+        this.playerAnimationFrameId.set(player.robotId, signal(0));
       }
     });
   }
@@ -221,11 +221,11 @@ export class AnimationFactoryService {
   /**
    * Déclenche un déplacement du robot joueur.
    *
-   * @param playerName
+   * @param robotId
    */
-  public onPlayerAction(playerName: string): void {
+  public onPlayerAction(robotId: string): void {
     if (this.isGameStarted) {
-      this.startAnimationForPlayer(this.ctx, playerName);
+      this.startAnimationForPlayer(this.ctx, robotId);
     } else {
       console.log("Partie en pause !");
     }
@@ -241,7 +241,7 @@ export class AnimationFactoryService {
    */
   public startAnimationForPlayer(
     ctx: CanvasRenderingContext2D,
-    playerName: string
+    robotId: string
   ): void {
     console.log('AnimationFactoryService - startAnimationForPlayers()');
 
@@ -251,7 +251,7 @@ export class AnimationFactoryService {
     const robots = this.robotStore?.robots();
     if (!robots || (robots && robots?.length <= 0)) return;
 
-    const robot = robots.find(r => r.robotName === playerName);
+    const robot = robots.find(r => r.robotId === robotId);
     if (!robot) return;
 
     // ✅ Garde AVANT tout : joueur éliminé → ni dispatch, ni animation
@@ -261,28 +261,28 @@ export class AnimationFactoryService {
     this.actionServicesTab.forEach(actionService => {
       if (actionService.serviceName === "RobotActionAspiromanService") {
         // on passe par la factory d'Action des robots "Joueurs" pour déclencher le mouvement
-        this.actionFactoryService.triggerRobotPlayerMove(playerName);
+        this.actionFactoryService.triggerRobotPlayerMove(robotId);
       }
     });
 
-    const isPlayerRunning = this.isPlayerRunningSignals.get(playerName);
+    const isPlayerRunning = this.isPlayerRunningSignals.get(robotId);
     // Guard : un step joueur est déjà en cours, on ignore l'input
     if (isPlayerRunning && isPlayerRunning() === true) return;
     // sinon, on le passe en status "running"
-    this.isPlayerRunningSignals.set(playerName, signal(true));
+    this.isPlayerRunningSignals.set(robotId, signal(true));
 
-    const lastPlayerStepTimeSignals = this.lastPlayerStepTimeSignals.get(playerName);
+    const lastPlayerStepTimeSignals = this.lastPlayerStepTimeSignals.get(robotId);
     if (lastPlayerStepTimeSignals) {
-      this.lastPlayerStepTimeSignals.set(playerName, signal(performance.now()));
+      this.lastPlayerStepTimeSignals.set(robotId, signal(performance.now()));
     }
 
     // Réinitialise la progression du joueur à 0 pour ce nouveau step
-    this.robotDataFactoryService.animationPlayerProgSignals.set(playerName, signal(0));
+    this.robotDataFactoryService.animationPlayerProgSignals.set(robotId, signal(0));
 
     const animate = (currentTime: number) => {
       let deltaTime = -1;
 
-      const lastPlayerStepTimeSignals = this.lastPlayerStepTimeSignals.get(playerName);
+      const lastPlayerStepTimeSignals = this.lastPlayerStepTimeSignals.get(robotId);
       if (lastPlayerStepTimeSignals) {
         deltaTime = currentTime - lastPlayerStepTimeSignals();
       }
@@ -290,20 +290,20 @@ export class AnimationFactoryService {
       if (deltaTime >= this.PLAYERS_STEP_DURATION) {
         // Step terminé : on fixe la progression à 1 (position finale exacte)
 
-        this.robotDataFactoryService.animationPlayerProgSignals.set(playerName, signal(1));
+        this.robotDataFactoryService.animationPlayerProgSignals.set(robotId, signal(1));
 
         // Si la boucle bots est active, elle dessine cette dernière frame.
         // Sinon on la dessine ici avant de s'arrêter.
         if (!this.areBotsRunning) {
           this.renderAnimation(ctx);
         }
-        this.stopPlayerAnimation(playerName);
+        this.stopPlayerAnimation(robotId);
         return;
       }
 
       // Met à jour la progression (0 → 1)
       const progress = deltaTime / this.PLAYERS_STEP_DURATION;
-      this.robotDataFactoryService.animationPlayerProgSignals.set(playerName, signal(progress));
+      this.robotDataFactoryService.animationPlayerProgSignals.set(robotId, signal(progress));
 
       // Si la boucle bots est inactive (pas de robots IA), on dessine le joueur nous-même,
       // sinon la boucle bots s'en charge.
@@ -311,16 +311,16 @@ export class AnimationFactoryService {
         this.renderAnimation(ctx);
       }
 
-      const playerAnimationFrameId = this.playerAnimationFrameId.get(playerName);
+      const playerAnimationFrameId = this.playerAnimationFrameId.get(robotId);
       if (playerAnimationFrameId) {
-        this.playerAnimationFrameId.set(playerName, signal(requestAnimationFrame(animate)));
+        this.playerAnimationFrameId.set(robotId, signal(requestAnimationFrame(animate)));
       }
     };
 
     // Démarrage de l'animation : on set frameId au premier tour
-    const playerAnimationFrameId = this.playerAnimationFrameId.get(playerName);
+    const playerAnimationFrameId = this.playerAnimationFrameId.get(robotId);
     if (playerAnimationFrameId) {
-      this.playerAnimationFrameId.set(playerName, signal(requestAnimationFrame(animate)));
+      this.playerAnimationFrameId.set(robotId, signal(requestAnimationFrame(animate)));
     }
   }
 
@@ -377,17 +377,17 @@ export class AnimationFactoryService {
     }
   }
 
-  private stopPlayerAnimation(playerName: string): void {
+  private stopPlayerAnimation(robotId: string): void {
     console.log('AnimationFactoryService - stopPlayerAnimation()');
 
-    const isPlayerRunning = this.isPlayerRunningSignals.get(playerName);
+    const isPlayerRunning = this.isPlayerRunningSignals.get(robotId);
     if (!isPlayerRunning) return;
-    this.isPlayerRunningSignals.set(playerName, signal(false));
+    this.isPlayerRunningSignals.set(robotId, signal(false));
 
-    const playerAnimationFrameId = this.playerAnimationFrameId.get(playerName);
+    const playerAnimationFrameId = this.playerAnimationFrameId.get(robotId);
     if (playerAnimationFrameId === undefined) return;
     // on utilise "!" sur playerAnimationFrameId ici :la valeur doit être obligatoirement renseignée
     cancelAnimationFrame(playerAnimationFrameId()!);
-    this.playerAnimationFrameId.set(playerName, signal(undefined));
+    this.playerAnimationFrameId.set(robotId, signal(undefined));
   }
 }
