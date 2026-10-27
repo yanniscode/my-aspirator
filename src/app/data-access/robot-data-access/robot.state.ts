@@ -1,8 +1,7 @@
-import { inject, Injectable } from "@angular/core";
+import { Injectable } from "@angular/core";
 import { Action, State, StateContext } from "@ngxs/store";
-import { isAspiroman, isRobotAspirator, RobotAspirator, RobotsStateModel, RobotStateItem } from "./robot.model";
-import { AddRobots, CheckCollisions, EliminatePlayer, InitRobotsList, MoveRobot, MoveRobotCoordinates, RemoveRobots, StopRobot } from "./robot.actions";
-import { CellStore } from "../../data-stores/maison.signal-store";
+import { isAspiroman, isRobotAspirator, RobotsStateModel, RobotStateItem } from "./robot.model";
+import { AddRobots, CheckBotVsPlayersCollisions, CheckPlayerCollisions, InitRobotsList, MoveRobot, MoveRobotCoordinates, RemoveRobots, StopRobot } from "./robot.actions";
 
 @State<RobotsStateModel>({
     name: 'robots', // Nom du slice dans le store
@@ -12,8 +11,6 @@ import { CellStore } from "../../data-stores/maison.signal-store";
 })
 @Injectable()
 export class RobotState {
-
-    private cellStore = inject(CellStore);
 
     @Action(InitRobotsList)
     initRobotsList(ctx: StateContext<RobotsStateModel>, action: InitRobotsList) {
@@ -132,54 +129,81 @@ export class RobotState {
         });
     }
 
-    @Action(EliminatePlayer)
-    eliminatePlayer(ctx: StateContext<RobotsStateModel>, action: EliminatePlayer) {
+    @Action(CheckBotVsPlayersCollisions)
+    checkBotVsPlayersCollisions(ctx: StateContext<RobotsStateModel>, action: CheckBotVsPlayersCollisions) {
         const state = ctx.getState();
 
+        // ✅ comparaison, pas assignation
+        const movedRobot = state.robots.find(r => r.robotId === action.movedRobotId);
+        if (!movedRobot) return;
+
+        const samePositionAsMoved = (r: RobotStateItem) =>
+            r.position.row === movedRobot.position.row &&
+            r.position.col === movedRobot.position.col;
+
+        // Cas 1 : un BOT vient de bouger sur un joueur actif
+        if (isRobotAspirator(movedRobot)) {
+            const victim = state.robots.find(r =>
+                isAspiroman(r) && !r.isEliminated && samePositionAsMoved(r)
+            );
+            if (victim) {
+                this.eliminatePlayer(ctx, state.robots, victim.robotId);
+            }
+            return;
+        }
+
+        // ✅ Cas 2 : un JOUEUR vient de bouger sur un bot → même sanction
+        if (isAspiroman(movedRobot) && !movedRobot.isEliminated) {
+            const crusher = state.robots.find(r =>
+                isRobotAspirator(r) && samePositionAsMoved(r)
+            );
+            if (crusher) {
+                this.eliminatePlayer(ctx, state.robots, movedRobot.robotId);
+            }
+            return;
+        }
+    }
+
+    private eliminatePlayer(ctx: StateContext<RobotsStateModel>, robots: RobotStateItem[], robotId: string): void {
         ctx.patchState({
-            robots: state.robots.map(robot =>
-                isAspiroman(robot) && robot.robotId === action.robotId
-                    ? {
-                        ...robot,
-                        isEliminated: true,
-                        life: robot.life - 1,
-                        isRobotStarted: false,
-                    }
+            robots: robots.map(robot =>
+                isAspiroman(robot) && robot.robotId === robotId
+                    ? { ...robot, isEliminated: true, isRobotStarted: false, life: robot.life - 1 }
                     : robot
             ),
         });
     }
 
-    @Action(CheckCollisions)
-    checkCollisions(ctx: StateContext<RobotsStateModel>) {
+    @Action(CheckPlayerCollisions)
+    checkPlayerCollisions(ctx: StateContext<RobotsStateModel>, action: CheckPlayerCollisions) {
         const state = ctx.getState();
 
-        const aspirateurs: RobotAspirator[] = state.robots.filter(isRobotAspirator);
-        const eliminatedAspiromanId: String[] = state.robots
-            .filter(r => isAspiroman(r) && !r.isEliminated)
-            .filter(j => aspirateurs.some(a =>
-                a.position.row === j.position.row &&
-                a.position.col === j.position.col
-            ))
-            .map(j => j.robotId);
+        // Le robot qui vient de bouger
+        const movedRobot = state.robots.find(r => r.robotId === action.movedRobotId);
+        if (!movedRobot) return;
 
-        // Rien à faire si aucune collision
-        if (eliminatedAspiromanId.length === 0) return;
+        // Cas 1 : c'est un joueur ACTIF qui marche sur un éliminé → résurrection !
+        if (isAspiroman(movedRobot) && !movedRobot.isEliminated) {
+            const ghostPlayer = state.robots.find(r =>
+                isAspiroman(r) && r.isEliminated &&
+                r.position.row === movedRobot.position.row &&
+                r.position.col === movedRobot.position.col
+            );
+            if (ghostPlayer) {
+                ctx.patchState({
+                    robots: state.robots.map(robot =>
+                        isAspiroman(robot) && robot.robotId === ghostPlayer.robotId
+                            ? { ...robot, isEliminated: false, isRobotStarted: true, life: robot.life + 1 }
+                            : robot
+                    ),
+                });
+            }
+            return;
+        }
+        // Cas 2 : c'est un joueur ÉLIMINÉ (tentative de mouvement refusée, il n'a pas bougé,
+        // mais un autre pourrait être passé sur lui — couvert par le cas 1 côté actif)
+        // → rien à faire ici
 
-        // Sinon, si c'est un robot Joueur, il est éliminé et une vie lui est retranchée
-        ctx.patchState({
-            robots: state.robots.map(robot =>
-                isAspiroman(robot) && eliminatedAspiromanId.includes(robot.robotId)
-                    ? {
-                        ...robot,
-                        isEliminated: true,
-                        isRobotStarted: false,
-                        life: robot.life - 1,
-                        startCoordinate: this.cellStore.calculatePixelCoordinates(robot.basePosition),
-                        targetCoordinate: this.cellStore.calculatePixelCoordinates(robot.basePosition),
-                    }
-                    : robot
-            ),
-        });
+        // Cas 3 : c'est un ASPIRATEUR qui marche sur un éliminé → rien par défaut
     }
 }

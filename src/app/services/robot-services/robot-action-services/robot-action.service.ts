@@ -14,7 +14,7 @@ export abstract class RobotActionService<T extends Robot = Robot> {
   protected loggerService: LoggerService = inject(LoggerService);
 
   /**
-   * Calcule de nouvelles directions selon l'intervale donnée
+   * Calcule de nouvelles directions selon l'intervalle donnée
    */
   public abstract calculateNewDirectionsForAllRobots(): void;
 }

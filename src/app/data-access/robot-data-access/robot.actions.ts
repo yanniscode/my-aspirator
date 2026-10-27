@@ -48,7 +48,12 @@ export class EliminatePlayer {
     constructor(public robotId: string) { }
 }
 
-export class CheckCollisions {
-    static readonly type = '[Robots] Check Collisions';
+export class CheckBotVsPlayersCollisions {
+    static readonly type = '[Robots] Check Bot Vs Players Collisions';
+    constructor(public movedRobotId: string) { }    // le bot qui vient de bouger
 }
 
+export class CheckPlayerCollisions {
+    static readonly type = '[Robots] Check Player Collision';
+    constructor(public movedRobotId: string) { }    // le joueur qui vient de bouger
+}

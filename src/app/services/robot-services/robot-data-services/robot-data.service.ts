@@ -22,6 +22,8 @@ export abstract class RobotDataService<T extends Robot = Robot> {
   protected url = "http://localhost:4200";
   protected mockRobotDatasPath = this.url + "";
 
+  private PIXELS_PER_STEP: number = 0; // Pixels à parcourir dans un intervale donné
+
   /**
   * Map en lecture seule pour stocker les signaux computed de chaque robot à afficher
   */
@@ -32,6 +34,8 @@ export abstract class RobotDataService<T extends Robot = Robot> {
   public readonly robotIds: Signal<string[]> = this._robotIds;
 
   constructor() {
+    // constructor(protected http: HttpClient) {
+    this.PIXELS_PER_STEP = 50;
   }
 
   /**
@@ -116,6 +120,21 @@ export abstract class RobotDataService<T extends Robot = Robot> {
  */
   public abstract moveRobot(robotId: string, position: GridPosition, nextPosition: GridPosition): void;
 
+
+  /**
+   * Conversion de l'index dans le tableau (GridPosition) en Coordonnée en Pixels (PixelPosition) pour l'affichage CSS
+   *
+   * @param grid
+   * @returns
+   */
+  protected calculatePixelCoordinates(grid: GridPosition): PixelPosition {
+    // console.log("RobotDataService - calculatePixelCoordinates()");
+
+    return new PixelPosition(
+      grid.col * this.PIXELS_PER_STEP,  // col → x (left)
+      grid.row * this.PIXELS_PER_STEP   // row → y (top)
+    );
+  }
 
   /**
    * Arrêt d'un robot à une position

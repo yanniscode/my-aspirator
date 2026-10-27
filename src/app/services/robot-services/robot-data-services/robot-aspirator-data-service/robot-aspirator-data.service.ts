@@ -76,8 +76,8 @@ export abstract class RobotAspiratorDataService extends RobotDataService<RobotAs
 
     // calcul de la position actuelle en pixels du robot en fonction de son index dans le tableau représentant l'espace en 2D (la maison)
     // (nécessaire sinon bug au retour à la base)
-    const x = this.cellStore.calculatePixelCoordinates(robot.position).x;
-    const y = this.cellStore.calculatePixelCoordinates(robot.position).y;
+    const x = this.calculatePixelCoordinates(robot.position).x;
+    const y = this.calculatePixelCoordinates(robot.position).y;
     if (!robot.isRobotStarted) return new PixelPosition(x, y);
 
     this.moveRobotCoordinates(id, robot.lastPosition, robot.position);
@@ -109,8 +109,8 @@ export abstract class RobotAspiratorDataService extends RobotDataService<RobotAs
     const robot: RobotAspirator | undefined = this.robotStore.aspiratorById(robotId);
     if (!robot) return;
 
-    const newStartCoordinate: PixelPosition = this.cellStore.calculatePixelCoordinates(position);
-    const newTargetCoordinate: PixelPosition = this.cellStore.calculatePixelCoordinates(nextPosition);
+    const newStartCoordinate: PixelPosition = this.calculatePixelCoordinates(position);
+    const newTargetCoordinate: PixelPosition = this.calculatePixelCoordinates(nextPosition);
 
     if (newStartCoordinate.x !== newTargetCoordinate.x || newStartCoordinate.y !== newTargetCoordinate.y) {
 
@@ -150,7 +150,8 @@ export abstract class RobotAspiratorDataService extends RobotDataService<RobotAs
       targetCoordinate
     );
 
-    this.robotStore.checkCollisions();
+    // Garde à chaque mouvement: vérifie si les collisions entre Joueurs et Bots: élimination des Joueurs dans ce cas
+    this.robotStore.checkBotVsPlayersCollisions(robotId);
 
     console.log(`### ${robotId}: tableau[${nextPosition.col},${nextPosition.row}]- batterie(${robot.batterie})`);
   }
@@ -161,8 +162,8 @@ export abstract class RobotAspiratorDataService extends RobotDataService<RobotAs
     const robot: RobotAspirator | undefined = this.robotStore.aspiratorById(robotId);
     if (!robot) return;
 
-    const newStartCoordinate: PixelPosition = this.cellStore.calculatePixelCoordinates(position);
-    const newTargetCoordinate: PixelPosition = this.cellStore.calculatePixelCoordinates(nextPosition);
+    const newStartCoordinate: PixelPosition = this.calculatePixelCoordinates(position);
+    const newTargetCoordinate: PixelPosition = this.calculatePixelCoordinates(nextPosition);
 
     if (newStartCoordinate.x !== newTargetCoordinate.x || newStartCoordinate.y !== newTargetCoordinate.y) {
 

@@ -1,7 +1,7 @@
 import { signalStore, withComputed, withMethods } from "@ngrx/signals";
 import { withActions, withSelectors } from "../../shared/ngxs.utils";
 import { RobotSelectors } from "../data-access/robot-data-access/robot.selector";
-import { AddRobots, InitRobotsList, RemoveRobots, MoveRobotCoordinates, MoveRobot, StopRobot, CheckCollisions } from "../data-access/robot-data-access/robot.actions";
+import { AddRobots, InitRobotsList, RemoveRobots, MoveRobotCoordinates, MoveRobot, StopRobot, CheckBotVsPlayersCollisions, CheckPlayerCollisions } from "../data-access/robot-data-access/robot.actions";
 import { computed } from "@angular/core";
 import { Aspiroman, isAspiroman, isRobotAspirator, RobotAspirator, RobotStateItem } from "../data-access/robot-data-access/robot.model";
 
@@ -17,7 +17,8 @@ export const RobotStore = signalStore(
         moveRobotCoordinates: MoveRobotCoordinates,
         moveRobot: MoveRobot,
         stopRobot: StopRobot,
-        dispatchCheckCollisions: CheckCollisions
+        dispatchCheckBotVsPlayersCollisions: CheckBotVsPlayersCollisions,
+        dispatchCheckPlayerCollisions: CheckPlayerCollisions,
     }),
     withComputed((store) => ({
         // Méthodes computed des robots génériques:
@@ -64,19 +65,6 @@ export const RobotStore = signalStore(
             }
             return map;
         }),
-        // Joueurs entrant en collision avec un aspirateur
-        collisions: computed(() => {
-            const robots = store.robots();
-            const aspirateurs = robots.filter(isRobotAspirator);
-            const joueurs = robots.filter(r => isAspiroman(r) && !r.isEliminated);
-
-            return joueurs.filter(j =>
-                aspirateurs.some(a =>
-                    a.position.row === j.position.row &&
-                    a.position.col === j.position.col
-                )
-            );
-        }),
     })),
     withMethods((store) => ({
         // Méthodes pour les robots génériques:
@@ -107,8 +95,11 @@ export const RobotStore = signalStore(
             return store.playersById().get(id);
         },
         // Déclenche la vérification → c'est le handler NGXS qui élimine
-        checkCollisions(): void {
-            store.dispatchCheckCollisions();   // ton withActions branché sur l'action
+        checkBotVsPlayersCollisions(id: string): void {
+            store.dispatchCheckBotVsPlayersCollisions(id);   // ton withActions branché sur l'action
+        },
+        checkPlayerCollisions(id: string): void {
+            store.dispatchCheckPlayerCollisions(id);   // ton withActions branché sur l'action
         },
     }))
 );

@@ -30,13 +30,6 @@ export const CellStore = signalStore(
                     cell.position.row === position.row
             );
         },
-        calculatePixelCoordinates(gridPosition: GridPosition): PixelPosition {
-            const PIXELS_PER_STEP: number = 50; // Pixels à parcourir dans un intervale donné
-            return new PixelPosition(
-                gridPosition.col * PIXELS_PER_STEP,  // col → x (left)
-                gridPosition.row * PIXELS_PER_STEP   // row → y (top)
-            );
-        },
     })),
     withActions({
         initMaison: InitMaison,

@@ -117,8 +117,8 @@ export class RobotAspiromanDataService extends RobotDataService<Aspiroman> {
     if (!robot) return new PixelPosition(-50, -50);
 
     // calcul de la nouvelle position en pixels du robot en fonction de son index (numéro de case dans le tableau représentant l'espace en 2D - la maison)
-    const x = this.cellStore.calculatePixelCoordinates(robot.position).x;
-    const y = this.cellStore.calculatePixelCoordinates(robot.position).y;
+    const x = this.calculatePixelCoordinates(robot.position).x;
+    const y = this.calculatePixelCoordinates(robot.position).y;
 
     if (!robot.isRobotStarted) return new PixelPosition(x, y);
 
@@ -153,8 +153,8 @@ export class RobotAspiromanDataService extends RobotDataService<Aspiroman> {
     const robot: Aspiroman | undefined = this.robotStore.playerById(robotId);
     if (!robot) return;
 
-    const newStartCoordinate: PixelPosition = this.cellStore.calculatePixelCoordinates(position);
-    const newTargetCoordinate: PixelPosition = this.cellStore.calculatePixelCoordinates(nextPosition);
+    const newStartCoordinate: PixelPosition = this.calculatePixelCoordinates(position);
+    const newTargetCoordinate: PixelPosition = this.calculatePixelCoordinates(nextPosition);
 
     if (newStartCoordinate.x !== newTargetCoordinate.x || newStartCoordinate.y !== newTargetCoordinate.y) {
 
@@ -242,8 +242,10 @@ export class RobotAspiromanDataService extends RobotDataService<Aspiroman> {
       targetCoordinate
     );
 
-    // Garde: vérifie si les collisions entre Joueurs et Bots
-    this.robotStore.checkCollisions();
+    // Garde à chaque mouvement: vérifie si les collisions entre Joueurs et Bots: élimination des Joueurs dans ce cas
+    this.robotStore.checkBotVsPlayersCollisions(robotId);
+    // Garde: vérifie les collisions entre Joueurs : possibilité pour les Joueurs de ressusciter s'ils sont libérés par un autre joueur !
+    this.robotStore.checkPlayerCollisions(robotId);
 
     console.log(`### ${robotId}: moveRobot nextPosition[${nextPosition.col},${nextPosition.row}] - batterie(${robot.batterie})`);
 
