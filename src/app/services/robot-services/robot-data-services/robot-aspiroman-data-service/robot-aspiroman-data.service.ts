@@ -1,4 +1,4 @@
-import { inject, Injectable, signal, WritableSignal } from '@angular/core';
+import { inject, Injectable, Signal, signal, WritableSignal } from '@angular/core';
 import { RobotDataService as RobotDataService } from '../robot-data.service';
 import { GridPosition } from '../../../../classes/models/grid-position';
 import { LoggerService } from '../../../main-services/logger-service/logger.service';
@@ -7,7 +7,7 @@ import { Direction } from '../../../../classes/utils/direction';
 import { PixelPosition } from '../../../../classes/models/pixel-position';
 import { Observable } from 'rxjs';
 import { AlgoNettoyageService } from '../../robot-algos-deplacement-services/algo-nettoyage-service/algo-nettoyage.service';
-import { Aspiroman } from '../../../../data-access/robot-data-access/robot.model';
+import { Aspiroman, isAspiroman } from '../../../../data-access/robot-data-access/robot.model';
 
 @Injectable({
   providedIn: 'root',
@@ -22,7 +22,21 @@ export class RobotAspiromanDataService extends RobotDataService<Aspiroman> {
   protected override mockRobotDatasPath = this.url + "/assets/mock-data-services/mock-robot-data-services/mock-data-aspiroman-tab.json";
 
   // Map de Signals pour le progress (0 à 1) individualisé des joueurs
-  public readonly _animationPlayerProgSignals: Map<string, WritableSignal<number>> = new Map<string, WritableSignal<number>>();
+  public readonly _animationPlayerProgSignals: Map<string, WritableSignal<number>> = new Map<string, WritableSignal<number>>();   // ✅ le rendu reçoit un Signal<number> non inscriptible
+  public getPlayerProg(robotId: string): Signal<number> | undefined {
+    return this._animationPlayerProgSignals.get(robotId);
+  }
+
+  public readonly _animationPlayerDeathProgSignals: Map<string, WritableSignal<number>> = new Map<string, WritableSignal<number>>();
+  public getDeadPlayerProg(robotId: string): Signal<number> | undefined {
+    return this._animationPlayerDeathProgSignals.get(robotId);
+  }
+
+  // à la création des robots (une fois) :
+  public createProgSignals(robotId: string): void {
+    this._animationPlayerProgSignals.set(robotId, signal(0));
+    this._animationPlayerDeathProgSignals.set(robotId, signal(0));
+  }
 
   // Configuration de l'animation
   private readonly CELL_SIZE = 50; // td-maison: width / height: 50px
@@ -35,13 +49,6 @@ export class RobotAspiromanDataService extends RobotDataService<Aspiroman> {
     console.log("AspiromanDataService - constructor");
     super();
     this.serviceName = "RobotAspiromanDataService";
-
-    const players: Aspiroman[] = this.robotStore.players();
-    if (!players) return;
-
-    players.forEach(r => {
-      this.playerMoveDirectionSignals.set(r.robotId, signal(""));
-    });
   }
 
   /**
@@ -49,9 +56,8 @@ export class RobotAspiromanDataService extends RobotDataService<Aspiroman> {
    */
   public override createPlayersActionParams(): void {
     this.robotStore.players().forEach(player => {
-      if (player.robotType === "player") {
-        this.playerMoveDirectionSignals.set(player.robotId, signal(""));
-      }
+      this.playerMoveDirectionSignals.set(player.robotId, signal(""));
+      this.createProgSignals(player.robotId);
     });
   }
 
@@ -192,6 +198,8 @@ export class RobotAspiromanDataService extends RobotDataService<Aspiroman> {
 
     const robot: Aspiroman | undefined = this.robotStore.playerById(robotId);
     if (!robot) return;
+    // On vérifie si le robot est éliminé, pour éviter d'appeler pour rien le mécanisme de déplacement
+    if (isAspiroman(robot) && robot.isEliminated) return;
 
     let playerMoveSignal = this.playerMoveDirectionSignals.get(robot.robotId);
     if (!playerMoveSignal) return;
@@ -241,11 +249,6 @@ export class RobotAspiromanDataService extends RobotDataService<Aspiroman> {
       startCoordinate,
       targetCoordinate
     );
-
-    // Garde à chaque mouvement: vérifie si les collisions entre Joueurs et Bots: élimination des Joueurs dans ce cas
-    this.robotStore.checkBotVsPlayersCollisions(robotId);
-    // Garde: vérifie les collisions entre Joueurs : possibilité pour les Joueurs de ressusciter s'ils sont libérés par un autre joueur !
-    this.robotStore.checkPlayerCollisions(robotId);
 
     console.log(`### ${robotId}: moveRobot nextPosition[${nextPosition.col},${nextPosition.row}] - batterie(${robot.batterie})`);
 

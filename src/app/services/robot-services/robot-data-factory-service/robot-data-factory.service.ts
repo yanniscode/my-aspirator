@@ -27,6 +27,7 @@ export class RobotDataFactoryService implements OnDestroy {
 
   // TODO: revoir ici la signature + dans le store ?
   public animationPlayerProgSignals: Map<string, WritableSignal<number>> = new Map<string, WritableSignal<number>>();
+  public animationPlayerDeathProgSignals: Map<string, WritableSignal<number>> = new Map<string, WritableSignal<number>>();
 
   constructor() {
     console.log("RobotDataFactoryService - constructor()");
@@ -89,7 +90,6 @@ export class RobotDataFactoryService implements OnDestroy {
 
     return forkJoin(requests$).pipe(
       takeUntil(this.endedSubscription$),
-      tap(() => this.initAnimationPlayersProgSignals()), // initialisation de la Map de signaux appelée une seule fois, tous les services chargés
       map(() => void 0)
     );
   }
@@ -97,17 +97,17 @@ export class RobotDataFactoryService implements OnDestroy {
   /**
  * Méthode de factory : crée les paramètres pour les services "Action" (les robots de type Joueur)
  */
-  public createPlayersActionParams(): void {
-    console.log("ActionFactoryService - createPlayersActionParams()");
+  // public createPlayersActionParams(): void {
+  //   console.log("ActionFactoryService - createPlayersActionParams()");
 
-    // Sélection des services des Joueurs à adapter selon les besoins (services de Joueurs)
-    this.robotDataServicesTab.forEach(robotDataService => {
-      if (robotDataService.serviceName === 'RobotAspiromanDataService') {
-        console.log(robotDataService.serviceName);
-        robotDataService.createPlayersActionParams();
-      }
-    });
-  }
+  //   // Sélection des services des Joueurs à adapter selon les besoins (services de Joueurs)
+  //   this.robotDataServicesTab.forEach(robotDataService => {
+  //     if (robotDataService.serviceName === 'RobotAspiromanDataService') {
+  //       console.log(robotDataService.serviceName);
+  //       robotDataService.createPlayersActionParams();
+  //     }
+  //   });
+  // }
 
   /**
    * Méthode de factory qui intialise les signaux des players individualisés dans leur liste (pour synchroniser les données)
@@ -119,7 +119,13 @@ export class RobotDataFactoryService implements OnDestroy {
 
     this.robotStore.players().forEach(player => {
       if (!player) return;
-      this.animationPlayerProgSignals.set(player.robotId, signal(0));
+      // ✅ CRÉATION si absent, puis mise à jour
+      if (!this.animationPlayerProgSignals.has(player.robotId)) {
+        this.animationPlayerProgSignals.set(player.robotId, signal(0));
+      }
+      if (!this.animationPlayerDeathProgSignals.has(player.robotId)) {
+        this.animationPlayerDeathProgSignals.set(player.robotId, signal(0));
+      }
     });
   }
 
@@ -149,6 +155,7 @@ export class RobotDataFactoryService implements OnDestroy {
       // Instanciation des signaux de progression de l'animation individualisés pour chaque robot joueur:
       if (robotDataService.serviceName === "RobotAspiromanDataService") {
         this.animationPlayerProgSignals = this.robotAspiromanDataService._animationPlayerProgSignals;
+        this.animationPlayerDeathProgSignals = this.robotAspiromanDataService._animationPlayerDeathProgSignals;
       }
     });
   }

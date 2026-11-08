@@ -67,6 +67,31 @@ export abstract class AssetService<T extends AbstractModel = AbstractModel> {
   }
 
   /**
+ * Récupère la trame d'animation du robot selon sa direction et son index (animationFrame)
+ * @param direction
+ * @param indexImage
+ * @returns
+ */
+  public getRobotDeathImageByFrameAndDirection(direction: Direction, animationFrame: number): HTMLImageElement {
+
+    let dir = "e";
+
+    if (direction === Direction.NORTH) {
+      dir = "n";
+    }
+    else if (direction === Direction.EAST) {
+      dir = "e";
+    }
+    else if (direction === Direction.SOUTH) {
+      dir = "s";
+    }
+    else if (direction === Direction.WEST) {
+      dir = "w";
+    }
+    return this.getImage('robot-dead-' + dir + animationFrame);
+  }
+
+  /**
    *
    * @param type
    */

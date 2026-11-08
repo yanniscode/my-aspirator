@@ -3,6 +3,7 @@ import { AssetRobotService } from '../asset-robot-service/asset-robot.service';
 import { RenderAnimationService } from '../../../main-services/graphics-services/render-animation-service/render-animation.service';
 import { RobotAspiromanDataService } from '../../robot-data-services/robot-aspiroman-data-service/robot-aspiroman-data.service';
 import { Aspiroman } from '../../../../data-access/robot-data-access/robot.model';
+import { Direction } from '../../../../classes/utils/direction';
 
 @Injectable({
   providedIn: 'root',
@@ -17,28 +18,30 @@ export class RobotAspiromanRenderAnimationService extends RenderAnimationService
   private readonly CELL_SIZE = 50;  // largeur d'une cellule de la maison
   private readonly HEIGHT = 400;    // hauteur de la maison
 
+  constructor() {
+    super();
+  }
+
   public override drawObject(ctx: CanvasRenderingContext2D): CanvasRenderingContext2D {
     //     console.log("RobotAspiromanRenderAnimationService - drawObject()");
 
     this.ctx = ctx;
 
     const playersTab: Aspiroman[] = this.robotStore.players();
-
     if (!playersTab) return this.ctx;
 
     playersTab.forEach(player => {
 
-      this.ctx.save();
-
       let x: number;
       let y: number;
 
-      const animationPlayerProgSignal = this.robotAspiromanDataService?._animationPlayerProgSignals?.get(player.robotId);
-      if (!animationPlayerProgSignal) return this.ctx;
+      // ✅ La position dérive TOUJOURS de la progression de déplacement.
+      // Pour un joueur éliminé, playDeathAnimation l'a épinglée à 1
+      // → interpolation = targetCoordinate = position actuelle, figée.
+      const animationPlayerProgSignal = this.robotAspiromanDataService.getPlayerProg(player.robotId);
+      if (!animationPlayerProgSignal) return;
 
-      const animationPlayerProgress = animationPlayerProgSignal();
-
-      const progress: number = animationPlayerProgress;
+      const progress: number = animationPlayerProgSignal();
 
       const interpX = player.startCoordinate.x + (player.targetCoordinate.x - player.startCoordinate.x) * progress;
       const interpY = player.startCoordinate.y + (player.targetCoordinate.y - player.startCoordinate.y) * progress;
@@ -50,15 +53,17 @@ export class RobotAspiromanRenderAnimationService extends RenderAnimationService
       if (!robotImage) {
         console.warn('Image robot non chargée');
         this.ctx.restore();
-        return this.ctx;
+        return;
       }
+
+      this.ctx.save();
 
       this.ctx.drawImage(robotImage, x, y, player.robotWidth, player.robotWidth);
       this.drawRobotLabels(player, x, y);
 
       this.ctx.restore();
 
-      return this.ctx;
+      return;
     });
 
     return this.ctx;
@@ -70,34 +75,79 @@ export class RobotAspiromanRenderAnimationService extends RenderAnimationService
    * @returns
    */
   protected override getRobotCtxFrame(robot: Aspiroman): HTMLImageElement | undefined {
-    console.log("RobotAspiromanRenderAnimationService - getRobotCtxFrame()");
-
     if (robot.robotType !== "player") return;
 
-    const animationPlayerProgSignal = this.robotAspiromanDataService?._animationPlayerProgSignals?.get(robot.robotId);
+    // ✅ mort : frames pilotées par deathProg (0→100)
+    if (robot.isEliminated) {
+      const deathProg = this.robotAspiromanDataService.getDeadPlayerProg(robot.robotId);
+      const deathProgress = deathProg ? Number(deathProg().toPrecision(2)) * 100 : 0;
+
+      // ✅ La mort visuelle n'a pas encore commencé (step final en cours)
+      //    → le joueur s'affiche VIVANT, animé par la progression de déplacement.
+      if (deathProgress <= 0) {
+        const moveProg = this.robotAspiromanDataService.getPlayerProg(robot.robotId);
+        const moveFrame = moveProg ? Number(moveProg().toPrecision(2)) * 100 : 0;
+        return this.getLivingRobotFrames(moveFrame, robot.robotDirection);
+      }
+
+      // ✅ Mort en cours / terminée : frames de mort pilotées par deathProg
+      return this.getDeadRobotFrames(deathProgress, robot.robotDirection);
+    }
+
+    const animationPlayerProgSignal = this.robotAspiromanDataService.getPlayerProg(robot.robotId);
     if (!animationPlayerProgSignal) return this.assetRobotService.getRobotImageByFrameAndDirection(robot.robotDirection, 1);
-    const animationPlayerProgress = animationPlayerProgSignal();
 
-    const robotAnimationFrame = (Number(animationPlayerProgress.toPrecision(2)) * 100);
+    let animationProgress = animationPlayerProgSignal();
+    animationProgress = animationPlayerProgSignal?.() ?? 0;
 
+    const robotAnimationFrame = Number(animationProgress.toPrecision(2)) * 100;
+
+    // ✅ 2. ensuite le cas vivant
     if (!robotAnimationFrame || !robot.isRobotStarted) {
       return this.assetRobotService.getRobotImageByFrameAndDirection(robot.robotDirection, 1);
     }
+
+    return this.getLivingRobotFrames(robotAnimationFrame, robot.robotDirection);
+  }
+
+  private getLivingRobotFrames(robotAnimationFrame: number, robotDirection: Direction): HTMLImageElement | undefined {
+    console.log("getLivingRobotFrames !" + robotAnimationFrame);
+
     if (20 <= robotAnimationFrame && robotAnimationFrame < 40) {
-      return this.assetRobotService.getRobotImageByFrameAndDirection(robot.robotDirection, 2);
+      return this.assetRobotService.getRobotImageByFrameAndDirection(robotDirection, 2);
     }
     else if (40 <= robotAnimationFrame && robotAnimationFrame < 60) {
-      return this.assetRobotService.getRobotImageByFrameAndDirection(robot.robotDirection, 3);
+      return this.assetRobotService.getRobotImageByFrameAndDirection(robotDirection, 3);
     }
     else if (60 <= robotAnimationFrame && robotAnimationFrame < 80) {
-      return this.assetRobotService.getRobotImageByFrameAndDirection(robot.robotDirection, 4);
+      return this.assetRobotService.getRobotImageByFrameAndDirection(robotDirection, 4);
     }
     else if (80 <= robotAnimationFrame && robotAnimationFrame < 100) {
-      return this.assetRobotService.getRobotImageByFrameAndDirection(robot.robotDirection, 5);
+      return this.assetRobotService.getRobotImageByFrameAndDirection(robotDirection, 5);
     }
     else {
       // cas où la trame est < 20 ou > 100
-      return this.assetRobotService.getRobotImageByFrameAndDirection(robot.robotDirection, 1);
+      return this.assetRobotService.getRobotImageByFrameAndDirection(robotDirection, 1);
+    }
+  }
+
+  private getDeadRobotFrames(robotAnimationFrame: number, robotDirection: Direction): HTMLImageElement | undefined {
+    console.log("getDeadRobotFrames !" + robotAnimationFrame);
+    if (20 <= robotAnimationFrame && robotAnimationFrame < 40) {
+      return this.assetRobotService.getRobotDeathImageByFrameAndDirection(Direction.WEST, 2);
+    }
+    else if (40 <= robotAnimationFrame && robotAnimationFrame < 60) {
+      return this.assetRobotService.getRobotDeathImageByFrameAndDirection(Direction.WEST, 3);
+    }
+    else if (60 <= robotAnimationFrame && robotAnimationFrame < 80) {
+      return this.assetRobotService.getRobotDeathImageByFrameAndDirection(Direction.WEST, 4);
+    }
+    else if (80 <= robotAnimationFrame && robotAnimationFrame <= 100) { // Attention ! <= 100, ici, si on veut la dernière frame affichée !
+      return this.assetRobotService.getRobotDeathImageByFrameAndDirection(Direction.WEST, 5);
+    }
+    else {
+      // cas où la trame est < 20 ou > 100
+      return this.assetRobotService.getRobotDeathImageByFrameAndDirection(Direction.WEST, 1);
     }
   }
 

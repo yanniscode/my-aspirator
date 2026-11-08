@@ -197,7 +197,7 @@ export class GameComponent implements AfterViewInit, OnDestroy {
 
     directionSignal.set(binding.direction);
 
-    const runningSignal: WritableSignal<boolean> | undefined = this.animationFactoryService.isPlayerRunningSignals.get(binding.playerId);
+    const runningSignal: WritableSignal<boolean> | undefined = this.animationFactoryService._isPlayerRunningSignals.get(binding.playerId);
     if (!runningSignal) return;
 
     if (runningSignal() === false) {

@@ -109,6 +109,10 @@ export class RobotState {
         ctx.patchState({
             robots, // Immutabilité
         });
+
+        // Vérification collision immédiatement, sur le state FRAÎCHEMENT patché
+        ctx.dispatch(new CheckBotVsPlayersCollisions(action.robotId));
+        ctx.dispatch(new CheckPlayerCollisions(action.robotId));
     }
 
     @Action(StopRobot)

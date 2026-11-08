@@ -32,15 +32,13 @@ export class RobotAspiratorRenderAnimationService extends RenderAnimationService
     if (!robots) return this.ctx;
 
     robots.forEach(robot => {
-      // save() AVANT toute modification — isole complètement chaque robot
-      this.ctx.save();
 
       // trame d'animation du robot adaptée à sa direction (nord, sud, est, ouest)
       let robotImage: HTMLImageElement | undefined = this.getRobotCtxFrame(robot);
       //  Guard clause — on ne dessine pas si l'image n'est pas chargée
       if (!robotImage) {
         console.warn('Image robot non chargée');
-        return this.ctx;
+        return;
       }
 
       // mise à jour des coordonnées du robot dans l'espace (en pixels), pour la vue
@@ -50,6 +48,9 @@ export class RobotAspiratorRenderAnimationService extends RenderAnimationService
       const x = pixelPosition.x + (this.CELL_SIZE - robot.robotWidth) / 2;
       const y = pixelPosition.y + (this.CELL_SIZE - robot.robotWidth) / 2;
       // console.log("pixelPosition = " + x + " - " + y);
+
+      // save() AVANT toute modification — isole complètement chaque robot
+      this.ctx.save();
 
       // Equivalent [style.width.px] / [style.height.px] → aspiroViewSize
       this.ctx.drawImage(
@@ -63,7 +64,7 @@ export class RobotAspiratorRenderAnimationService extends RenderAnimationService
       // restore() APRÈS tout le rendu du robot
       this.ctx.restore();
 
-      return this.ctx;
+      return;
     });
 
     return this.ctx;

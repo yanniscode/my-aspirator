@@ -150,9 +150,6 @@ export abstract class RobotAspiratorDataService extends RobotDataService<RobotAs
       targetCoordinate
     );
 
-    // Garde à chaque mouvement: vérifie si les collisions entre Joueurs et Bots: élimination des Joueurs dans ce cas
-    this.robotStore.checkBotVsPlayersCollisions(robotId);
-
     console.log(`### ${robotId}: tableau[${nextPosition.col},${nextPosition.row}]- batterie(${robot.batterie})`);
   }
 

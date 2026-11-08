@@ -3,7 +3,7 @@ import { withActions, withSelectors } from "../../shared/ngxs.utils";
 import { RobotSelectors } from "../data-access/robot-data-access/robot.selector";
 import { AddRobots, InitRobotsList, RemoveRobots, MoveRobotCoordinates, MoveRobot, StopRobot, CheckBotVsPlayersCollisions, CheckPlayerCollisions } from "../data-access/robot-data-access/robot.actions";
 import { computed } from "@angular/core";
-import { Aspiroman, isAspiroman, isRobotAspirator, RobotAspirator, RobotStateItem } from "../data-access/robot-data-access/robot.model";
+import { Aspiroman, RobotAspirator, RobotStateItem } from "../data-access/robot-data-access/robot.model";
 
 export const RobotStore = signalStore(
     { providedIn: 'root' },
@@ -96,10 +96,10 @@ export const RobotStore = signalStore(
         },
         // Déclenche la vérification → c'est le handler NGXS qui élimine
         checkBotVsPlayersCollisions(id: string): void {
-            store.dispatchCheckBotVsPlayersCollisions(id);   // ton withActions branché sur l'action
+            store.dispatchCheckBotVsPlayersCollisions(id);   // withActions branché sur l'action
         },
         checkPlayerCollisions(id: string): void {
-            store.dispatchCheckPlayerCollisions(id);   // ton withActions branché sur l'action
+            store.dispatchCheckPlayerCollisions(id);   // withActions branché sur l'action
         },
     }))
 );

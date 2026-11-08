@@ -37,6 +37,12 @@ export abstract class AssetRobotService extends AssetService<RobotAspirator> {
       { name: 'robot-s3', path: AssetRobotService.ROBOT_IMAGES_PATH + '/verticales/gauche/megaman-verticale-gauche-3.png' },
       { name: 'robot-s4', path: AssetRobotService.ROBOT_IMAGES_PATH + '/verticales/gauche/megaman-verticale-gauche-4.png' },
       { name: 'robot-s5', path: AssetRobotService.ROBOT_IMAGES_PATH + '/verticales/gauche/megaman-verticale-gauche-5.png' },
+
+      { name: 'robot-dead-w1', path: AssetRobotService.ROBOT_IMAGES_PATH + '/dead/megaman-dead-droite-1.png' },
+      { name: 'robot-dead-w2', path: AssetRobotService.ROBOT_IMAGES_PATH + '/dead/megaman-dead-droite-2.png' },
+      { name: 'robot-dead-w3', path: AssetRobotService.ROBOT_IMAGES_PATH + '/dead/megaman-dead-droite-3.png' },
+      { name: 'robot-dead-w4', path: AssetRobotService.ROBOT_IMAGES_PATH + '/dead/megaman-dead-droite-4.png' },
+      { name: 'robot-dead-w5', path: AssetRobotService.ROBOT_IMAGES_PATH + '/dead/megaman-dead-droite-5.png' },
     ];
   }
 
