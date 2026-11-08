@@ -76,16 +76,11 @@ export abstract class AssetService<T extends AbstractModel = AbstractModel> {
 
     let dir = "e";
 
-    if (direction === Direction.NORTH) {
-      dir = "n";
-    }
-    else if (direction === Direction.EAST) {
+    // seulement 2 directions pour les sprites ici (gauche / droite)
+    if (direction === Direction.NORTH || direction === Direction.EAST) {
       dir = "e";
     }
-    else if (direction === Direction.SOUTH) {
-      dir = "s";
-    }
-    else if (direction === Direction.WEST) {
+    else if (direction === Direction.SOUTH || direction === Direction.WEST) {
       dir = "w";
     }
     return this.getImage('robot-dead-' + dir + animationFrame);

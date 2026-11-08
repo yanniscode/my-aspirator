@@ -134,20 +134,20 @@ export class RobotAspiromanRenderAnimationService extends RenderAnimationService
   private getDeadRobotFrames(robotAnimationFrame: number, robotDirection: Direction): HTMLImageElement | undefined {
     console.log("getDeadRobotFrames !" + robotAnimationFrame);
     if (20 <= robotAnimationFrame && robotAnimationFrame < 40) {
-      return this.assetRobotService.getRobotDeathImageByFrameAndDirection(Direction.WEST, 2);
+      return this.assetRobotService.getRobotDeathImageByFrameAndDirection(robotDirection, 2);
     }
     else if (40 <= robotAnimationFrame && robotAnimationFrame < 60) {
-      return this.assetRobotService.getRobotDeathImageByFrameAndDirection(Direction.WEST, 3);
+      return this.assetRobotService.getRobotDeathImageByFrameAndDirection(robotDirection, 3);
     }
     else if (60 <= robotAnimationFrame && robotAnimationFrame < 80) {
-      return this.assetRobotService.getRobotDeathImageByFrameAndDirection(Direction.WEST, 4);
+      return this.assetRobotService.getRobotDeathImageByFrameAndDirection(robotDirection, 4);
     }
     else if (80 <= robotAnimationFrame && robotAnimationFrame <= 100) { // Attention ! <= 100, ici, si on veut la dernière frame affichée !
-      return this.assetRobotService.getRobotDeathImageByFrameAndDirection(Direction.WEST, 5);
+      return this.assetRobotService.getRobotDeathImageByFrameAndDirection(robotDirection, 5);
     }
     else {
       // cas où la trame est < 20 ou > 100
-      return this.assetRobotService.getRobotDeathImageByFrameAndDirection(Direction.WEST, 1);
+      return this.assetRobotService.getRobotDeathImageByFrameAndDirection(robotDirection, 1);
     }
   }
 

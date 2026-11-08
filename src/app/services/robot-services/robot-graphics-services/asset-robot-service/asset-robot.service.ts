@@ -38,11 +38,17 @@ export abstract class AssetRobotService extends AssetService<RobotAspirator> {
       { name: 'robot-s4', path: AssetRobotService.ROBOT_IMAGES_PATH + '/verticales/gauche/megaman-verticale-gauche-4.png' },
       { name: 'robot-s5', path: AssetRobotService.ROBOT_IMAGES_PATH + '/verticales/gauche/megaman-verticale-gauche-5.png' },
 
-      { name: 'robot-dead-w1', path: AssetRobotService.ROBOT_IMAGES_PATH + '/dead/megaman-dead-droite-1.png' },
-      { name: 'robot-dead-w2', path: AssetRobotService.ROBOT_IMAGES_PATH + '/dead/megaman-dead-droite-2.png' },
-      { name: 'robot-dead-w3', path: AssetRobotService.ROBOT_IMAGES_PATH + '/dead/megaman-dead-droite-3.png' },
-      { name: 'robot-dead-w4', path: AssetRobotService.ROBOT_IMAGES_PATH + '/dead/megaman-dead-droite-4.png' },
-      { name: 'robot-dead-w5', path: AssetRobotService.ROBOT_IMAGES_PATH + '/dead/megaman-dead-droite-5.png' },
+      { name: 'robot-dead-e1', path: AssetRobotService.ROBOT_IMAGES_PATH + '/dead/horizontales/droite/megaman-dead-droite-e-1.png' },
+      { name: 'robot-dead-e2', path: AssetRobotService.ROBOT_IMAGES_PATH + '/dead/horizontales/droite/megaman-dead-droite-e-2.png' },
+      { name: 'robot-dead-e3', path: AssetRobotService.ROBOT_IMAGES_PATH + '/dead/horizontales/droite/megaman-dead-droite-e-3.png' },
+      { name: 'robot-dead-e4', path: AssetRobotService.ROBOT_IMAGES_PATH + '/dead/horizontales/droite/megaman-dead-droite-e-4.png' },
+      { name: 'robot-dead-e5', path: AssetRobotService.ROBOT_IMAGES_PATH + '/dead/horizontales/droite/megaman-dead-droite-e-5.png' },
+
+      { name: 'robot-dead-w1', path: AssetRobotService.ROBOT_IMAGES_PATH + '/dead/horizontales/gauche/megaman-dead-gauche-w-1.png' },
+      { name: 'robot-dead-w2', path: AssetRobotService.ROBOT_IMAGES_PATH + '/dead/horizontales/gauche/megaman-dead-gauche-w-2.png' },
+      { name: 'robot-dead-w3', path: AssetRobotService.ROBOT_IMAGES_PATH + '/dead/horizontales/gauche/megaman-dead-gauche-w-3.png' },
+      { name: 'robot-dead-w4', path: AssetRobotService.ROBOT_IMAGES_PATH + '/dead/horizontales/gauche/megaman-dead-gauche-w-4.png' },
+      { name: 'robot-dead-w5', path: AssetRobotService.ROBOT_IMAGES_PATH + '/dead/horizontales/gauche/megaman-dead-gauche-w-5.png' },
     ];
   }
 
