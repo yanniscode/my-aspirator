@@ -77,37 +77,20 @@ export class RobotAspiromanRenderAnimationService extends RenderAnimationService
   protected override getRobotCtxFrame(robot: Aspiroman): HTMLImageElement | undefined {
     if (robot.robotType !== "player") return;
 
-    // ✅ mort : frames pilotées par deathProg (0→100)
-    if (robot.isEliminated) {
-      const deathProg = this.robotAspiromanDataService.getDeadPlayerProg(robot.robotId);
-      const deathProgress = deathProg ? Number(deathProg().toPrecision(2)) * 100 : 0;
+    // ✅ Une seule source : deathProg (0 = vivant, 1 = mort)
+    const deathProg = this.robotAspiromanDataService.getDeadPlayerProg(robot.robotId);
+    const deathProgress = deathProg?.() ?? 0;
 
-      // ✅ La mort visuelle n'a pas encore commencé (step final en cours)
-      //    → le joueur s'affiche VIVANT, animé par la progression de déplacement.
-      if (deathProgress <= 0) {
-        const moveProg = this.robotAspiromanDataService.getPlayerProg(robot.robotId);
-        const moveFrame = moveProg ? Number(moveProg().toPrecision(2)) * 100 : 0;
-        return this.getLivingRobotFrames(moveFrame, robot.robotDirection);
-      }
-
-      // ✅ Mort en cours / terminée : frames de mort pilotées par deathProg
-      return this.getDeadRobotFrames(deathProgress, robot.robotDirection);
+    if (deathProgress > 0) {
+      // Joeur mort ou résurrection en cours
+      // (les frames remontent naturellement puisque deathProg redescend 1 → 0)
+      return this.getDeadRobotFrames(deathProgress * 100, robot.robotDirection);
     }
 
-    const animationPlayerProgSignal = this.robotAspiromanDataService.getPlayerProg(robot.robotId);
-    if (!animationPlayerProgSignal) return this.assetRobotService.getRobotImageByFrameAndDirection(robot.robotDirection, 1);
-
-    let animationProgress = animationPlayerProgSignal();
-    animationProgress = animationPlayerProgSignal?.() ?? 0;
-
-    const robotAnimationFrame = Number(animationProgress.toPrecision(2)) * 100;
-
-    // ✅ 2. ensuite le cas vivant
-    if (!robotAnimationFrame || !robot.isRobotStarted) {
-      return this.assetRobotService.getRobotImageByFrameAndDirection(robot.robotDirection, 1);
-    }
-
-    return this.getLivingRobotFrames(robotAnimationFrame, robot.robotDirection);
+    // Joueur vivant : frames pilotées par la progression de déplacement
+    const moveProg = this.robotAspiromanDataService.getPlayerProg(robot.robotId);
+    const moveFrame = moveProg ? Number(moveProg().toPrecision(2)) * 100 : 0;
+    return this.getLivingRobotFrames(moveFrame, robot.robotDirection);
   }
 
   private getLivingRobotFrames(robotAnimationFrame: number, robotDirection: Direction): HTMLImageElement | undefined {

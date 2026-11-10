@@ -47,6 +47,7 @@ export class AnimationFactoryService {
   protected readonly BOTS_STEP_DURATION = 600;
   protected readonly PLAYERS_STEP_DURATION = 600;
   protected readonly DEATH_ANIM_DURATION = 600;
+  protected readonly RESURRECTION_ANIM_DURATION = 600;
 
   // État du jeu (start / pause)
   private isGameStarted = false;
@@ -76,28 +77,21 @@ export class AnimationFactoryService {
     console.log("AnimationFactoryService - constructor()");
 
     effect(() => {
-      console.log("effect !");
+      const players = this.robotStore.players();
 
-      const eliminatedNow = this.robotStore.players()
-        .filter(p => p.isEliminated)
-        .map(p => p.robotId);
+      for (const p of players) {
+        if (!isAspiroman(p)) continue;
 
-      for (const robotId of eliminatedNow) {
-        // ✅ ONE-SHOT : seulement si pas déjà traité
-        if (this.deathAnimatedIds.has(robotId)) continue;
-        this.deathAnimatedIds.add(robotId);
+        // Transition vivant → mort : deathProg 0 → 1
+        if (p.isEliminated && !this.deathAnimatedIds.has(p.robotId)) {
+          this.deathAnimatedIds.add(p.robotId);
+          this.playDeathAnimation(p.robotId);          // anime deathProg 0 → 1
+        }
 
-        this.playDeathAnimation(robotId);
-      }
-
-      const resurrectedNow = this.robotStore.players()
-        .filter(p => !p.isEliminated)
-        .map(p => p.robotId);
-
-      for (const robotId of resurrectedNow) {
-        // ⚠️ ne nettoyer que si ce joueur était marqué mort (sinon ça tourne pour rien)
-        if (this.deathAnimatedIds.has(robotId)) {
-          this.onPlayerResurrected(robotId);
+        // Transition mort → vivant : deathProg 1 → 0
+        if (!p.isEliminated && this.deathAnimatedIds.has(p.robotId)) {
+          this.deathAnimatedIds.delete(p.robotId);
+          this.playResurrectionAnimation(p.robotId);   // simple inversion de l'animation de l'élimination : anime deathProg 1 → 0
         }
       }
     });
@@ -288,16 +282,23 @@ export class AnimationFactoryService {
     requestAnimationFrame(animateDeath);
   }
 
-  // — Dans le service d'animation (méthode publique appelée par la résurrection) —
-  public onPlayerResurrected(robotId: string): void {
-    // 1️⃣ La progression de mort est réinitialisée
-    this.robotDataFactoryService.animationPlayerDeathProgSignals.get(robotId)?.set(0);
+  private playResurrectionAnimation(robotId: string): void {
+    const player = this.robotStore.playerById(robotId);
+    if (!player || !isAspiroman(player) || player.isEliminated) return;
 
-    // 2️⃣ Le joueur peut rejouer une animation de mort plus tard
-    this.deathAnimatedIds.delete(robotId);   // ✅ sinon le one-shot bloquera sa prochaine mort !
+    this.stopPlayerAnimation(robotId);
+    this.robotDataFactoryService.animationPlayerProgSignals.get(robotId)?.set(1);  // position épinglée
 
-    // 3️⃣ Optionnel : remettre le sprite "vivant" proprement
-    this.robotDataFactoryService.animationPlayerProgSignals.get(robotId)?.set(0);
+    const deathProg = this.robotDataFactoryService.animationPlayerDeathProgSignals.get(robotId);
+    if (!deathProg || !this.ctx) return;
+
+    const startTime = performance.now();
+    const animate = (currentTime: number) => {
+      const progress = Math.min(1, (currentTime - startTime) / this.RESURRECTION_ANIM_DURATION);
+      deathProg.set(1 - progress);   // ✅ 1 → 0, la mort à rebours
+      if (progress < 1) requestAnimationFrame(animate);
+    };
+    requestAnimationFrame(animate);
   }
 
   /**
@@ -371,9 +372,6 @@ export class AnimationFactoryService {
       const progress = deltaTime / this.PLAYERS_STEP_DURATION;
       const animationPlayerProg = this.robotDataFactoryService.animationPlayerProgSignals.get(robotId);
       if (animationPlayerProg) animationPlayerProg.set(progress);
-
-      // const animationPlayerDeathProg = this.robotDataFactoryService.animationPlayerDeathProgSignals.get(robotId);
-      // if (animationPlayerDeathProg) animationPlayerDeathProg.set(progress);
 
       // Si la boucle bots est inactive (pas de robots IA), on dessine le joueur nous-même,
       // sinon la boucle bots s'en charge.

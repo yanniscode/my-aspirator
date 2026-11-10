@@ -194,13 +194,8 @@ export class RobotState {
                 r.position.col === movedRobot.position.col
             );
             if (ghostPlayer) {
-                ctx.patchState({
-                    robots: state.robots.map(robot =>
-                        isAspiroman(robot) && robot.robotId === ghostPlayer.robotId
-                            ? { ...robot, isEliminated: false, isRobotStarted: true, life: robot.life + 1 }
-                            : robot
-                    ),
-                });
+                // on passe ici l'id du player à ressusciter (ghostplayer)
+                this.resurrectionPlayer(ctx, state.robots, ghostPlayer.robotId);
             }
             return;
         }
@@ -209,5 +204,15 @@ export class RobotState {
         // → rien à faire ici
 
         // Cas 3 : c'est un ASPIRATEUR qui marche sur un éliminé → rien par défaut
+    }
+
+    private resurrectionPlayer(ctx: StateContext<RobotsStateModel>, robots: RobotStateItem[], robotId: string): void {
+        ctx.patchState({
+            robots: robots.map(robot =>
+                isAspiroman(robot) && robot.robotId === robotId
+                    ? { ...robot, isEliminated: false, isRobotStarted: true, life: robot.life + 1 }
+                    : robot
+            ),
+        });
     }
 }

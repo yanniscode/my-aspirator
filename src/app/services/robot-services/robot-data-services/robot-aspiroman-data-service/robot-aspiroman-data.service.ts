@@ -32,10 +32,16 @@ export class RobotAspiromanDataService extends RobotDataService<Aspiroman> {
     return this._animationPlayerDeathProgSignals.get(robotId);
   }
 
+  public readonly _animationPlayerResurrectedProgSignals: Map<string, WritableSignal<number>> = new Map<string, WritableSignal<number>>();
+  public getResurrectedPlayerProg(robotId: string): Signal<number> | undefined {
+    return this._animationPlayerResurrectedProgSignals.get(robotId);
+  }
+
   // à la création des robots (une fois) :
   public createProgSignals(robotId: string): void {
     this._animationPlayerProgSignals.set(robotId, signal(0));
     this._animationPlayerDeathProgSignals.set(robotId, signal(0));
+    this._animationPlayerResurrectedProgSignals.set(robotId, signal(0));
   }
 
   // Configuration de l'animation
