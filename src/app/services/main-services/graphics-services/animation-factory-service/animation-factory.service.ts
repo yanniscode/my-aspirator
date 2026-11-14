@@ -272,12 +272,27 @@ export class AnimationFactoryService {
     const deathProg = this.robotDataFactoryService.animationPlayerDeathProgSignals.get(robotId);
     if (!deathProg || !this.ctx) return;
 
-    const startTime = performance.now();
+    let elapsed = 0;                      // temps d'animation réellement écouté
+    let lastTime = performance.now();
+
     const animateDeath = (currentTime: number) => {
-      const raw = (currentTime - startTime) / this.DEATH_ANIM_DURATION; // ✅ clamp [0, 1]
-      const progress = Math.min(1, raw);
-      deathProg.set(progress);
-      if (progress < 1) requestAnimationFrame(animateDeath);
+      // ⏱️ lastTime est TOUJOURS mis à jour — même en pause
+      if (this.isGameStarted) {
+        elapsed += currentTime - lastTime;
+
+        const progress = Math.min(1, elapsed / this.DEATH_ANIM_DURATION);
+        deathProg.set(progress);
+
+        // ✅ Si la boucle maîtresse est inactive, cette boucle est le SEUL dessinateur
+        if (!this.areBotsRunning) {
+          this.renderAnimation(this.ctx);
+        }
+      }
+      lastTime = currentTime;
+
+      if (elapsed < this.DEATH_ANIM_DURATION) {
+        requestAnimationFrame(animateDeath);   // ✅ la boucle continue même en pause
+      }
     };
     requestAnimationFrame(animateDeath);
   }
@@ -292,13 +307,28 @@ export class AnimationFactoryService {
     const deathProg = this.robotDataFactoryService.animationPlayerDeathProgSignals.get(robotId);
     if (!deathProg || !this.ctx) return;
 
-    const startTime = performance.now();
-    const animate = (currentTime: number) => {
-      const progress = Math.min(1, (currentTime - startTime) / this.RESURRECTION_ANIM_DURATION);
-      deathProg.set(1 - progress);   // ✅ 1 → 0, la mort à rebours
-      if (progress < 1) requestAnimationFrame(animate);
+    let elapsed = 0;                    // temps d'animation réellement écouté
+    let lastTime = performance.now();
+
+    const animateResurrection = (currentTime: number) => {
+      if (this.isGameStarted) {
+        elapsed += currentTime - lastTime;
+
+        const progress = Math.min(1, elapsed / this.RESURRECTION_ANIM_DURATION);
+        deathProg.set(1 - progress);   // ✅ 1 → 0, la mort à rebours
+
+        // ✅ Si la boucle maîtresse est inactive, cette boucle est le SEUL dessinateur
+        if (!this.areBotsRunning) {
+          this.renderAnimation(this.ctx);
+        }
+      }
+      lastTime = currentTime;
+
+      if (elapsed < this.RESURRECTION_ANIM_DURATION) {
+        requestAnimationFrame(animateResurrection);
+      }
     };
-    requestAnimationFrame(animate);
+    requestAnimationFrame(animateResurrection);
   }
 
   /**
@@ -375,7 +405,9 @@ export class AnimationFactoryService {
 
       // Si la boucle bots est inactive (pas de robots IA), on dessine le joueur nous-même,
       // sinon la boucle bots s'en charge.
-      if (!this.areBotsRunning) { this.renderAnimation(ctx); }
+      if (!this.areBotsRunning) {
+        this.renderAnimation(ctx);
+      }
 
       const frameSignal = this._playerAnimationFrameId.get(robotId);
       if (frameSignal) {

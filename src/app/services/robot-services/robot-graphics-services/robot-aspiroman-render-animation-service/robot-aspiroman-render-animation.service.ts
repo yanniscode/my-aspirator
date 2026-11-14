@@ -105,7 +105,7 @@ export class RobotAspiromanRenderAnimationService extends RenderAnimationService
     else if (60 <= robotAnimationFrame && robotAnimationFrame < 80) {
       return this.assetRobotService.getRobotImageByFrameAndDirection(robotDirection, 4);
     }
-    else if (80 <= robotAnimationFrame && robotAnimationFrame < 100) {
+    else if (80 <= robotAnimationFrame && robotAnimationFrame < 100) { // Attention ! < 100, ici !
       return this.assetRobotService.getRobotImageByFrameAndDirection(robotDirection, 5);
     }
     else {
@@ -125,7 +125,7 @@ export class RobotAspiromanRenderAnimationService extends RenderAnimationService
     else if (60 <= robotAnimationFrame && robotAnimationFrame < 80) {
       return this.assetRobotService.getRobotDeathImageByFrameAndDirection(robotDirection, 4);
     }
-    else if (80 <= robotAnimationFrame && robotAnimationFrame <= 100) { // Attention ! <= 100, ici, si on veut la dernière frame affichée !
+    else if (80 <= robotAnimationFrame && robotAnimationFrame <= 100) { // Attention ! <= 100, ici, comme on veut la dernière frame affichée !
       return this.assetRobotService.getRobotDeathImageByFrameAndDirection(robotDirection, 5);
     }
     else {
